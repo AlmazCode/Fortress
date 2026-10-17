@@ -1,16 +1,22 @@
 {
   "schema_version": "1.0",
-  "assessment_date": "2026-10-17",
+  "assessment_date": "2026-10-18",
   "timezone": "Asia/Qyzylorda",
   "owner": "developer-4",
   "branch": "codex/dev4-rules-infra",
   "tested_code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf",
-  "integration_snapshot": "6b16272fded945668b8997498faa0b2d83a541a0",
-  "integration_merge": "56da971759ddccc8a809a77510b8174723628f18",
+  "integration_snapshot": "bfff45447f74a5263b1d728e05ebb41490d91b58",
+  "integration_merge": "8a4cf759095adfa59090536ca7cf83a2932c4726",
   "status": "blocked",
   "scope": "Owned software tooling and native client tests; not full-stack operational acceptance",
   "user_constraint": "No VM, WSL or hypervisor setup for now; remaining portable tools prepared by explicit request",
-  "accepted_by_lead": ["O1 inventory", "R1 software/missingSource", "R2", "R3 software", "R software"],
+  "accepted_by_lead": [
+    "O1 inventory",
+    "R1 software/missingSource",
+    "R2",
+    "R3 software",
+    "R software"
+  ],
   "remaining_tasks": {
     "O2": "blocked: configuration/build-input fixes prepared; actual container/offline/persistent-runtime checks not run",
     "O3": "blocked: local HTTP/TLS passed; trusted external observer/hostname/route absent",
@@ -26,24 +32,32 @@
       "skipped": 0,
       "elapsed_sec": 45.13,
       "runtime": "CPython 3.11.17, native Windows",
-      "scope": "Actual Compose config resolution, loopback HTTP/TLS clients, own-process RSS sampler and conservative rules; protocol fixture does not implement real backend/ML"
+      "scope": "Actual Compose config resolution, loopback HTTP/TLS clients, own-process RSS sampler and conservative rules; protocol fixture does not implement real backend/ML",
+      "execution_date": "2026-10-17",
+      "code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf"
     },
     {
       "command": "Reproduce infra/frontend.Dockerfile COPY layout in a fresh local directory; npm ci --ignore-scripts --no-audit --no-fund; npm run build",
       "exit_code": 0,
       "runtime": "Node 22.22.2, native Windows",
       "modules_transformed": 173,
-      "scope": "Actual typecheck and Vite production build with /frontend and sibling /contracts layout; not docker build"
+      "scope": "Actual typecheck and Vite production build with /frontend and sibling /contracts layout; not docker build",
+      "execution_date": "2026-10-17",
+      "code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf"
     },
     {
       "command": "bash -n infra/scripts/smoke.sh; FORTRESS_PYTHON=<VENV_PYTHON> bash infra/scripts/smoke.sh --help",
       "exit_code": 0,
-      "scope": "POSIX syntax and real Python 3.11 CLI entry point; no service started"
+      "scope": "POSIX syntax and real Python 3.11 CLI entry point; no service started",
+      "execution_date": "2026-10-17",
+      "code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf"
     },
     {
       "command": "git diff --check; git diff --cached --check",
       "exit_code": 0,
-      "scope": "Explicit owned file list; shared backend/contracts/locks/frontend sources not edited"
+      "scope": "Explicit owned file list; shared backend/contracts/locks/frontend sources not edited",
+      "execution_date": "2026-10-17",
+      "code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf"
     }
   ],
   "runtime_gates": {
@@ -98,9 +112,14 @@
     {
       "issue": "Accepted A emits error.code=not_found for 404, absent from K Error enum",
       "source_commit": "043eeb6d125f3b77d71b74de3b56c6a1cee91e70",
-      "paths": ["backend/app/api.py", "backend/app/media.py", "backend/app/main.py", "contracts/diagnostics.schema.json"],
+      "paths": [
+        "backend/app/api.py",
+        "backend/app/media.py",
+        "backend/app/main.py",
+        "contracts/diagnostics.schema.json"
+      ],
       "required_result": "Return contract job_not_found/media_not_found and validate error body plus HTTP status; do not weaken K/client",
-      "role_4_evidence": "Static source/schema comparison and real HTTP client regression rejecting noncontract not_found; no claim of live A execution on Windows"
+      "role_4_evidence": "2026-10-18 actual IntakeError serializer from AST-derived backend/app/api.py:18 arguments rejected by K; expected/actual exit 1. HTTP regression rejects the same noncontract code. No live Windows backend claim."
     },
     {
       "issue": "B needs accepted I, explicit synthetic bootstrap and server stage trace outside jury JSON",
@@ -110,5 +129,181 @@
       "issue": "DEV-4 journal changed",
       "required_result": "Refresh shared GitHub-plan manifest/audit during owner-1 review; role 4 did not edit shared manifests"
     }
-  ]
+  ],
+  "previous_assessment_date": "2026-10-17",
+  "previous_integration_snapshot": "6b16272fded945668b8997498faa0b2d83a541a0",
+  "previous_integration_merge": "56da971759ddccc8a809a77510b8174723628f18",
+  "recheck_2026_10_18": {
+    "starting_report_head": "8aee9d145647f700dc7c522208030e14c915019a",
+    "verified_merge_head": "8a4cf759095adfa59090536ca7cf83a2932c4726",
+    "lead_review_commit": "c00516e3e5e8bc08c0ba96a4cb24b0048178068f",
+    "lead_reviewed_candidate": "3cee7531746927cd035b4c4e51e522f150990dbd",
+    "lead_reviewed_report": "b679dc763e28a7023c1ad901192caa1805c113ab",
+    "instructions_changed": false,
+    "fetch_exit_code": 0,
+    "pull_ff_only_exit_code": 0,
+    "merge_exit_code": 0,
+    "accepted_dependencies": [
+      {
+        "stage": "K",
+        "sha": "2e44bf555ad1a824d92e73770a1ee85d1bf20d0f",
+        "object_exit_code": 0,
+        "integration_ancestor_exit_code": 0,
+        "own_ancestor_exit_code": 0
+      },
+      {
+        "stage": "A",
+        "sha": "043eeb6d125f3b77d71b74de3b56c6a1cee91e70",
+        "object_exit_code": 0,
+        "integration_ancestor_exit_code": 0,
+        "own_ancestor_exit_code": 0
+      },
+      {
+        "stage": "F",
+        "sha": "c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc",
+        "object_exit_code": 0,
+        "integration_ancestor_exit_code": 0,
+        "own_ancestor_exit_code": 0
+      },
+      {
+        "stage": "F merge",
+        "sha": "c6d15d5feade48abfcde81207c818510344445a9",
+        "object_exit_code": 0,
+        "integration_ancestor_exit_code": 0,
+        "own_ancestor_exit_code": 0
+      }
+    ],
+    "execution_identity_exit_code": 0,
+    "execution_identity": [
+      {
+        "path": "infra",
+        "tested_oid": "36c2a90b8be63773bc4cdd20eff1794121a3a8df",
+        "current_oid": "36c2a90b8be63773bc4cdd20eff1794121a3a8df",
+        "identical": true
+      },
+      {
+        "path": "rules",
+        "tested_oid": "fc0a66aea715b6065da2bb0f2b3d2ef46ce0c030",
+        "current_oid": "fc0a66aea715b6065da2bb0f2b3d2ef46ce0c030",
+        "identical": true
+      },
+      {
+        "path": "tests/performance",
+        "tested_oid": "7cefd82329b3e8f027f5ea897d72d75291e0d06d",
+        "current_oid": "7cefd82329b3e8f027f5ea897d72d75291e0d06d",
+        "identical": true
+      },
+      {
+        "path": "tests/rules",
+        "tested_oid": "e5cd679528b33ca34fa5795defea289c86bfaf5a",
+        "current_oid": "e5cd679528b33ca34fa5795defea289c86bfaf5a",
+        "identical": true
+      },
+      {
+        "path": "backend",
+        "tested_oid": "7a272d19443db788654680b7263f94b5f7b69cb6",
+        "current_oid": "7a272d19443db788654680b7263f94b5f7b69cb6",
+        "identical": true
+      },
+      {
+        "path": "frontend",
+        "tested_oid": "b995aadd25d75aadbd47dd75ff348d7e9eed62ae",
+        "current_oid": "b995aadd25d75aadbd47dd75ff348d7e9eed62ae",
+        "identical": true
+      },
+      {
+        "path": "contracts",
+        "tested_oid": "b7dda28996a41cadff8e6b9613987e5069c17197",
+        "current_oid": "b7dda28996a41cadff8e6b9613987e5069c17197",
+        "identical": true
+      },
+      {
+        "path": "pyproject.toml",
+        "tested_oid": "ad0c4c82ec254a6a9700a1d82d03abede3d5e583",
+        "current_oid": "ad0c4c82ec254a6a9700a1d82d03abede3d5e583",
+        "identical": true
+      },
+      {
+        "path": "uv.lock",
+        "tested_oid": "a35c1becb0d634b494b795ada5c3e6e757d018c7",
+        "current_oid": "a35c1becb0d634b494b795ada5c3e6e757d018c7",
+        "identical": true
+      }
+    ],
+    "scope_exit_code": 0,
+    "review_delta_file_count": 27,
+    "review_delta_paths": [
+      "docs/github-plan/status/DEV-4.md",
+      "docs/operations/ACCEPTANCE.json",
+      "docs/operations/BENCHMARK.md",
+      "docs/operations/NETWORK.md",
+      "docs/operations/RECOVERY.md",
+      "docs/operations/SETUP.md",
+      "infra/api.Dockerfile",
+      "infra/compose.test.yaml",
+      "infra/compose.yaml",
+      "infra/env.example",
+      "infra/frontend.Dockerfile",
+      "infra/nginx.conf",
+      "infra/redis.conf",
+      "infra/scripts/network-smoke.sh",
+      "infra/scripts/preflight.sh",
+      "infra/scripts/smoke.sh",
+      "infra/scripts/tls-check.sh",
+      "infra/smoke_server.py",
+      "infra/worker.Dockerfile",
+      "rules/engine.py",
+      "tests/performance/benchmark.py",
+      "tests/performance/test_capacity_deadline.py",
+      "tests/performance/test_compose_isolation.py",
+      "tests/performance/test_https.py",
+      "tests/performance/test_network_smoke.py",
+      "tests/performance/test_preflight_report.py",
+      "tests/performance/test_service_resources.py"
+    ],
+    "out_of_scope_paths": [],
+    "native_checks_reexecuted": false,
+    "native_evidence_status": "Prior successful native checks retained with original execution date; executable/test/dependency Git objects identical",
+    "backend_serializer_reproduction": {
+      "date": "2026-10-18",
+      "source": "backend/app/api.py",
+      "line": 18,
+      "source_commit": "043eeb6d125f3b77d71b74de3b56c6a1cee91e70",
+      "method": "Parse actual 404 IntakeError call via AST, use actual IntakeError.payload(), validate against actual K diagnostics schema",
+      "http_status": 404,
+      "error_code": "not_found",
+      "contract_validation": "rejected",
+      "expected_exit_code": 1,
+      "actual_exit_code": 1,
+      "scope": "Serializer/schema reproduction; not live API/DB/runtime; owner 1 fixes backend, client remains strict"
+    }
+  },
+  "technical_decision": {
+    "source": "User delegates technical choice; existing K stack retained",
+    "client": "Ordinary browser on Windows; native build/probe/sampler tools",
+    "server": "Existing authorized native Linux x86_64 host with Linux container engine; no VM setup on current Windows PC",
+    "runtime_host_selected": false,
+    "runtime_host_address": null,
+    "engine_access_confirmed": false,
+    "external_hostname": null,
+    "external_route_confirmed": false,
+    "external_tls_confirmed": false,
+    "comment": "No operational host, engine credentials/connection or external URL supplied. Technical delegation does not create or authorize an unprovided host/route."
+  },
+  "minimum_completion_conditions": {
+    "O2": [
+      "Existing authorized Linux x86_64 runtime host and an available connection method",
+      "Confirmed working Docker engine access and supported Compose; version/config alone are insufficient",
+      "Dedicated persistent test roots/volumes and private env; actual build/start, migrations, worker DB/Redis plus blocked egress and restart checks",
+      "Actual GPU/container compatibility checks for the required GPU worker; current CPU Torch lock is not CUDA evidence"
+    ],
+    "O3": [
+      "Working O2 runtime serving the intended test endpoint",
+      "Confirmed allowed inbound HTTPS route and hostname resolving to that runtime",
+      "Valid trusted certificate chain/name and private certificate material installed locally outside Git",
+      "Client outside the service network for actual auth/upload/poll/media smoke; local private-CA loopback is not external evidence"
+    ],
+    "O": "Actual O2 and O3 criteria pass on exact checked commits; ordinary push/config/native tests do not close them",
+    "B": "Accepted I plus explicit synthetic bootstrap and actual full-stack recovery/capacity/deadline evidence; parser/harness success is insufficient"
+  }
 }

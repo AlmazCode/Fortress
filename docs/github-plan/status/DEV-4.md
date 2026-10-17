@@ -107,3 +107,38 @@ Base исправлений `5754d22292a80fb1006c78f59ce8dba237b1075d`; пров
 При разработке HTTP tests сначала воспроизведён дефект нового клиента с Connection: close на Windows (закрытый socket handle), исправлен bounded response-reader socket + read1; затем все проверки прошли. Fixture сначала использовал неверный `not_found`: строгий K выявил это. Сравнение с A показало тот же literal в backend/app/api.py, media.py и main.py. **Передача №1:** заменить на contract job_not_found/media_not_found с проверкой HTTP/body; №4 не меняет backend/contracts и не ослабляет client. Это статически подтверждённое несоответствие и HTTP protocol regression, не live API проверка A на Windows.
 
 Полный machine-readable итог — docs/operations/ACCEPTANCE.json. O2/O3/O/B остаются blocked по настоящему runtime/offline/volumes, внешнему HTTPS, I и server timing trace. Recovery/fault/capacity actual full-stack не выполнялись; новые parser/protocol/sampler tests ими не считаются. Training/independent ML evaluation не запускались, реальные latency/VRAM/RAM модели not measured. Общий manifest/audit изменяет №1 при проверке этого журнала.
+
+## Повторная передача на review — 18 октября 2026
+
+`git remote -v`, status/root/base guard, `fetch origin`, `pull --ff-only` — exit 0. Получен свежий integration `bfff45447f74a5263b1d728e05ebb41490d91b58`. Проверены текущие AGENTS/WORKFLOW/PLAN/REQUIREMENTS, своё ТЗ и review №1 `c00516e3e5e8bc08c0ba96a4cb24b0048178068f`: инструкции/граф относительно своей ветки не изменились. Review главного относится к code `3cee753` / report `b679dc7`, а не к уже опубликованным `1137423` / `8aee9d1`.
+
+Принятые зависимости подтверждены через `git cat-file -t` и `git merge-base --is-ancestor` отдельно для integration и собственного HEAD; каждый exit 0:
+
+| Результат | Точный SHA |
+| --- | --- |
+| K | 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f |
+| A | 043eeb6d125f3b77d71b74de3b56c6a1cee91e70 |
+| F | c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc |
+| F merge | c6d15d5feade48abfcde81207c818510344445a9 |
+
+Fresh integration объединена обычным merge `8a4cf759095adfa59090536ca7cf83a2932c4726` — exit 0; пришли только 4 документа №1/№2, исполняемый код не изменился. Код backend в integration побайтно соответствует принятому A; frontend в своей ветке — принятому F. Девять наборов Git objects (`infra`, `rules`, `tests/performance`, `tests/rules`, `backend`, `frontend`, `contracts`, pyproject и uv.lock) сравнивались с `1137423fc1de54b3d6cc5b77c2c14010e72d2ecf`: все OID идентичны, exit 0. Дельта относительно integration — 27 разрешённых файлов №4, вне scope нет, exit 0. Полные object IDs и перечень путей сохранены в ACCEPTANCE.json.
+
+Поэтому 78 passed / 50 subtests / 0 skipped, настоящий Compose config, private-CA loopback TLS, native RSS tests и frontend COPY-layout build сохраняются как доказательства **выполнения 17 октября на коде 1137423**. Они не повторялись без изменения кода и не переименованы в новый runtime прогон. Текущая дата оценки и дата исполнения checks в JSON явно разделены. COPY contracts остаётся исправленным в 1137423, старые :app/:celery_app exports/solo/remote-control ping не возвращались.
+
+Замечание 404 воспроизведено заново без изменения backend. Из настоящего AST `backend/app/api.py:18` взяты literal arguments для IntakeError(404, not_found, ...), вызван настоящий `backend.app.storage.IntakeError.payload()`, затем настоящий K validator. Получен **ожидаемый exit 1**, diagnostics schema отвергает error.code=not_found. Это actual serializer/schema reproduction, а не live API/DB/Windows worker. Для №1 минимальное воспроизведение в locked Python environment:
+
+```sh
+python -c 'from backend.app.storage import IntakeError; from contracts.python_ports import validate_contract; validate_contract("diagnostics", IntakeError(404, "not_found", "Job is unavailable.").payload())'
+```
+
+Ожидается ContractError / exit 1. Исправление job_not_found/media_not_found и HTTP/body regression остаётся владельцу backend; клиент и K не ослаблены.
+
+Пользователь сообщил, что технический выбор делегирует, но конкретный runtime-хост и внешний URL не предоставил. Выбран уже согласованный K stack: browser на Windows, сервер на существующем разрешённом native Linux x86_64 компьютере с доступным Linux container engine. Это не новый облачный сервис и не включение виртуализации на текущем ПК. Физический runtime-хост/способ подключения пока не подтверждены; адрес/маршрут не выдумываются. Дополнительных технических настроек от пользователя для review кода сейчас не требуется.
+
+Минимальные условия фактического завершения:
+
+1. **O2:** разрешённый Linux runtime-хост и способ доступа; работающий доступ к Docker engine/Compose; отдельные persistent test roots/private env. Затем настоящие build/start/migrate, worker DB/Redis connectivity плюс запрет egress и volumes/restart; GPU compatibility проверить реально, CPU lock её не доказывает. Review №1 зафиксировал permission denied для своего Linux engine, а не успешный запуск; это не исправляется native client tests на Windows.
+2. **O3:** работающий O2 endpoint, разрешённый входящий HTTPS-маршрут, hostname/DNS, соответствующий доверенный TLS, внешний клиент вне сети сервиса. Затем фактические auth/upload/poll/media проверки. Local private CA/TLS не подтверждают внешнюю доступность.
+3. **O:** закрытые фактические O2/O3, а не только опубликованный кандидат. **B:** отдельно после принятого I с реальным full-stack fault/recovery/capacity/deadline прогоном. R остаётся software accepted / legal unknown/unsupported.
+
+В этом продолжении изменены только ACCEPTANCE.json и собственный DEV-4 журнал; executable code `1137423` сохранён. Общие STATUS/manifest/audit не редактировались. Реальный Docker/worker/volumes/recovery и внешний HTTPS по-прежнему not_run/blocked; WSL/VirtualMachinePlatform не включались, Docker повторно не устанавливался, перезагрузки не было.
