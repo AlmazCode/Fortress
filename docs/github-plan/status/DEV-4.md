@@ -4,13 +4,13 @@ Git/GitHub, без Aster. Своя ветка: `codex/dev4-rules-infra`. Баз�
 
 | Task | State | Branch | Commit / PR | Проверки / блокер |
 | --- | --- | --- | --- | --- |
-| O1 | review | codex/dev4-rules-infra | 12acfed12713cf2b8868b2e469bd9693791e5848 | CLI и инвентарь проверены; outcome missingTool, service/gpu/external readiness=false |
-| R1 | review | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | C01–C15 сохранены; original case/jurisdiction/normative sources missing, legal unknown |
-| R2 | review | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Память whole-video, late events, scene/job isolation проверены synthetic observations |
-| R3 | review | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | 5 технических шаблонов проверены; все production cases честно unknown/unsupported |
-| R | review | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Код R1–R3 собран; нормативная/ML приёмка не пройдена |
-| O2 | blocked | codex/dev4-rules-infra | 1a1b091f091611ff56ff523daf1aebf137e343ee | Настоящий Compose config passed; build/offline/volumes not_run без engine; CPU lock не подтверждает CUDA |
-| O3 | blocked | codex/dev4-rules-infra | 1a1b091f091611ff56ff523daf1aebf137e343ee | Local HTTP/TLS и certificate rejection passed; нет trusted внешнего hostname/маршрута |
+| O1 | accepted | codex/dev4-rules-infra | 12acfed / 9569729, merge df1f398 | Принят главным в STATUS 2ba4272; это инвентарь, не готовность среды |
+| R1 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Главный принял software/missingSource; legal gate unknown |
+| R2 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Принят главным, merge df1f398; synthetic observations не ML validation |
+| R3 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Главный принял software; production cases unsupported |
+| R | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Принят главным в программном объёме; legal/ML gate не пройден |
+| O2 | blocked | codex/dev4-rules-infra | 3cee7531746927cd035b4c4e51e522f150990dbd | Исправлены замечания A/CLI/env/scope; config passed; runtime требует VirtualMachinePlatform/admin/restart |
+| O3 | blocked | codex/dev4-rules-infra | 3cee7531746927cd035b4c4e51e522f150990dbd | Local HTTP/TLS и certificate rejection passed; нет trusted внешнего hostname/маршрута |
 | O | blocked | codex/dev4-rules-infra | — | Требует O3 |
 | B | blocked | codex/dev4-rules-infra | — | Требует интеграции I и реальных сервисов |
 
@@ -71,3 +71,21 @@ Session memory хранит историю ролика, дедуплициру�
 - `python docs/github-plan/validate_plan.py` — **exit 1**: manifest ожидает старый hash `status/DEV-4.md`, saved AUDIT отличается после изменения журнала. Граф 36 задач/48 рёбер ацикличен, ownership overlap отсутствует. Это не application test failure и не pass документационного audit. Следующее действие №1 при приёмке: проверить/обновить общий manifest и audit штатным workflow; №4 не присваивает эти общие файлы.
 
 Ограничения прежние: Docker engine/WSL отсутствуют, runtime/GPU/offline/volumes и публичный HTTPS не проверены; local private-CA TLS не доказывает внешний маршрут. B ожидает принятый I. Нормативные sources и original case/jurisdiction не появились: R остаётся unknown/unsupported. Подготовка и push своей ветки не означают accepted или финальную сдачу.
+
+## Принятый A и исправления по возврату O2/O3
+
+После нового `git fetch origin` проверен STATUS `2ba4272`: главный принял O1 и программный объём R1–R3/R, merge `df1f398d14367fddc5621f613280115f8df19ff3`. Таблица выше отражает эту опубликованную приёмку, не новую собственную. A принят в `043eeb6d125f3b77d71b74de3b56c6a1cee91e70`. Все эти изменения объединены в своей ветке merge `5754d22292a80fb1006c78f59ce8dba237b1075d` без конфликтов и правок чужих checkout.
+
+Base исправлений `5754d22292a80fb1006c78f59ce8dba237b1075d`; проверенный code head `3cee7531746927cd035b4c4e51e522f150990dbd`. Изменены `infra/{compose.yaml,api.Dockerfile,worker.Dockerfile,env.example}`, `tests/performance/test_compose_isolation.py`, `docs/operations/{SETUP.md,NETWORK.md}`. Внеплановый собственный `infra/.gitattributes` удалён по review; shared settings/locks/contracts не менялись.
+
+Замечания review 1–5 исправлены в собственном scope: поддерживаемый `python -m backend.app.main api/worker` вместо guessed exports; prefork/concurrency/limits берутся из принятого backend CLI; local process health вместо disabled remote control; полный Settings env, включая API key у worker; явный порядок DB/Redis → migrate → остальные services. Общий key остаётся private environment, не build argument. Health проверяет PID 1/argv при NOSETPS=1; это только liveness, не модель/queue readiness. Замечание 6 о настоящем runtime/external HTTPS остаётся blocker.
+
+Фактические проверки:
+
+- `FORTRESS_COMPOSE_CLI=<local-compose> .venv/Scripts/python.exe -m pytest tests/performance/test_compose_isolation.py -q` — exit 0, **10 passed, 2 subtests passed** на неизменённом коде указанного head. Настоящий Compose v5.6.0 config, production/test resolved commands/networks/GPU reset, обязательный Settings env, принятые Celery defaults. Контейнерного запуска нет.
+- `preflight.ps1 -OutputPath <local-report> -TimeoutSeconds 5` с собственным Python 3.11 venv первым в process PATH — exit 0, collected, recorder 3.11.17, python311_ready=true; os/docker/compose/ffmpeg/toolchain/service/gpu/external readiness=false. Standalone Compose хранится отдельно и не выдаётся за работающий Docker plugin/engine. Сырые отчёты остаются вне Git.
+- С разрешения пользователя скачан официальный Docker Desktop 4.95.0 build 242831. SHA-256 и Authenticode Valid/Docker Inc проверены до запуска; полные значения/официальные ссылки в SETUP.
+- Реальный per-user installer `install --user --quiet --accept-license --backend=wsl-2 --no-windows-containers` — **exit 1** на prerequisite check: выключен VirtualMachinePlatform, для включения нужны administrator privileges. Текущий процесс не elevated; Docker не установлен. Не пытались обходить Windows permission gate. Пользователю сообщён требуемый шаг admin PowerShell `wsl --install --no-distribution` и последующая перезагрузка. После вопроса «зачем» объяснено, что компонент нужен для Linux containers только на ПК развёртывания; решение о ПК/системном шаге ещё не получено.
+- `git diff --check` / staged check — exit 0. Новые code changes прошли targeted checks; прежние успешные loopback TLS и rules tests не повторялись без изменения их кода.
+
+Оставшиеся O2/O3/O/B не закрыты. Следующее действие: выбранный runtime PC с engine/WSL2 → build/start, worker connectivity/egress и volumes; подтверждённый внешний HTTPS; B только после принятого I. Правила остаются юридически unknown до original case/jurisdiction/normative sources. Локальный поиск предоставленного case в текущем workspace файла не нашёл; чужие материалы/разметка не изменялись. Общий manifest/audit после изменения DEV-4 журнала по-прежнему обновляет №1 при review, не №4.
