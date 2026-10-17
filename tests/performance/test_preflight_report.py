@@ -66,6 +66,78 @@ class PreflightTests(unittest.TestCase):
         self.assertTrue(all(command[0] == 'git' for command in fake.calls))
         network.assert_not_called()
 
+    def test_network_only_skips_runtime_probes_and_unrelated_blockers(self):
+        fake = SyntheticCommands()
+        report = PREFLIGHT.collect(ROOT, runner=fake, network_only=True,
+                                   container_smoke=True, gpu_image='trusted:fixture')
+        self.assertTrue(all(command[0] == 'git' for command in fake.calls))
+        self.assertEqual(report['checks'], {})
+        self.assertEqual(report['blockers'], report['network']['blockers'])
+        self.assertEqual(report['network']['tls_probe']['status'], 'not_run')
+        self.assertFalse(report['readiness']['external_access_verified'])
+
+    def test_network_only_repository_mismatch_still_prevents_tls(self):
+        fake = SyntheticCommands(bad_origin=True)
+        with patch.object(PREFLIGHT.socket, 'create_connection') as network:
+            report = PREFLIGHT.collect(ROOT, runner=fake, network_only=True,
+                                       external_url='https://example.invalid', probe_external=True)
+        self.assertEqual(report['report_status'], 'repository_mismatch')
+        self.assertTrue(all(command[0] == 'git' for command in fake.calls))
+        network.assert_not_called()
+
+    def test_network_only_cli_returns_only_network_scope_without_runtime_checks(self):
+        fake = SyntheticCommands()
+        collect = PREFLIGHT.collect
+        def network_collect(*args, **kwargs):
+            return collect(*args, runner=fake, **kwargs)
+        output = io.StringIO()
+        with patch.object(PREFLIGHT, 'collect', side_effect=network_collect), contextlib.redirect_stdout(output):
+            exit_code = PREFLIGHT.main(['--network-only', '--require-tls'])
+        report = json.loads(output.getvalue())
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(report['blockers'], report['network']['blockers'])
+        self.assertTrue(all(command[0] == 'git' for command in fake.calls))
+        self.assertIn('no OS, WSL, Docker or GPU probes', report['scope'])
+
+    def test_network_only_successful_tls_never_claims_external_upload(self):
+        fake = SyntheticCommands()
+        collect = PREFLIGHT.collect
+        def network_collect(*args, **kwargs):
+            return collect(*args, runner=fake, **kwargs)
+        output = io.StringIO()
+        with patch.object(PREFLIGHT, 'collect', side_effect=network_collect), \
+             patch.object(PREFLIGHT.socket, 'create_connection'), \
+             patch.object(PREFLIGHT.ssl, 'create_default_context') as tls, \
+             contextlib.redirect_stdout(output):
+            secured = tls.return_value.wrap_socket.return_value.__enter__.return_value
+            secured.getpeercert.return_value = {'notAfter':'synthetic date'}
+            secured.version.return_value = 'TLSv1.3'
+            exit_code = PREFLIGHT.main(['--network-only', '--probe-external', '--require-tls',
+                                        '--external-url', 'https://example.invalid'])
+        report = json.loads(output.getvalue())
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report['network']['tls_probe']['status'], 'ok')
+        self.assertFalse(report['network']['external_access_verified'])
+        self.assertTrue(all(command[0] == 'git' for command in fake.calls))
+
+    def test_network_only_cli_keeps_certificate_failure_nonzero(self):
+        fake = SyntheticCommands()
+        collect = PREFLIGHT.collect
+        def network_collect(*args, **kwargs):
+            return collect(*args, runner=fake, **kwargs)
+        output = io.StringIO()
+        with patch.object(PREFLIGHT, 'collect', side_effect=network_collect), \
+             patch.object(PREFLIGHT.socket, 'create_connection',
+                          side_effect=PREFLIGHT.ssl.SSLCertVerificationError(1, 'synthetic invalid certificate')), \
+             contextlib.redirect_stdout(output):
+            exit_code = PREFLIGHT.main(['--network-only', '--probe-external', '--require-tls',
+                                        '--external-url', 'https://example.invalid'])
+        report = json.loads(output.getvalue())
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(report['network']['tls_probe']['status'], 'failed')
+        self.assertFalse(report['network']['external_access_verified'])
+        self.assertTrue(all(command[0] == 'git' for command in fake.calls))
+
     def test_docker_cli_does_not_imply_working_daemon(self):
         fake = SyntheticCommands({('docker','--version'):'Docker version fixture', ('docker','compose','version','--short'):'2.39.0'})
         report = PREFLIGHT.collect(ROOT, runner=fake)

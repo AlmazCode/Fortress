@@ -137,7 +137,7 @@ def network_inventory(url=None, probe_external=False, wan_ip=None, public_ip=Non
 
 
 def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None, public_ip=None,
-            gpu_image=None, container_smoke=False, runner=run):
+            gpu_image=None, container_smoke=False, runner=run, network_only=False):
     probe = lambda args: runner(args, timeout=timeout, cwd=cwd)
     repo = verify_repository(cwd, probe)
     report = {'schema_version':1, 'generated_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -151,6 +151,10 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
         report['blockers'].append('Repository origin/root/base binding did not pass; runtime probes were not run')
         return report
     report['network'] = network_inventory(external_url, probe_external, wan_ip, public_ip, timeout)
+    if network_only:
+        report['scope'] = 'Network inventory and explicit TLS probe only; no OS, WSL, Docker or GPU probes.'
+        report['blockers'].extend(report['network']['blockers'])
+        return report
     checks = report['checks']
     if platform.system() == 'Windows':
         checks['os'] = probe(['powershell.exe','-NoProfile','-NonInteractive','-Command', "Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,TotalVisibleMemorySize | ConvertTo-Json -Compress"])
@@ -253,10 +257,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not 1 <= args.timeout <= 60:
         parser.error('--timeout must be between 1 and 60 seconds')
-    report = collect(Path.cwd(), args.timeout, args.external_url, args.probe_external, args.wan_ip, args.public_ip, args.gpu_image, args.container_smoke)
+    report = collect(Path.cwd(), args.timeout, args.external_url, args.probe_external, args.wan_ip, args.public_ip, args.gpu_image, args.container_smoke,
+                     network_only=args.network_only)
     if args.network_only:
         report = {'schema_version':1, 'report_status':report['report_status'], 'repository_ready':report['repository']['ready'],
-                  'network':report['network'], 'readiness':{'external_access_verified':False}, 'blockers':report['blockers']}
+                  'network':report['network'], 'readiness':{'external_access_verified':False}, 'blockers':report['blockers'],
+                  'scope':report['scope']}
     text = json.dumps(report, ensure_ascii=True, indent=2) + '\n'
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

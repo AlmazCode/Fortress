@@ -22,6 +22,30 @@ nvidia-smi
 
 Нужен ответ **Server** у `docker version`, тип `linux` и успешный доступ к engine. Permission denied / socket missing — остановиться и исправить доступ вместе с владельцем компьютера. Наличие Compose без engine недостаточно. На NVIDIA-хосте успешный `nvidia-smi` подтверждает только host driver; контейнерная проверка ниже отдельная.
 
+### Если Docker отвечает permission denied
+
+В журнале №1 это ошибка **его Linux-хоста**, `/var/run/docker.sock`; текущий Windows №4 сообщает отсутствие engine pipe. Это разные причины. На Linux сначала собрать факты:
+
+```bash
+id
+docker context show
+docker context inspect --format '{{.Endpoints.docker.Host}}'
+if test -S /var/run/docker.sock; then
+  stat -Lc '%A %U %G %n' /var/run/docker.sock
+fi
+docker version
+```
+
+Для обычного rootful daemon с socket `root:docker` и существующей группой `docker` администратор добавляет **оператора этого хоста**:
+
+```bash
+sudo usermod -aG docker "$(id -un)"
+```
+
+Команду выполнять из сессии самого оператора. Затем полностью выйти из SSH/login и войти снова; локальный Codex также должен получить новую login-сессию. Перезагрузка Windows не нужна. Проверить `id -nG`, затем `docker version`/`docker info`. Группа даёт административные возможности на хосте — [официальная процедура Docker](https://docs.docker.com/engine/install/linux-postinstall/).
+
+Если выбран существующий [rootless daemon](https://docs.docker.com/engine/security/rootless/), проверить его реальный context/endpoint, а не добавлять права на чужой rootful socket. Если права/группы уже корректны, проверить ACL и ограничения среды выполнения. Не менять socket на `chmod 666` и не открывать незащищённый TCP API. Исправление применимо только на доступном Linux-хосте; здесь оно **не выполнено**.
+
 ## 2. Получить точный код
 
 Клонировать в новую папку. `RELEASE_SHA` заменить полным SHA выпуска; его сообщает главный. Проверенная точка интеграции при написании инструкции — `69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5`, **I ещё не принят**. Для первого инфраструктурного прогона можно закрепить эту точку; для приложения нужен последующий принятый I.
@@ -175,7 +199,37 @@ PY
 
 ## 7. Внешний HTTPS и upload/status
 
+Отсутствующий URL/hostname — состояние **не настроено**, а не наблюдённая ошибка сертификата. В текущем отчёте внешняя TLS-проверка не запускалась. `127.0.0.1:8443` в env предназначен только для локального доступа.
+
 Владелец сети подготавливает DNS/маршрут/firewall к Nginx и настоящий доверенный сертификат; это не выполняется автоматически данным файлом. Для нужного стенда задать в его private env разрешённый `FORTRESS_BIND_IP`, порт и `FORTRESS_TLS_DIR`, затем повторить `up -d --wait`. Снаружи публикуется только Nginx. Не использовать произвольный облачный туннель.
+
+Порядок исправления на разрешённом хосте:
+
+1. Получить настоящий hostname под контролем владельца, проверить A/AAAA и маршрут клиента к серверу. Настроить разрешённый входящий TCP 443 до HTTPS-порта Nginx; при NAT сверить port forwarding. Наличие CGNAT сначала установить, а не предполагать по отсутствию URL.
+2. Выдать сертификат для этого hostname. Для существующего домена возможен ACME DNS-01: подтверждается TXT-запись, входящий port 80 для выдачи не нужен. HTTP-01 требует port 80, который текущий Compose не публикует; его нельзя считать настроенным. DNS-01 **не создаёт** входящий маршрут к сервису. Основание — [Let's Encrypt challenge types](https://letsencrypt.org/docs/challenge-types/).
+3. Установить full chain и соответствующий private key в private TLS directory. Проверить hostname/SAN, срок, совпадение публичных ключей и читаемость файлов Nginx. Затем выполнить `nginx -t` в нужном работающем стенде (`dc exec -T nginx nginx -t` или `pc exec -T nginx nginx -t`).
+4. Проверить TLS и upload/status с независимого внешнего клиента командами ниже. Автоматическое продление сертификата согласовать с владельцем DNS и повторной проверкой Nginx перед reload.
+
+Для проверки пары сертификат/ключ, подставив реальный private каталог:
+
+```bash
+TLS_DIR=/PRIVATE/tls
+openssl x509 -in "$TLS_DIR/fullchain.pem" -noout -dates -ext subjectAltName
+openssl x509 -in "$TLS_DIR/fullchain.pem" -pubkey -noout \
+  | openssl pkey -pubin -outform DER | openssl dgst -sha256
+openssl pkey -in "$TLS_DIR/privkey.pem" -pubout -outform DER \
+  | openssl dgst -sha256
+```
+
+Два SHA-256 должны совпасть; здесь выводится hash публичного ключа, не содержимое private key. Это не проверка доверенной цепочки извне.
+
+| Наблюдение внешнего клиента | Что исправлять |
+| --- | --- |
+| DNS name не разрешается | A/AAAA и фактический hostname |
+| Timeout / connection refused | Bind IP, listening port, firewall, NAT/маршрут |
+| Certificate verify / hostname / expiry error | Full chain, SAN имени, срок и соответствие ключа |
+| TLS проходит, HTTP 502/503 proxy failure | API container/health/upstream, не отключать TLS |
+| Production `503 model_not_ready` по контракту | Ожидаемый отказ без trained release; не ошибка HTTPS |
 
 На клиенте **вне сети сервиса**, с настоящим hostname, выполнить:
 
