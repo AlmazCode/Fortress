@@ -31,6 +31,7 @@ def sample_documents(tmp_path,rotation=0):
     assets=tmp_path/"tasks"
     report=prepare_tasks(assets,manifest=manifest,pairs=pairs,frame_directories=[frames],
         object_taxonomy=object_taxonomy,action_taxonomy=action_taxonomy,annotation_version="synthetic-labels-v1")
+    contexts=json.loads((assets/"tasks.json").read_text())["scene_context"]
     return {"manifest":manifest,"index":index,"scenes":scenes,"contexts":contexts,"pairs":pairs,
             "object_taxonomy":object_taxonomy,"action_taxonomy":action_taxonomy,"asset_root":assets,
             "source_root":tmp_path,"task_report":report,

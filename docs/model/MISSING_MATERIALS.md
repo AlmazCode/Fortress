@@ -31,3 +31,12 @@ annotation review, групповые split, target hardware и production model
 Сейчас разрешены инструменты и короткий CPU smoke. Полный train, fine-tuning,
 GPU search, реальная ML-оценка и подтверждение production-бюджетов остаются
 будущим отдельным этапом. Без usable trained release ожидается 503 model_not_ready.
+
+## Обновление инструментов D
+
+Data CLI и PTS/extraction/annotation/COCO/QA реализованы и проверены на tiny synthetic.
+Команды — DATA.md; DATA_READINESS.json — наблюдённый synthetic smoke report,
+а не повторный аудит пользовательских 42 видео. Их существование по D1 snapshot
+не отрицается, reviewed dataset/rights/independent final всё ещё не подтверждены.
+Новые scene/annotation bundles имеют frame provenance anchors; старые bundles
+без них нужно подготовить заново. Следующие M-инструменты не снимают этих gaps.
