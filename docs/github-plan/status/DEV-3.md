@@ -7,7 +7,7 @@
 | Task | State | Branch | Commit / PR | Проверки / блокер |
 | --- | --- | --- | --- | --- |
 | D1 | review | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | 9 targeted tests + реальный inventory/CPU CLI passed; ожидает проверки главного |
-| D2 | ready | codex/fortress-no3-ml | База K 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | K получен, интегрирован и проверен |
+| D2 | review | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | 17 tests + обе taxonomy CLI passed; ожидает проверки главным |
 | D3 | ready | codex/fortress-no3-ml | База K 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | K получен, интегрирован и проверен |
 | D4 | blocked | codex/fortress-no3-ml | — | Зависит от D3 |
 | D5 | blocked | codex/fortress-no3-ml | — | Зависит от D2/D4 |
@@ -63,3 +63,17 @@ Target Python/PyTorch/Torchvision/CUDA, 576 feature shape, preprocessing, annota
 Ограничения: decode/dedup/group split/annotation QA — следующие этапы; labels, rights и target GPU не подтверждены. Ни software D1, ни синтетические веса не активируют production readiness.
 
 Следующий шаг: D2 и D3 по проверенному K. D1 остаётся review до проверки и интеграции главным; №3 не выставляет себе accepted. Публикация своей ветки следует фактическому разрешению человека.
+
+## D2 — готовый кандидат
+
+- Base: `9aa9dda`; candidate: `b4961272723cefec463d45ccb49d041afd52150b`. Только шесть разрешённых файлов D2, все добавлены; удалений/переименований нет. Абсолютный собственный checkout сохранён в локальном checkpoint, частные пути не публикуются.
+- `.venv/Scripts/python.exe -m pytest tests/ml/test_taxonomy.py -q` — exit 0, 17 passed. Реальные draft-файлы и состояния/known_mask дополнительно проверяются действующим contracts.python_ports.validate_contract("events", ...).
+- `.venv/Scripts/python.exe -m ml.data.taxonomy ml/config/object_taxonomy.draft.json` — exit 0: objects-draft-v1, 9 classes, 0 states, official IDs not supplied.
+- Такая же CLI для action_taxonomy.draft.json — exit 0: actions-draft-v1, 14 classes, 6 states, official IDs not supplied. Код после этих проверок не менялся.
+- `git diff --cached --check` — финальный exit 0. Первый check обнаружил только лишние пустые строки в конце двух документов; исправлены до commit.
+- Покрытие acceptance: девять candidate objects; versioned action/state definitions; includes/excludes/hard negatives/visibility/truncation/unknown и честный unmeasured pixel limit для каждого; append-only IDs с проверкой против previous; nullable identity/party/role links; карта всех C01–C15 с пределами наблюдения и R1; human review, disagreement, explicit negatives, pseudo-labels не gold, отдельный final holdout.
+- Формат K bbox=xywh сохранён; будущая внутренняя xyxy-разметка преобразуется обратимо, отсутствующие в K поля хранятся в sidecar. Общий контракт не менялся.
+
+После fetch подтверждена интеграционная ветка `codex/integration` на `c22a4a6`: STATUS.md принимает K `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f`, но D1 ещё review. `git diff --stat origin/codex/integration -- contracts pyproject.toml uv.lock` пуст: используемый K/lock не изменён.
+
+Человек явно разрешил обычный push проверенных commits №3 в codex/fortress-no3-ml; разрешение распространяется на следующие проверенные результаты №3. D1 и журнал уже опубликованы. D2 остаётся review до проверки главным. Официальная taxonomy, человеческая разметка, права и training readiness не подтверждены; обучение и реальная ML-оценка не выполнялись. Следующая независимая задача — D3; D4 ждёт принятого D3.
