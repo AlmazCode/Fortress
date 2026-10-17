@@ -9,8 +9,8 @@ Checkout: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`.
 | --- | --- | --- | --- |
 | K | accepted | 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | 55 passed; доступен в integration |
 | A1 | accepted | a84cce5e19c8b5a96286473aa9283c2c6b3a1194 | 10 passed на PostgreSQL 18.6; доступен в integration |
-| A2 | working | незакоммиченные 5 файлов поверх c221374 | 17 passed; завершающая проверка границ ошибок |
-| A3 | ready | — | K принят; после A2 |
+| A2 | accepted | df5dae07b4683afff88bdd06bfbf5b34bd7cc382 | 19 passed; доступен в integration |
+| A3 | working | — | K принят; auth/preview/evidence |
 | A4 | ready | — | A1 принят; после A3 |
 | A5 | blocked | — | Требуются A2/A3/A4 |
 | A | blocked | — | Требуется A5 |
@@ -73,3 +73,10 @@ Base: `c221374`. Проверка `python3 .aster/checkpoints/run-tests.py tests
 ## GitHub-переход
 
 Документация `c70a6d366c9b48b090368b92ca1bb60b692f6c26` объединена обычным merge `c221374`; K/A1 сохранены. `python3 docs/github-plan/validate_plan.py` → exit 0; 36 задач, 48 рёбер, product criteria сохранены. Ветка integration создана на этом проверенном merge. K/A1 уже опубликованы в backend-ветке; публикация integration выполняется вместе с этим журналом. Aster MCP больше не используется.
+
+## A2 — принят после проверки (17 октября 2026)
+
+Base: `f90cdcd`; head: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382`. Изменены `backend/app/storage.py`, `backend/app/video.py`, `backend/app/api_upload.py`, `tests/api/test_limits.py`, `tests/api/test_upload_decode.py`.
+Проверка: `python3 .aster/checkpoints/run-tests.py tests/api/test_upload_decode.py tests/api/test_limits.py -q` → exit 0, **19 passed in 3.18s**, реальные FFmpeg/PostgreSQL. Два новых теста сначала воспроизвели неправильный envelope malformed multipart и незакрытый readiness error (exit 1), затем исправлены и прошли.
+Критерий 1: metadata+full decode, обе ориентации, 61fps/181s/oversize и поддельное расширение. Критерий 2: VFR, display matrix rotation, ненулевой PTS, повреждённые/обрезанные файлы. Критерий 3: случайные имена/traversal, bounded multipart, реальный hanging subprocess, fsync fault. Критерий 4: 400/413/415/503 envelopes, уборка до принятия и сохранность оригинала после client cancellation. Критерий 5: model readiness/busy, настоящий durable job+outbox перед 202.
+Ограничения: model readiness — явный test stub; auth и весь production routing проверяются A3/A. При неоднозначном исходе DB commit оригинал сохраняется для последующей reference-aware уборки. Принят главным после проверки и fast-forward integration; независимая приёмка не заявляется.

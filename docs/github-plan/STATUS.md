@@ -7,8 +7,8 @@
 - [ ] O1 — Среда и внешний маршрут · №4 · unverified
 - [x] K — Контракт API и данных · №1 · accepted
 - [x] A1 — БД и состояние заданий · №1 · accepted
-- [ ] A2 — Приём и проверка видео · №1 · working
-- [ ] A3 — Авторизация и медиа · №1 · unverified
+- [x] A2 — Приём и проверка видео · №1 · accepted
+- [ ] A3 — Авторизация и медиа · №1 · working
 - [ ] A4 — Outbox и один worker · №1 · unverified
 - [ ] A5 — Дедлайны и сбои backend · №1 · unverified
 - [ ] A — API и надёжная очередь · №1 · unverified
@@ -40,3 +40,5 @@
 - [ ] E — Передача ML-инструментов · №3 · unverified
 - [ ] B — Восстановление и benchmark · №4 · unverified
 - [ ] Z — Финальная сдача · №1 · unverified
+
+A2 принят и включён в `codex/integration`: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382` (19 проверок).
