@@ -1,8 +1,61 @@
 # Fortress: инструкция по запуску для релиза
 
-Состояние на 18 октября 2026: код инфраструктуры интегрирован, фактические Docker build/start, offline worker, volumes/restart, GPU/CUDA и внешний HTTPS ещё **не подтверждены**. Пользователь отложил доступ к другому компьютеру; команды ниже нужно выполнить там и сохранить результаты. Это инструкция, не отчёт об успешном запуске.
+Состояние на 18 октября 2026: код инфраструктуры интегрирован, WSL и Docker Desktop на Windows установлены; фактические container build/start, offline worker, volumes/restart, GPU/CUDA и внешний HTTPS ещё **не подтверждены**. Windows запросила перезагрузку для активации включённых компонентов. Это инструкция, не отчёт об успешном запуске контейнеров.
 
-**На Windows используется браузер. Сервер запускается на отдельном Linux x86_64 компьютере.** На текущем Windows не включать WSL/VirtualMachinePlatform, не устанавливать Docker повторно и не перезагружать ПК. Native Windows backend/worker этим релизом не подтверждены.
+**Windows может быть хостом Docker Desktop с WSL2; серверные контейнеры остаются Linux.** Пользователь разрешил этот вариант 18 октября, прежний запрет на WSL снят. Браузер работает на Windows. Автоматическая перезагрузка не разрешалась и не выполнялась; native Windows backend/worker этим не подтверждаются. Ниже сохранён также путь для native Linux.
+
+## Windows: продолжение после перезагрузки
+
+На текущем ПК уже включены VirtualMachinePlatform/WSL (NoRestart), установлены Microsoft WSL 3.0.3 и Docker Desktop 4.95.0 с WSL2 backend — installer exits 0. BIOS virtualization включена. Первый engine probe вернул exit 1: Docker backend видит Virtual Machine Platform not enabled до активации после reboot. Сначала сохранить работу и выполнить обычную перезагрузку Windows; повторная установка не заменяет её.
+
+После входа запустить Docker Desktop и проверить в PowerShell:
+
+```powershell
+$FortressDocker = Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\docker.exe'
+$FortressDesktop = Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\Docker Desktop.exe'
+Start-Process -FilePath $FortressDesktop -WindowStyle Hidden
+wsl --version
+& $FortressDocker version
+if ($LASTEXITCODE -ne 0) { throw 'Docker engine is not ready; check Docker Desktop/WSL before continuing.' }
+& $FortressDocker info --format '{{.OSType}}'
+& $FortressDocker compose version
+```
+
+Дождаться готовности Desktop: нужен настоящий Server response и тип `linux`. По [Docker GPU guide](https://docs.docker.com/desktop/features/gpu/) проверить CUDA на официальном отдельном sample image; это короткое вычисление, не обучение:
+
+```powershell
+$GpuImage = 'nvcr.io/nvidia/k8s/cuda-sample:nbody'
+& $FortressDocker pull $GpuImage
+if ($LASTEXITCODE -ne 0) { throw 'GPU sample image preparation failed.' }
+$GpuDigest = (& $FortressDocker image inspect $GpuImage --format '{{index .RepoDigests 0}}').Trim()
+if ($LASTEXITCODE -ne 0 -or -not $GpuDigest) { throw 'GPU sample digest was not verified.' }
+& $FortressDocker run --rm --pull never --network none --gpus all $GpuDigest nbody -gpu -benchmark -numbodies=1024
+if ($LASTEXITCODE -ne 0) { throw 'Container CUDA check failed.' }
+```
+
+Сохранить digest/output/exit code. Windows driver уже видит RTX 4060 Laptop; не устанавливать Linux NVIDIA display driver внутри WSL. Host CUDA Toolkit не требуется для исполнения готового CUDA container. Успех sample не закрывает GPU-worker Fortress: shared lock пока CPU Torch и требует согласованного GPU решения №1/№3.
+
+Для отдельного infrastructure harness из корня checkout те же Compose files можно использовать напрямую из PowerShell, без установки отдельного Ubuntu distro. Подготовить private env/TLS по SETUP; заменить путь ниже. Для текущего запуска закрытые env/key/local TLS уже подготовлены вне Git, точный путь хранится в локальном checkpoint.
+
+```powershell
+$CheckEnv = 'C:\PRIVATE\fortress.env'
+$CheckProject = 'fortress-infra-check'
+$ComposeArgs = @('compose', '-p', $CheckProject, '--env-file', $CheckEnv, '-f', 'infra/compose.yaml', '-f', 'infra/compose.test.yaml')
+& $FortressDocker @ComposeArgs config --quiet
+if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed.' }
+& $FortressDocker @ComposeArgs build
+if ($LASTEXITCODE -ne 0) { throw 'Harness image build failed.' }
+& $FortressDocker @ComposeArgs up -d --wait
+if ($LASTEXITCODE -ne 0) { throw 'Harness startup failed.' }
+& $FortressDocker @ComposeArgs exec -T worker python /opt/fortress-smoke.py probe-worker
+if ($LASTEXITCODE -ne 0) { throw 'Worker local connectivity/egress probe failed.' }
+# Остановка сохраняет volumes:
+& $FortressDocker @ComposeArgs stop
+```
+
+Это CPU infrastructure overlay с настоящими PostgreSQL/Redis, не production app/ML или B. GPU проверяется отдельно sample выше. Полную production сборку/запуск и synthetic API profile выполнять после принятого I.
+
+Согласован бесплатный внешний DNS `sslip.io` и сертификат Let's Encrypt; hostname подготовлен в закрытом локальном файле, DNS совпадает с наблюдаемым публичным IP. Это ещё не маршрут: UPnP недоступен, проверенные local admin ports роутера не отвечают; port forwarding/firewall не менялись, CGNAT не установлен/не исключён, публичный сертификат не выпущен. Прежде чем публиковать Nginx, подтвердить WAN/router route и выполнить раздел 7. Публичный IP/hostname и ключи в Git не добавлять.
 
 ## 1. Что подготовить на Linux
 
@@ -48,13 +101,13 @@ sudo usermod -aG docker "$(id -un)"
 
 ## 2. Получить точный код
 
-Клонировать в новую папку. `RELEASE_SHA` заменить полным SHA выпуска; его сообщает главный. Проверенная точка интеграции при написании инструкции — `69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5`, **I ещё не принят**. Для первого инфраструктурного прогона можно закрепить эту точку; для приложения нужен последующий принятый I.
+Клонировать в новую папку. `RELEASE_SHA` заменить полным SHA выпуска; его сообщает главный. Проверенная точка интеграции — `469b2eb841de187d8e3429dc17514254777d3bdc`, **I ещё не принят**. Для первого инфраструктурного прогона можно закрепить эту точку; для приложения нужен последующий принятый I.
 
 ```bash
 git clone https://github.com/AlmazCode/Fortress.git fortress-release
 cd fortress-release
 git fetch origin
-RELEASE_SHA=69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5
+RELEASE_SHA=469b2eb841de187d8e3429dc17514254777d3bdc
 git checkout --detach "$RELEASE_SHA"
 git rev-parse HEAD
 ```

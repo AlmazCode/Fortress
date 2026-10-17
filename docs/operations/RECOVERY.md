@@ -1,6 +1,6 @@
 # Восстановление: границы готовности и порядок проверки
 
-Пользователь 17.10.2026 отложил WSL/виртуализацию. Они не устанавливаются/не включаются в этой работе. Без контейнеров принятый backend можно запускать на **native Linux**; он использует fcntl/flock, POSIX signals и Celery prefork. На текущем native Windows полная эквивалентность не реализована. Замена на solo/SQLite/in-memory queue не закрывает требования надёжности. Клиент HTTP, frontend build и sampler работают на Windows без VM.
+Пользователь 17.10.2026 отложил WSL/виртуализацию, затем 18.10.2026 явно разрешил WSL2/Docker/GPU. WSL и Docker Desktop установлены, компоненты включены; engine ждёт запрошенной Windows перезагрузки, автоматически она не выполнялась. Порядок Windows — [RELEASE.md](RELEASE.md). Без контейнеров backend запускается на **native Linux**: fcntl/flock, POSIX signals и Celery prefork. На native Windows полная эквивалентность не реализована; Linux containers под WSL2 сохраняют POSIX модель. Замена на solo/SQLite/in-memory queue не закрывает требования. HTTP client/frontend build/sampler работают на Windows без контейнеров.
 
 Реальные recovery/capacity/offline acceptance B выполняются после принятого I в изолированном runtime, с явным synthetic runner и своими DB/Redis/media/model каталогами. До этого здесь есть runbook и инструменты, не отчёт о выполненном восстановлении. Не менять общий STATUS/граф и не выдавать модульные A1–A5 за full-stack B.
 
