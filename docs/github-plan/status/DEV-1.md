@@ -158,3 +158,29 @@ O2/O3: точный `1a1b091`/отчёт `2e368f6` прочитан, merge от�
 I теперь ожидает M/O (A/F/R software приняты); Z ожидает I → U/E/B. Это фактическое ревью главного, не независимая человеческая приёмка. Backend 116 checks относятся к неизменённому `043eeb6`, повторно без изменения кода не запускались. Aster, main, deploy, обучение и сообщения другим чатам не использовались.
 
 Повторный fetch принёс только заметку №2 `99dd2c0` об остановке временного preview и ограничении встроенного браузера после restart. Заметка рассмотрена и объединена отдельно; исходники не менялись, live preview не обещается. Общий validator после обновления journals/STATUS/manifest → 0, 36 задач/48 рёбер, сохранены критерии и ownership; это проверка документации. Ancestry F/D2 и отсутствие изменений backend относительно `043eeb6` проверены; `git diff --check` → 0.
+
+## Повторное продолжение: инфраструктурные исправления 3cee753
+
+Стартовый HEAD `6b16272fded945668b8997498faa0b2d83a541a0`; origin/clean tree/свой checkout проверены. Fetch → 0: №4 `b679dc7` с кодом `3cee7531746927cd035b4c4e51e522f150990dbd`, №2 `45c35eb`; №3 остаётся `c485788`. Сфера №1 не расширялась самостоятельно, I не начиналась при отсутствующих M/O.
+
+Прочитаны изменения CLI/env/migration/health/scope и журнал №4. Для сочетания с текущей integration выполнен временный `git merge --no-ff --no-commit b679dc7`; 19 изменённых файлов сверены с объединённой files-областью №4 — внеплановых путей нет. Backend/frontend/contracts/shared locks не менялись. Проверены также поправки R source provenance и preflight Compose version/TLS-required outcomes.
+
+`FORTRESS_COMPOSE_CLI=/usr/libexec/docker/cli-plugins/docker-compose FORTRESS_TEST_OPENSSL=/usr/bin/openssl .venv/bin/python -m pytest tests/performance/test_compose_isolation.py tests/performance/test_network_smoke.py tests/performance/test_preflight_report.py tests/rules -q` → **0; 53 passed, 1 skipped, 34 subtests passed in 4.52s**. Compose v5.5.1 реально разрешил production/test config; HTTP/TLS loopback реально проверили upload/auth/status/private CA и rejection чужого hostname/untrusted cert. Skip — PowerShell 7, отсутствует на этом Linux. Эти checks не являются запуском приложения в контейнерах или external HTTPS.
+
+`timeout 8s docker version --format '{{json .Server.Version}}'` → **1: permission denied /var/run/docker.sock**. Системные permissions не изменялись. Текущий frontend Dockerfile не отличается от воспроизведённого ранее набора COPY inputs и всё ещё не включает contracts, поэтому замечание build TS2307 сохраняется без повторного неизменённого прогона. Runtime/offline/volumes/GPU и trusted external HTTPS остаются непроверенными.
+
+После checks и `git diff --cached --check` → 0 временный review merge отменён `git merge --abort`; clean tree подтверждён. Это отмена только собственного незакоммиченного merge, candidate и чужие изменения сохранены в Git. O2/O3 не помечены accepted и не включены в integration. Подробный возврат обновлён в STATUS.md.
+
+Журнал №2 `45c35eb` рассмотрен и объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`: только авторское подтверждение опубликованной F acceptance и dependency gate U. Повторный frontend runtime test не нужен: код неизменён. Собственные изменения этого продолжения — общий STATUS/manifest и журнал №1; main/deploy/training/сообщения чатам не выполнялись.
+
+## Review D3 после сообщения человека о D1–D3
+
+Base `c00516e3e5e8bc08c0ba96a4cb24b0048178068f`. Origin/свой checkout/clean tree/base object проверены; fetch → 0, получен `origin/codex/fortress-no3-ml` на `0e9bebc`. Код D3 — `d0b9704b005e85675191baf0c0737b5d6da8cc49`; D1/D2 ранее приняты и заново не объявляются новыми результатами. Прочитаны актуальные D3/D4 criteria, десять файлов D3 и отчёт №3.
+
+`git merge --no-ff --no-commit 0e9bebc` позволил проверить сочетание с принятым кодом без публикации кандидата. Merge-дельта — 11 путей, ровно D3 + DEV-3 journal, вне scope нет. `.venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q` → **0, 129 passed in 3.95s, no skips** (D3 48). Shared lock не менялся; native PyAV/CPU и временные synthetic files настоящие, training не запускался.
+
+Дополнительный review воспроизвёл нарушение holdout separation через реальный CLI. В новой временной папке созданы четыре synthetic FFV1/MKV 32×24, по четыре кадра с PTS 20/21/24/25 при time_base=1/10; пути/группы/источники distinct, kind=synthetic. Импорт → exit 0, videos=4; split seed17 с final ID → exit 0, train2/dev1/final1. Второй split с тем же seed, входом first split bundle и без повторного final flag → exit 0, train3/dev1/final0. Ранее independent_test ID оказался train и возвращён `records_for(..., purpose="training")`. Hash/mtime originals не изменены; audit training_ready=false в обоих случаях, что не устраняет selector leak.
+
+Причина в `ml/data/splits.py:66–95` и `:133–142`: old split сбрасывается, existing final не входит в новый final set, отсутствующий CLI flag даёт []. Текущий test_final_never_enters_training_or_threshold_calibration покрывает только selector сразу после первого split, поэтому 129 зелёных tests не опровергают повторный сценарий. [P1] нарушает acceptance D3 №4; точная последовательность и варианты исправления переданы через STATUS.md. Исходники №3 не исправлялись и сообщения другим чатам не отправлялись.
+
+После `git diff --cached --check` → 0 выполнен `git merge --abort` только для собственного review merge; рабочее дерево чистое, все candidate commits сохранены. D3 marked blocked review, D4 не открывается. Evidence `.aster/checkpoints/d3-review-cli.json` локальное, в Git не добавлялось. Требуется новый исправленный D3 SHA; I по-прежнему ждёт M/O, Z — I/U/E/B.
