@@ -9,10 +9,10 @@ Git/GitHub, без Aster. Своя ветка: `codex/dev4-rules-infra`. Баз�
 | R2 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Принят главным, merge df1f398; synthetic observations не ML validation |
 | R3 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Главный принял software; production cases unsupported |
 | R | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Принят главным в программном объёме; legal/ML gate не пройден |
-| O2 | blocked | codex/dev4-rules-infra | 3cee7531746927cd035b4c4e51e522f150990dbd | Исправлены замечания A/CLI/env/scope; config passed; runtime требует VirtualMachinePlatform/admin/restart |
-| O3 | blocked | codex/dev4-rules-infra | 3cee7531746927cd035b4c4e51e522f150990dbd | Local HTTP/TLS и certificate rejection passed; нет trusted внешнего hostname/маршрута |
+| O2 | blocked | codex/dev4-rules-infra | 1137423fc1de54b3d6cc5b77c2c14010e72d2ecf | CLI/env/health/scope/COPY исправлены; config и frontend native build passed; runtime не проверен, VM отложена пользователем |
+| O3 | blocked | codex/dev4-rules-infra | 1137423fc1de54b3d6cc5b77c2c14010e72d2ecf | Harness и actual-API clients проверены local HTTP/TLS; нет trusted внешнего hostname/маршрута |
 | O | blocked | codex/dev4-rules-infra | — | Требует O3 |
-| B | blocked | codex/dev4-rules-infra | — | Требует интеграции I и реальных сервисов |
+| B | blocked | codex/dev4-rules-infra | 1137423fc1de54b3d6cc5b77c2c14010e72d2ecf | По запросу подготовлены native probe/benchmark/resource tools и runbooks; actual acceptance только после I |
 
 ## O1: реально выполнено
 
@@ -89,3 +89,21 @@ Base исправлений `5754d22292a80fb1006c78f59ce8dba237b1075d`; пров
 - `git diff --check` / staged check — exit 0. Новые code changes прошли targeted checks; прежние успешные loopback TLS и rules tests не повторялись без изменения их кода.
 
 Оставшиеся O2/O3/O/B не закрыты. Следующее действие: выбранный runtime PC с engine/WSL2 → build/start, worker connectivity/egress и volumes; подтверждённый внешний HTTPS; B только после принятого I. Правила остаются юридически unknown до original case/jurisdiction/normative sources. Локальный поиск предоставленного case в текущем workspace файла не нашёл; чужие материалы/разметка не изменялись. Общий manifest/audit после изменения DEV-4 журнала по-прежнему обновляет №1 при review, не №4.
+
+## Продолжение по указанию «пока без виртуалки, доделывай оставшиеся задачи»
+
+Актуальный user constraint: WSL/VirtualMachinePlatform/виртуализация отложены; системные компоненты и Docker повторно не устанавливались, перезагрузка не выполнялась. По прямому поручению подготовлены оставшиеся переносимые инструменты до приёмки I, без изменения графа/присвоения B accepted. Native Windows выполняет frontend build, client HTTP/TLS и RSS sampler. Полный текущий worker требует native Linux/POSIX; Windows portability не подменяется solo или новым in-memory backend в чужой области.
+
+Получен и просмотрен integration `6b16272fded945668b8997498faa0b2d83a541a0` с принятыми F/D2; объединён в собственной ветке merge `56da971759ddccc8a809a77510b8174723628f18`. I ещё blocked по M/O. Base кандидата — этот merge, проверенный code head `1137423fc1de54b3d6cc5b77c2c14010e72d2ecf`. Изменены только 10 собственных файлов O/B: frontend.Dockerfile, smoke.sh, benchmark.py, test_https.py, test_capacity_deadline.py, test_service_resources.py, SETUP/NETWORK/BENCHMARK/RECOVERY. ACCEPTANCE.json и этот журнал — отдельный итоговый отчёт.
+
+Закрыто ещё одно реальное замечание O2: frontend build stage теперь копирует `/contracts` рядом с `/frontend`. Reproduced COPY layout в отдельной новой tooling-папке, `npm ci --ignore-scripts --no-audit --no-fund` + `npm run build` — exit 0, typecheck и production build успешны, Node 22.22.2, 173 modules. Это не Docker build; frontend source/lock №2 не изменялись.
+
+Добавлен настоящий portable API client: production auth/model gate либо explicit synthetic upload → public/UI status → original SHA/preview/JPEG. Строгий K, тот же job ID/пути, wrong/missing key, отказ redirect, TLS verification, multipart streaming, bounded input/response, absolute deadline и slow-drip защита. Reports create-only до запросов, без keys/private paths/media. Warmup исключается из nearest-rank p95; failed/unknown не clean verdict. Внутренние server-stage timings и model memory остаются null — K не отдаёт такую telemetry.
+
+Отдельный native resource sampler читает только operator-specified PID/children: Windows WorkingSet64 или Linux statm RSS в bytes, worker VRAM из nvidia-smi в MiB. Частичный scope не даёт общей service RAM; N/A/отсутствие PID/query не становятся нулевой VRAM. Observed max не называется гарантированным peak, scope/job correlation не присваиваются автоматически. Тесты действительно измеряют память собственного pytest процесса; это не RAM сервиса.
+
+Итоговая проверка неизменённого кода head `1137423`: `FORTRESS_COMPOSE_CLI=<local-compose> FORTRESS_TEST_OPENSSL=<local-openssl> .venv/Scripts/python.exe -m pytest tests/performance tests/rules -q --tb=short` — **exit 0, 78 passed, 50 subtests passed, 0 skipped**, 45.13s, CPython 3.11.17. Bash syntax и реальный smoke.sh --help — exit 0. `git diff --check` / staged check — exit 0. Дополнительные unchanged checks не повторялись после этого результата.
+
+При разработке HTTP tests сначала воспроизведён дефект нового клиента с Connection: close на Windows (закрытый socket handle), исправлен bounded response-reader socket + read1; затем все проверки прошли. Fixture сначала использовал неверный `not_found`: строгий K выявил это. Сравнение с A показало тот же literal в backend/app/api.py, media.py и main.py. **Передача №1:** заменить на contract job_not_found/media_not_found с проверкой HTTP/body; №4 не меняет backend/contracts и не ослабляет client. Это статически подтверждённое несоответствие и HTTP protocol regression, не live API проверка A на Windows.
+
+Полный machine-readable итог — docs/operations/ACCEPTANCE.json. O2/O3/O/B остаются blocked по настоящему runtime/offline/volumes, внешнему HTTPS, I и server timing trace. Recovery/fault/capacity actual full-stack не выполнялись; новые parser/protocol/sampler tests ими не считаются. Training/independent ML evaluation не запускались, реальные latency/VRAM/RAM модели not measured. Общий manifest/audit изменяет №1 при проверке этого журнала.

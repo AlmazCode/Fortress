@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "assessment_date": "2026-10-17",
+  "timezone": "Asia/Qyzylorda",
+  "owner": "developer-4",
+  "branch": "codex/dev4-rules-infra",
+  "tested_code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf",
+  "integration_snapshot": "6b16272fded945668b8997498faa0b2d83a541a0",
+  "integration_merge": "56da971759ddccc8a809a77510b8174723628f18",
+  "status": "blocked",
+  "scope": "Owned software tooling and native client tests; not full-stack operational acceptance",
+  "user_constraint": "No VM, WSL or hypervisor setup for now; remaining portable tools prepared by explicit request",
+  "accepted_by_lead": ["O1 inventory", "R1 software/missingSource", "R2", "R3 software", "R software"],
+  "remaining_tasks": {
+    "O2": "blocked: configuration/build-input fixes prepared; actual container/offline/persistent-runtime checks not run",
+    "O3": "blocked: local HTTP/TLS passed; trusted external observer/hostname/route absent",
+    "O": "blocked on O2/O3",
+    "B": "tooling prepared; operational acceptance blocked on accepted I and real runtime"
+  },
+  "checks": [
+    {
+      "command": "FORTRESS_COMPOSE_CLI=<LOCAL_COMPOSE> FORTRESS_TEST_OPENSSL=<LOCAL_OPENSSL> .venv/Scripts/python.exe -m pytest tests/performance tests/rules -q --tb=short",
+      "exit_code": 0,
+      "passed": 78,
+      "subtests_passed": 50,
+      "skipped": 0,
+      "elapsed_sec": 45.13,
+      "runtime": "CPython 3.11.17, native Windows",
+      "scope": "Actual Compose config resolution, loopback HTTP/TLS clients, own-process RSS sampler and conservative rules; protocol fixture does not implement real backend/ML"
+    },
+    {
+      "command": "Reproduce infra/frontend.Dockerfile COPY layout in a fresh local directory; npm ci --ignore-scripts --no-audit --no-fund; npm run build",
+      "exit_code": 0,
+      "runtime": "Node 22.22.2, native Windows",
+      "modules_transformed": 173,
+      "scope": "Actual typecheck and Vite production build with /frontend and sibling /contracts layout; not docker build"
+    },
+    {
+      "command": "bash -n infra/scripts/smoke.sh; FORTRESS_PYTHON=<VENV_PYTHON> bash infra/scripts/smoke.sh --help",
+      "exit_code": 0,
+      "scope": "POSIX syntax and real Python 3.11 CLI entry point; no service started"
+    },
+    {
+      "command": "git diff --check; git diff --cached --check",
+      "exit_code": 0,
+      "scope": "Explicit owned file list; shared backend/contracts/locks/frontend sources not edited"
+    }
+  ],
+  "runtime_gates": {
+    "native_windows_full_worker": "unsupported by accepted POSIX fcntl/signals/prefork implementation",
+    "native_linux_runtime": "not_run_on_this_host",
+    "docker_engine_build_start": "not_run_user_deferred_virtualization",
+    "worker_local_db_redis_and_egress": "not_run",
+    "persistent_media_models_db_restart": "not_run",
+    "full_stack_crash_retry_fencing_capacity": "not_run_requires_I",
+    "target_gpu_cuda_container_compatibility": "not_verified",
+    "trusted_external_https_auth_upload_poll_media": "not_run",
+    "external_access_verified": false,
+    "independent_external_observer_required": true,
+    "normative_applicability": "unknown: no verified original case/jurisdiction/source in this checkout"
+  },
+  "measurements": {
+    "trained_release_performance": "not_measured",
+    "ml_quality": "not_measured",
+    "service_receipt_to_response_sec": null,
+    "external_upload_to_response_sec": null,
+    "video_145s_warm_p95_sec": null,
+    "video_145s_warm_max_sec": null,
+    "inference_vram_peak_bytes": null,
+    "training_vram_peak_bytes": null,
+    "training_ram_peak_bytes": null,
+    "service_ram_peak_bytes": null,
+    "server_stage_sec": {
+      "receipt": null,
+      "queue": null,
+      "decode": null,
+      "inference": null,
+      "rules": null,
+      "preview_evidence": null,
+      "response": null
+    },
+    "reason": "No accepted I/trained release or server timing telemetry. Protocol fixture timings and pytest RSS are not production measurements."
+  },
+  "future_targets": {
+    "service_max_sec": 240,
+    "external_max_sec": 300,
+    "video_duration_sec": 145,
+    "warm_p95_sec": 60,
+    "warm_each_max_sec": 120,
+    "memory_unit_convention": "Decimal GB; convert sensor MiB using 1048576 bytes; Docker GiB caps are a separate configuration",
+    "inference_vram_max_bytes": 3000000000,
+    "training_vram_max_bytes": 6500000000,
+    "training_ram_max_bytes": 10000000000,
+    "service_ram_max_bytes": 5000000000,
+    "observed": false
+  },
+  "handoff_to_role_1": [
+    {
+      "issue": "Accepted A emits error.code=not_found for 404, absent from K Error enum",
+      "source_commit": "043eeb6d125f3b77d71b74de3b56c6a1cee91e70",
+      "paths": ["backend/app/api.py", "backend/app/media.py", "backend/app/main.py", "contracts/diagnostics.schema.json"],
+      "required_result": "Return contract job_not_found/media_not_found and validate error body plus HTTP status; do not weaken K/client",
+      "role_4_evidence": "Static source/schema comparison and real HTTP client regression rejecting noncontract not_found; no claim of live A execution on Windows"
+    },
+    {
+      "issue": "B needs accepted I, explicit synthetic bootstrap and server stage trace outside jury JSON",
+      "required_result": "Provide exact integrated SHA/startup commands and monotonic trace linked to job/video SHA before full-stack acceptance"
+    },
+    {
+      "issue": "DEV-4 journal changed",
+      "required_result": "Refresh shared GitHub-plan manifest/audit during owner-1 review; role 4 did not edit shared manifests"
+    }
+  ]
+}
