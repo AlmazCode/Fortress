@@ -12,8 +12,8 @@ Checkout: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`.
 | A2 | accepted | df5dae07b4683afff88bdd06bfbf5b34bd7cc382 | 19 passed; доступен в integration |
 | A3 | accepted | 6f7f5bf689440640bdc205642aefe7bf07a4d283 | 8 passed; доступен в integration |
 | A4 | accepted | 61a69ce8edc254b4d62ab0652eb8f89df146e434 | 7 passed; реальный Redis/Celery |
-| A5 | working | — | Fault injection и дедлайны |
-| A | blocked | — | Требуется A5 |
+| A5 | accepted | 4e5d9b09b292af03f27991b32cadf9aae2af64d6 | 8 fault/deadline tests; A1 rechecked |
+| A | working | — | Сборка FastAPI и настоящего worker |
 | I | blocked | — | Требуются A/F/M/R/O |
 | Z | blocked | — | Требуются U/E/B после I |
 
@@ -94,3 +94,11 @@ Base: `14e322a`; head: `61a69ce8edc254b4d62ab0652eb8f89df146e434`. Файлы: `
 `python3 .aster/checkpoints/run-tests.py tests/api/test_outbox.py tests/api/test_idempotency.py -q` → exit 0, **7 passed in 4.55s** (первичный RED: 7 отсутствующих модулей). Настоящие PostgreSQL 18.6 и Redis 8.0.5 по закрытым Unix sockets, настоящий consumer Celery; fixture runner только внутри теста.
 Критерий 1: job переживает отсутствие Redis; потеря данных Redis после publish восстанавливается из DB; crash-window publish-before-mark приводит к допустимому дублю. Критерий 2: 8 конкурентных исполнителей дают один вызов/один result, реальная duplicate delivery, stale owner rejected. Критерий 3: concurrency/prefetch=1, CPU env=2, shared host flock держится до конца вычисления даже при потере lease; admission race проверен A1. Критерий 4: heartbeat продлевает lease, expired owner заменяется, исключение становится durable failed, dispatcher завершает просроченный job. Критерий 5: один результат через настоящий транспорт и настоящую DB, production fallback отсутствует.
 Ограничения: поддерживается один локальный GPU-хост и общий runtime-root/lock для всех его workers; распределённый GPU-кластер не заявляется. В тесте транспорта pool=solo; production prefork и принудительный kill проверяются A5/A. Реальный ML/SLA не проверялся.
+
+## A5 и исправление A1 — сбои и дедлайны (17 октября 2026)
+
+Base: `e0a1700`; head: `4e5d9b09b292af03f27991b32cadf9aae2af64d6`. A5: `backend/app/deadlines.py`, `tests/api/test_recovery.py`, `tests/api/test_capacity_race.py`, `tests/api/test_deadlines.py`. По воспроизведённой регрессии повторно открыт собственный A1: `backend/app/jobs.py` и `backend/app/db.py`; область других ролей не менялась.
+Первый запуск выявил настоящий дефект: row lock задерживал finish после deadline, а старый caller timestamp позволял done. Исправлено: свежий PostgreSQL clock после захвата строки и после flush, rollback просроченного результата; ограничены statement/lock/idle transaction waits.
+Проверки: `python3 .aster/checkpoints/run-tests.py tests/api/test_persistence.py tests/api/test_deadlines.py tests/api/test_capacity_race.py tests/api/test_recovery.py -q` → exit 0, **17 passed in 9.05s** (10 A1 + 7 A5). После добавления отдельного regression для медленной вставки: `python3 .aster/checkpoints/run-tests.py tests/api/test_deadlines.py -q` → exit 0, **5 passed in 3.56s**. Всего A5 покрыт 8 уникальными тестами, A1 повторно принят с исправлением в этом SHA.
+Критерий 1: настоящий prefork Celery worker SIGKILL/restart, lease expiry, PostgreSQL result-trigger rollback/retry, уникальный итог; Redis outage/duplicates также проверены A4. Критерий 2: SIGALRM прерывает игнорирующий бюджет runner; из 240s вычитается upload/queue time; поздний return, row lock и slow insert не становятся done. Критерий 3: 8 настоящих upload/decode конкурируют за один durable slot, после failed слот освобождается. Критерий 4: durable reasons/нет результата при timeout/падении. Критерий 5: это модульные harness checks на настоящих сервисах, не внешний HTTPS/ML SLA.
+Ограничения: runtime Linux, production prefork+жёсткий Celery limit; threaded harness не обеспечивает принудительное прерывание произвольного C/GPU вызова. Настоящие веса/GPU SLA отложены.

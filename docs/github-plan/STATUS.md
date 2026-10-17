@@ -10,9 +10,9 @@
 - [x] A2 — Приём и проверка видео · №1 · accepted
 - [x] A3 — Авторизация и медиа · №1 · accepted
 - [x] A4 — Outbox и один worker · №1 · accepted
-- [ ] A5 — Дедлайны и сбои backend · №1 · working
-- [ ] A — API и надёжная очередь · №1 · unverified
-- [ ] F1 — Клиент API и ключ · №2 · unverified
+- [x] A5 — Дедлайны и сбои backend · №1 · accepted
+- [ ] A — API и надёжная очередь · №1 · working
+- [ ] F1 — Клиент API и ключ · №2 · ready (K опубликован; реализация не проверена)
 - [ ] F2 — Загрузка и статусы · №2 · unverified
 - [ ] F3 — Видео и доказательства · №2 · unverified
 - [ ] F4 — Ошибки и доступность UI · №2 · unverified
@@ -46,3 +46,5 @@ A2 принят и включён в `codex/integration`: `df5dae07b4683afff88bd
 A3 принят в `codex/integration`: `6f7f5bf689440640bdc205642aefe7bf07a4d283` (8 проверок).
 
 A4 принят в `codex/integration`: `61a69ce8edc254b4d62ab0652eb8f89df146e434` (7 проверок).
+
+A5 и исправленный A1 приняты в `codex/integration`: `4e5d9b09b292af03f27991b32cadf9aae2af64d6`. Ветка frontend `551454a` содержит только прежний отчёт о блокировке по K; код frontend отсутствует, K теперь доступен.
