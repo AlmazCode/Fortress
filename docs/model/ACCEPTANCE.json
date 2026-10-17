@@ -2,7 +2,7 @@
   "report_version": "ml-handoff-preparation-v1",
   "task": "E",
   "state": "blocked",
-  "reason": "I has not been accepted/published; software handoff material is prepared, integration verification is outstanding.",
+  "reason": "E software handoff preparation checked on accepted M composition; final E requires accepted I. I still depends on unaccepted O runtime/external HTTPS.",
   "observed_local_date": "2026-10-18",
   "repository": "https://github.com/AlmazCode/Fortress",
   "branch": "codex/fortress-no3-ml",
@@ -11,7 +11,7 @@
   "dependency": {
     "task": "I",
     "accepted_commit": null,
-    "observed_integration_commit": "ecce7c2126e8e99e7dea3baff3af7b15b4391891",
+    "observed_integration_commit": "469b2eb841de187d8e3429dc17514254777d3bdc",
     "fixed_D3_integrated": true
   },
   "software_checks": {
@@ -79,13 +79,13 @@
     "runtime_downloads": false
   },
   "remaining": [
-    "N1 review/integration of M4/M .video correction c68ae819d38cd14b97921c9c76ed1a4b92d89cc8; D3-D/M1-M3 already accepted in 69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
+    "M4/M already accepted by N1 in 479aa05e7154b5b50bc9a70b0a8ea7ed8cca64b2; final E needs accepted I, which still requires accepted O and actual assembly/runtime verification.",
     "accepted I SHA and final E application handoff verification",
     "real reviewed data/rights/taxonomy/independent final evidence/local pretrained weights",
     "separately instructed real training/evaluation/quality and production budget/performance checks"
   ],
   "M4_followup": {
-    "state": "review",
+    "state": "accepted",
     "code_commit": "c68ae819d38cd14b97921c9c76ed1a4b92d89cc8",
     "replaces_defect_in_M": "85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d",
     "accepted_dependency_review": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
@@ -93,7 +93,78 @@
     "regression": "Real LocalStorage spool/promote, VideoValidator/ffprobe, MP4 and rotated VFR/nonzeroPTS MOV, adapter and CLI inference.",
     "red_exit_code": 1,
     "green_exit_code": 0,
-    "native_backend_linux_runtime_verified": false,
-    "windows_test_io_adaptation": "POSIX directory fsync/pipe polling only; actual rename, validation and ffprobe."
+    "native_backend_linux_runtime_verified": true,
+    "windows_test_io_adaptation": "POSIX directory fsync/pipe polling only; actual rename, validation and ffprobe.",
+    "accepted_merge_commit": "894e869b7b02deceb0a3978e086750d828c380e0",
+    "accepted_review_commit": "479aa05e7154b5b50bc9a70b0a8ea7ed8cca64b2",
+    "linux_verification_scope": "N1 reproduced 273 contract/ML tests and actual LocalStorage/VideoValidator/.video adapter/CLI on Linux; not full Compose/application I."
+  },
+  "lead_software_checks": {
+    "code_commit": "c68ae819d38cd14b97921c9c76ed1a4b92d89cc8",
+    "review_commit": "479aa05e7154b5b50bc9a70b0a8ea7ed8cca64b2",
+    "command": ".venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q --tb=short",
+    "exit_code": 0,
+    "passed": 273,
+    "skipped": 0,
+    "elapsed_seconds": 87.46,
+    "source": "Published STATUS/DEV-1; reproduced by N1 on Linux, no Windows IO adapters."
+  },
+  "E_preparation_checks": {
+    "state": "prepared",
+    "commit": "a06e6382638af7d52b0dda2b4cbc016e97cc362a",
+    "composition_commit": "479aa05e7154b5b50bc9a70b0a8ea7ed8cca64b2",
+    "command": "python -m pytest tests/ml/test_cli_handoff.py -q",
+    "exit_code": 0,
+    "passed": 22,
+    "elapsed_seconds": 3.5,
+    "scope": "21 documented CLI commands parsed with actual argparse, plus supported CPU example configuration; stop before data IO/train/import. Existing actual tiny pipeline checks are reused, not rerun.",
+    "final_application_verification": false
+  },
+  "E_local_package_transfer": {
+    "kind": "E-local-package-transfer-v1",
+    "code_commit": "c68ae819d38cd14b97921c9c76ed1a4b92d89cc8",
+    "accepted_composition": "479aa05e7154b5b50bc9a70b0a8ea7ed8cca64b2",
+    "source_package_sha256": "b81ffe159a0516fbdebea0c0ff80245ffd115bff97bc7ab4d7fb22e4f2dc4351",
+    "copied_package_sha256": "b81ffe159a0516fbdebea0c0ff80245ffd115bff97bc7ab4d7fb22e4f2dc4351",
+    "verified_artifacts": 10,
+    "model_sha256": "6b89924cc8a3622d4d47d4f06763a5de3eeb2f200b737371f45cfcca60096c5f",
+    "encoder_tensor_bytes": 3756752,
+    "gru_head_tensor_bytes": 2564104,
+    "whole_model_tensor_bytes": 6320856,
+    "whole_model_file_bytes": 6385243,
+    "training_checkpoint_with_optimizer_bytes": 11543771,
+    "MB": 1000000,
+    "MiB": 1048576,
+    "smoke_budget_passed": true,
+    "production_taxonomy_budget_verified": false,
+    "refusals": [
+      "production_untrained",
+      "wrong_manifest_hash"
+    ],
+    "trained": false,
+    "validated": false,
+    "production_ready": false,
+    "other_pc": false,
+    "full_training_or_real_data_evaluation": false,
+    "runtime_downloads": false,
+    "exit_code": 0
+  },
+  "I_preflight": {
+    "state": "blocked",
+    "observed_composition_commit": "479aa05e7154b5b50bc9a70b0a8ea7ed8cca64b2",
+    "accepted_I_commit": null,
+    "accepted_O_commit": null,
+    "host": "Windows",
+    "fcntl_available": false,
+    "docker_cli_found_in_PATH_or_standard_install": false,
+    "assembly": "backend.app.main._components still selects MissingRelease/MissingRunner in production; release_root is not bound to M4/R yet.",
+    "implementation_remaining": [
+      "Trusted offline ReleaseManager + TimelineAdapter + per-job RuleEngine + source evidence/diagnostics wiring.",
+      "Actual Linux FastAPI/PostgreSQL/Redis/Celery/UI path, unknown/partial/evidence and failure checks.",
+      "Accepted O Compose/offline/persistence/target hardware/external HTTPS evidence, then exact accepted I SHA."
+    ],
+    "scope": "Read-only preflight and handoff; no backend/infra/contracts/shared-lock/owner-graph changes. Full I not executed or claimed accepted.",
+    "latest_remote_review_commit": "469b2eb841de187d8e3429dc17514254777d3bdc",
+    "latest_remote_delta": "Role4 TLS diagnostic tooling/tests/docs only; backend/ML/contracts/locks unchanged. O/I remain blocked in published STATUS."
   }
 }
