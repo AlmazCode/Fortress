@@ -50,6 +50,7 @@ def prepare_tasks(destination: Path, *, manifest: dict, pairs: list[dict], frame
     if not isinstance(annotation_version,str) or not annotation_version.strip():
         raise ValueError("annotation version required")
     contexts=scene_context(manifest,pairs)
+    for scene in contexts.values():scene["frame_sources"]={}
     originals=all(r["provenance"]["kind"]=="original" for r in manifest["videos"])
     provenance={"kind":"original" if originals else "synthetic","source_id":manifest["dataset_version"],"sha256":stable_hash(manifest)}
     actions={"actions_version":"actions-v1","dataset_version":manifest["dataset_version"],
@@ -75,6 +76,10 @@ def prepare_tasks(destination: Path, *, manifest: dict, pairs: list[dict], frame
                 "frame_review":{"status":"unreviewed","reviewer":None,"human_approved":False,"complete":False,"classes_reviewed":[]},
                 "objects":[]})
             sources.append((Path(directory)/frame["path"],frame["path"],frame["sha256"],frame["size_bytes"]))
+    for frame in objects["frames"]:
+        contexts[frame["scene_id"]]["frame_sources"][frame["frame_id"]]={
+            "source_time":copy.deepcopy(frame["source_time"]),"source_sha256":frame["source_sha256"],
+            "artifact":copy.deepcopy(frame["artifact"]),"width":frame["width"],"height":frame["height"]}
     validate_objects(objects,taxonomy=object_taxonomy,manifest=manifest,scenes=contexts)
     validate_actions(actions,manifest=manifest,taxonomy=action_taxonomy,scenes=contexts)
     tasks={"task_version":"annotation-tasks-v1","dataset_version":manifest["dataset_version"],

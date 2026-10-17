@@ -94,18 +94,23 @@ def artifact_transaction(destination: Path, key: str, builder, *, max_bytes: int
         raise OSError("insufficient free disk before extraction")
     staging=Path(tempfile.mkdtemp(prefix=".fortress-extract-",dir=parent))
     files=[]
+    names=set()
     total=0
 
     def register(relative: str, payload: bytes|None=None):
         nonlocal total
-        if "/" in relative or "\\" in relative or relative in ("",".","..","artifacts.json"):
-            raise ValueError("artifact filename must be a generated basename")
+        if (not isinstance(relative,str) or relative.startswith("/") or "\\" in relative or ":" in relative
+                or any(part in ("",".","..") for part in relative.split("/")) or relative=="artifacts.json"
+                or relative in names):
+            raise ValueError("artifact path must be a unique safe generated relative path")
+        names.add(relative)
         path=staging/relative
         size=len(payload) if payload is not None else path.stat().st_size
         additional=size if payload is not None else 0
         if total+size>max_bytes or shutil.disk_usage(parent).free<min_free_bytes+additional:
             raise OSError("extraction byte/free-disk limit")
         if payload is not None:
+            path.parent.mkdir(parents=True,exist_ok=True)
             with path.open("xb") as output:output.write(payload)
         digest=source_hash(path,max_bytes)
         total+=size

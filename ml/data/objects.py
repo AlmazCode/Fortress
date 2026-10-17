@@ -65,6 +65,10 @@ def validate_objects(document: dict, *, taxonomy: dict, manifest: dict|None=None
         if manifest is not None:
             if scenes is None:raise ValueError("scene context required")
             scene=validate_reference(frame,manifest,scenes)
+            anchor=scene.get("frame_sources",{}).get(frame["frame_id"])
+            actual={k:frame[k] for k in ("source_time","source_sha256","artifact","width","height")}
+            if anchor!=actual:
+                raise ValueError("object frame provenance differs from task anchor; regenerate legacy tasks")
             if (not scene["start_sec"]<=time["timestamp_sec"]<scene["end_sec"]
                     or time["source_pts"] not in scene["source_pts"]
                     or (frame["width"],frame["height"])!=(scene["width"],scene["height"])):

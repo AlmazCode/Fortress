@@ -70,7 +70,7 @@ def test_new_external_coco_annotation_is_an_unreviewed_proposal_with_sidecar_met
     assert import_coco(again,metadata,data["object_taxonomy"])==imported
 
 
-@pytest.mark.parametrize("case",["negative","outside","zero_area","nan","class","pseudo","transform","path","provenance"])
+@pytest.mark.parametrize("case",["negative","outside","zero_area","nan","class","pseudo","transform","path","provenance","pts"])
 def test_canonical_object_validation_keeps_source_geometry_and_review_honest(tmp_path,case):
     data=sample_documents(tmp_path)
     item=add_object(data)
@@ -83,5 +83,8 @@ def test_canonical_object_validation_keeps_source_geometry_and_review_honest(tmp
     if case=="transform":data["objects"]["frames"][0]["artifact"]["transform"]["to_original"][0][2]+=1
     if case=="path":data["objects"]["frames"][0]["artifact"]["path"]="../escape.png"
     if case=="provenance":data["objects"]["frames"][0]["source_sha256"]="0"*64
+    if case=="pts":
+        data["objects"]["frames"][0]["source_time"]["source_pts"]+=500
+        data["objects"]["frames"][0]["source_time"]["timestamp_sec"]+=.5
     with pytest.raises(ValueError):
         validate_objects(data["objects"],taxonomy=data["object_taxonomy"],manifest=data["manifest"],scenes=data["contexts"])
