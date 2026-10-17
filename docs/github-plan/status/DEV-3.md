@@ -8,7 +8,7 @@
 | --- | --- | --- | --- | --- |
 | D1 | accepted | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | Принят главным, merge 8dd2da1; software D1, training gate закрыт |
 | D2 | accepted | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | Принят главным как draft, merge 47787cb; final taxonomy/human review не заявлены |
-| D3 | review | codex/fortress-no3-ml | d0b9704b005e85675191baf0c0737b5d6da8cc49 | 48 targeted D3 tests; вместе K+D1+D2+D3 129 passed; manifest/split CLI passed |
+| D3 | review | codex/fortress-no3-ml | 54493fcd10b1824356f82df3f6bbbfadc1ea5ffc | Исправлен P1 re-split holdout leak; 136 passed + реальный повторный CLI; нужен повторный review №1 |
 | D4 | blocked | codex/fortress-no3-ml | — | Зависит от D3 |
 | D5 | blocked | codex/fortress-no3-ml | — | Зависит от D2/D4 |
 | D | blocked | codex/fortress-no3-ml | — | Зависит от D1/D5 |
@@ -78,7 +78,7 @@ Target Python/PyTorch/Torchvision/CUDA, 576 feature shape, preprocessing, annota
 
 Человек явно разрешил обычный push проверенных commits №3 в codex/fortress-no3-ml; разрешение распространяется на следующие проверенные результаты №3. D1 и журнал уже опубликованы. D2 остаётся review до проверки главным. Официальная taxonomy, человеческая разметка, права и training readiness не подтверждены; обучение и реальная ML-оценка не выполнялись. Следующая независимая задача — D3; D4 ждёт принятого D3.
 
-## D3 — готовый кандидат
+## D3 — исходный кандидат (возвращён на исправление)
 
 - Base: `c4857881d6a7e44af9f643b2ea2dc4713241abbc`; candidate: `d0b9704b005e85675191baf0c0737b5d6da8cc49`. Diff — add только десяти разрешённых файлов D3, 1068 строк; contracts/locks и исходный датасет не изменялись.
 - `.venv/Scripts/python.exe -m pytest tests/contracts/test_schemas.py tests/ml -q` — exit 0, **129 passed**, no skips (K 55, D1 9, D2 17, D3 48). Проверялся неизменённый код кандидата до commit.
@@ -102,3 +102,20 @@ Target Python/PyTorch/Torchvision/CUDA, 576 feature shape, preprocessing, annota
 После нового fetch `origin/codex/integration` = `2ba4272e9504e7b15c76cecc04f7ed6fa5d98788`. Главный принял software D1 и включил точный `536fe7a` merge `8dd2da1`; ancestry check exit 0, STATUS.md и журнал №1 это фиксируют. Собственная строка D1 обновлена по фактической приёмке, не по авторской самооценке. K/pyproject/uv.lock всё ещё без изменений относительно этой integration. D2 и D3 — опубликованные кандидаты review; D4 не начинается до проверки и интеграции D3 по AGENTS.md/WORKFLOW.md. Следующее действие главного — review/integrate D2/D3, затем №3 получает точный принятый D3 SHA и выполняет D4.
 
 Последующий fetch: integration `c00516e` принимает D2 `b4961272723cefec463d45ccb49d041afd52150b` как draft (merge `47787cb`); ancestry check exit 0. Строка D2 синхронизирована с приёмкой главным. D3 и журнал опубликованы до `ad39b03f0ba751137f441a19e6644ca0da0c2e50`, remote head подтверждён через ls-remote, рабочее дерево чистое. Старое упоминание c485788 в чужой сводке отражает её время проверки, а не отсутствие опубликованного D3.
+
+## D3 — исправление P1 после review №1
+
+Получен `origin/codex/integration=bfff45447f74a5263b1d728e05ebb41490d91b58`. Главный фактически воспроизвёл утечку: повторный split уже разделённого bundle без final flag терял independent_test и выдавал прежний final в training. Авторский 129-test suite пропустил повторный сценарий. Замечание принято; прежний `d0b9704` не считается принятым или достаточным.
+
+Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candidate: **`54493fcd10b1824356f82df3f6bbbfadc1ea5ffc`**. Только три файла D3: ml/data/splits.py, ml/config/data.example.yaml, tests/ml/test_splits.py. Контракты/locks/original data не изменены.
+
+- До изменения product code добавлены регрессии: targeted run → exit 1, **5 failed**. Два seed теряли final; новый final не отклонялся; связанные source/SHA/near groups теряли holdout; реальный CLI подтвердил дефект.
+- Отдельный CLI на прежнем изолированном synthetic bundle, seed17 без final flag → exit 0, train3/dev1/final0; прежний final перешёл в dev_validation. Это утечка в threshold calibration, даже при training_ready=false. Отчёт сохранён вне Git, SHA-256 `9bd8c90d193778343d82974bf96a1a9d154d6aacdc14b19a63d22de4794747f2`.
+- Исправление grouped-v2: сохраняется полный existing independent_test; смена seed/dev ratio его не перемещает; изменение final selection после любого train/dev/final assignment отклоняется до output. Ранее использованные train/dev нельзя «сделать независимыми» новым flag. Повторное указание текущего final допустимо и idempotent. Ineligible existing final и пересекающие partitions новые duplicate edges отвергаются.
+- Transitive source/duplicate/near components сохраняются в manifest.group_id как component hash; исходные group IDs остаются в import audit. Поэтому забытый optional near sidecar при следующем API call не разрывает прежние группы. Canonical identity не подменяется near similarity. Новый алгоритм имеет новую split_version, инвалидирующую downstream inputs.
+- Реальные CLI regression tests создают новые FFV1/MKV и вызывают отдельные Python-процессы import → first split → re-split seed17/99 без flag → запрет другого final. Проверены distinct sources и transitive source+exact-copy groups, оба selectors training/threshold_calibration, отсутствие output при отказе, hash/mtime originals.
+- Финальный `.venv/Scripts/python.exe -m pytest tests/contracts/test_schemas.py tests/ml -q` → exit 0, **136 passed in 12.50s, no skips** (55 K + 9 D1 + 17 D2 + 55 D3). Код после проверки не менялся.
+- Отдельные CLI re-split прежнего bundle после fix с seed17 и seed99 → оба exit 0, train2/dev1/final1; тот же ID остаётся independent_test. SHA-256 отчётов: seed17 `1af8954ab5711192b39291724f4ad13db337e338dbabca185c3fb5d65282b1f4`; seed99 `7fc8431365d7bc79c24029b840accc0274ef634cbfc9f765be649206aa5a42c6`. Полные локальные пути/argv сохранены вне Git.
+- `git diff --cached --check` → exit 0; staged paths — ровно три разрешённых файла D3. Full train/fine-tune/реальная ML evaluation не выполнялись; все regression data synthetic.
+
+Человек после ожидания поручил «делай»; начат локальный черновик D4 поверх проверенного автором D3. После сообщения об утечке работа D4 остановлена, четыре собственных непроверенных файла сохранены вне Git в локальной контрольной папке. Они не входят в исправление D3 и не объявлены готовыми. Следующее действие №1 — повторная проверка точного `54493fc` и интеграция D3; D4 по графу ещё не принята/не открыта. Журнал обновлён до review нового кандидата, а не accepted.
