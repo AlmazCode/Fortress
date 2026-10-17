@@ -1,6 +1,6 @@
 # Сводка проекта — ведёт только главный
 
-Интеграционная ветка: `codex/integration`. Последние проверенные интеграции: исправление A `c46a2c0`, F merge `c6d15d5`, D1/D2, D3–D/M1–M3 до merge `30c9df6`; код инфраструктуры №4 `1137423` + отчёт `8aee9d1` включены merge `3e19b04`, но O2/O3/O остаются blocked по runtime/HTTPS (K, все A1–A5 и F1–F4 входят по ancestry). Общая main не изменяется. Приёмка ниже — фактическая проверка главным №1, не независимая человеческая приёмка. Приёмка этапов относится только к указанному объёму; legal/ML/GPU/external HTTPS gates описаны отдельно ниже.
+Интеграционная ветка: `codex/integration`. Последние проверенные интеграции: исправление A `c46a2c0`, F merge `c6d15d5`, D1/D2, D3–D/M1–M3 до merge `30c9df6`, M4/M с исправлением `c68ae81` и отчётом `21de016` включены merge `894e869`; код инфраструктуры №4 `1137423` + отчёт `8aee9d1` включены merge `3e19b04`, но O2/O3/O остаются blocked по runtime/HTTPS (K, все A1–A5 и F1–F4 входят по ancestry). Общая main не изменяется. Приёмка ниже — фактическая проверка главным №1, не независимая человеческая приёмка. Приёмка этапов относится только к указанному объёму; legal/ML/GPU/external HTTPS gates описаны отдельно ниже.
 
 Принятые commits: K — `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f`; A1 — `a84cce5e19c8b5a96286473aa9283c2c6b3a1194`. Команды, покрытие и ограничения — [журнал №1](status/DEV-1.md).
 
@@ -26,8 +26,8 @@
 - [x] M1 — Preprocessing и кэш · №3 · accepted software (145e33e, merge 6133bd1)
 - [x] M2 — GRU и CPU train/resume · №3 · accepted software (e30bfb6 + follow-up 6c9f4c2, merges 3537909/30c9df6)
 - [x] M3 — Оценка и экспорт пакета · №3 · accepted software (a23f946 + e7db22f, merge 30c9df6)
-- [ ] M4 — Loader и inference adapter · №3 · blocked review (67ec1de): штатный backend .video отвергается
-- [ ] M — ML CLI и загрузка release · №3 · blocked review (85e5b21, report 7aab330): дефект M4 сохраняется
+- [x] M4 — Loader и inference adapter · №3 · accepted software (67ec1de + c68ae81, merge 894e869); .video defect закрыт
+- [x] M — ML CLI и загрузка release · №3 · accepted software (85e5b21 + c68ae81, report 21de016, merge 894e869); tiny CPU, production not_ready
 - [x] R1 — Кейсы и нормативные источники · №4 · accepted software / missingSource; legal gate unknown
 - [x] R2 — Память ролика и связей · №4 · accepted
 - [x] R3 — Правила и сложные примеры · №4 · accepted software; все production cases unsupported
@@ -35,7 +35,7 @@
 - [ ] O2 — Compose и offline worker · №4 · code integrated (1137423, merge 3e19b04); blocked runtime/offline/volumes/GPU, COPY contracts исправлен
 - [ ] O3 — TLS и внешний smoke · №4 · blocked (нет подтверждённого внешнего HTTPS)
 - [ ] O — Compose и доступ по HTTPS · №4 · blocked (O2/O3)
-- [ ] I — Интеграция без весов · №1 · blocked (M/O; A/F/R software приняты)
+- [ ] I — Интеграция без весов · №1 · blocked (O runtime/external HTTPS; A/F/M/R software приняты)
 - [ ] U — Браузерная приёмка · №2 · unverified
 - [ ] E — Передача ML-инструментов · №3 · материалы 8d8a476 рассмотрены; blocked до принятого I
 - [ ] B — Восстановление и benchmark · №4 · tooling integrated (1137423); actual full-stack acceptance blocked до I
@@ -43,40 +43,23 @@
 
 ## Актуальное review 18 октября 2026: новые SHA №3/№4
 
-Результаты ниже заменяют старые возвраты D3/COPY contracts. История дальше относится к прежним SHA. Проверки выполнены главным в собственном checkout; это не человеческая/ML/production приёмка.
+Результаты ниже заменяют старые возвраты D3/M4 .video/COPY contracts. История дальше относится к прежним SHA. Проверки выполнены главным в собственном checkout; это не человеческая/ML/production приёмка.
 
-### Повторная сверка после просьбы «а щас проверь»
+### №3: M4/M приняты после исправления штатного .video
 
-Свежий `git fetch origin` → exit0. №3 остаётся **4513993fd8679d93e39424aa3d63178c84e15fb4**: нового M4/M исправления `.video` нет, прежнее воспроизведение относится к текущему коду. №4 опубликовал **f2e40c6750d4794ae6817c248a45e9b3380f9401** — только5 документов, executable code/тесты/locks не изменены. Подготовлен новый [RELEASE.md](../operations/RELEASE.md); исправление 404 отмечено закрытым. Авторский свежий runtime report: Windows engine pipe отсутствует, host NVIDIA query не подтверждает container CUDA; Docker/worker/volumes/GPU/external HTTPS всё ещё not_run. Доступ к другому ПК по журналу №4 отложен пользователем; новых подключений не предпринималось.
+Свежий fetch получил code **c68ae819d38cd14b97921c9c76ed1a4b92d89cc8**, report/head **21de016d801a6b5d8116106a02ab34b848047e94**. После проверки включены обычным merge **894e869b7b02deceb0a3978e086750d828c380e0**. Исправление выбирает фактический контейнер по содержимому во всех трёх проходах probe/index/decode; demuxer whitelist устанавливается до чтения заголовков, file-only protocols, hash/PTS и decode budgets сохранены. Backend/contracts/locks не менялись.
 
-Главный прочитал runbook/DEV-4/ACCEPTANCE, проверил **11 Bash blocks (`bash -n`), 5 Python snippets (`ast.parse`)**, relative links, JSON и production/harness Compose config — exit0. Документация включена merge **2495a6d1114e913f8d36ae40cb6a3ac42f6f8fc0**; это подготовка инструкции, не приёмка O или публикация Release/deploy. Повторный Linux `docker version` → exit1 `permission denied /var/run/docker.sock`. Неизменённые application tests не повторялись. **M4/M, O и I остаются blocked** по тем же точно указанным ниже условиям.
+Собственная проверка главного на Linux: `.venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q --tb=short` → **exit0, 273 passed, no skips, 87.46s**. Набор включает реальные LocalStorage.spool/VideoValidator/promote, MP4 и MOV rotation90/VFR/nonzeroPTS, CLI на .video, запрет ffconcat, corrupt/hash/budget regressions, tiny CPU CLI train/resume/export/import/rollback и holdout protection. Windows-адаптеры в Linux не активируются.
+
+Отдельно повторён прежний собственный сценарий: новый FFmpeg H.264 MP4 → штатный LocalStorage.promote → VideoValidator → TimelineAdapter и subprocess `ml.cli infer`. Оба расширения теперь проходят, CLI exit0; intervals/scores/masks совпадают (path-derived video/scene IDs нормализованы только для сравнения), source SHA и stored bytes/mtime сохраняются. Coverage=none, findings=[], test-only package отвергается production adapter, manager readiness=not_ready. Старый P1 закрыт, новых воспроизводимых дефектов в проверенном изменении не найдено.
+
+M4/M приняты в software объёме. E-документы включены как подготовка; **E blocked до принятого I SHA**. I ещё ждёт O: фактический runtime/offline/volumes/GPU и внешний HTTPS. Полное обучение/реальное ML качество не проверялись и остаются отложенными; отсутствие production release сохраняет model_not_ready.
 
 ### Принятые D3–D и M1–M3
 
 D3 **54493fcd10b1824356f82df3f6bbbfadc1ea5ffc**: 55 targeted tests passed. Собственный CLI import четырёх новых FFV1/MKV → split seed17 с final → re-split без final flag при (seed,dev_fraction)=(17,.2),(99,.7),(321,0) сохранил один final во всех трёх случаях. Training/calibration selectors его не возвращают; попытка выбрать другой final → exit2, output отсутствует, originals/hash/mtime сохранены. Старый P1 d0b9704 **закрыт**.
 
 Далее последовательно проверены и объединены D4 (14 tests), D5 (40), D/data CLI с затронутыми regressions (51), M1 (28), M2 (15), M3 вместе с M2 lineage fix (38). Точные SHA и commands — DEV-1. Это tools ready и tiny CPU software evidence; реальные labels/weights/ML validation не заявляются.
-
-### Новый возврат №3: [P1] M4 не принимает файл, сохранённый backend
-
-Проверены M4 **67ec1deb592fbfd8b80437ae5ffeda465aba6adf** и итоговый M **85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d** на опубликованном head **7aab330**. Повторный fetch получил **4513993fd8679d93e39424aa3d63178c84e15fb4**: только DEV-3/HANDOFF, код M и holdout не изменён; свежая передача прочитана. Все **269 tests passed, no skips, 83.43s** воспроизведены главным. Отдельный `ml.cli smoke` → exit0: три synthetic источника, 2 optimizer steps с resume, dev calibration/final evaluation, FP32 model.pt=6,385,243 bytes, data/trained/validated/production=false. Actual CLI train на final и thresholds на final → exit1 без output. Holdout исправлен также на границах trainer/calibration.
-
-**Новый обязательный дефект:** `backend/app/storage.py:87` штатно сохраняет upload как `<32hex>.video`. `TimelineAdapter.infer` (`ml/inference.py:51–55`) передаёт этот путь data importer; `ml/data/manifest.py:87–91` определяет контейнер только по suffix и отвергает `.video` до decode. В `ml/data/pts_index.py` также есть suffix→format lookup; исправить только первый whitelist недостаточно.
-
-Главный создал настоящий H.264 MP4 64×48/10fps/1s, сохранил через **LocalStorage.promote**, проверил **VideoValidator** и неизменность байтов/SHA. Inference того же файла под `.mp4` → exit0/coverage=none; под штатным `.video` → `InferenceFailed: decode_unsupported_or_corrupt`. На финальном M это повторено именно через CLI → exit1, timeline output не создан. Проблема затронет обычные accepted uploads при подключении K TimelineProvider; это не плохое видео и не отсутствие trained release.
-
-Минимальный повтор на ветке №3 (новая временная папка, только synthetic):
-
-```sh
-review_dir=$(mktemp -d)
-python -m ml.cli smoke --output-dir "$review_dir/smoke"
-ffmpeg -v error -nostdin -f lavfi -i testsrc2=size=64x48:rate=10:duration=1 -c:v libx264 -threads 1 -pix_fmt yuv420p "$review_dir/synthetic.mp4"
-cp "$review_dir/synthetic.mp4" "$review_dir/0123456789abcdef0123456789abcdef.video"
-python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --video "$review_dir/synthetic.mp4" --output "$review_dir/normal.json"
-python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --video "$review_dir/0123456789abcdef0123456789abcdef.video" --output "$review_dir/stored.json"
-```
-
-Последние exit codes: **0 и 1**. Ожидается успешный decode обоих одинаковых файлов с сохранением исходных PTS/hash и unknown coverage. №3: согласовать безопасное определение фактического контейнера для backend-owned paths на всём probe/index/decode пути; сохранить local-only protocols/limits/hash checks, добавить regression с настоящим LocalStorage/VideoValidator и новым SHA. Backend storage/контракты для обхода не ослаблять. M4/M **не приняты и не интегрированы**: временные review merges отменены, все авторские commits сохранены. Материалы E `8d8a476` рассмотрены как подготовка; E ждёт I.
 
 ### №4: код исправлен и интегрирован, runtime ещё blocked
 
@@ -92,9 +75,36 @@ python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --vid
 
 Собственный commit **c46a2c0** заменяет `not_found` на `job_not_found` для отсутствующего задания и generic API404, на `media_not_found` для отсутствующего original/evidence существующего задания. Новые regressions сначала дали **2 failed** по реальному HTTP/body, после исправления весь contracts/API набор → **118 passed, no skips, 35.70s**. Проверены random/malformed ID, public/UI/media/preview/frame, удалённый original, body schema, cache/private headers и отсутствие утечки key/path. Production без release по-прежнему **503 model_not_ready**, без создания job/outbox.
 
-**I остаётся blocked:** нужен новый исправленный и проверенный M4/M SHA, плюс фактически принятый O runtime/external HTTPS. Отсутствие будущего trained release само по себе I не блокирует; full training отложено. После закрытия M/O №1 выполняет I, затем №2/№3/№4 U/E/B и №1 Z. Общая main не изменяется, force-push/deploy/новые чаты/сабагенты/Aster не используются.
+**I остаётся blocked:** M4/M теперь приняты; требуется фактически принятый O runtime/external HTTPS. Отсутствие будущего trained release само по себе I не блокирует; full training отложено. После закрытия O №1 выполняет I, затем №2/№3/№4 U/E/B и №1 Z. Общая main не изменяется, force-push/deploy/новые чаты/сабагенты/Aster не используются.
 
 ## Исторические результаты (актуальные статусы выше)
+
+### История сверки до публикации c68ae81
+
+Свежий `git fetch origin` → exit0. №3 остаётся **4513993fd8679d93e39424aa3d63178c84e15fb4**: нового M4/M исправления `.video` нет, прежнее воспроизведение относится к текущему коду. №4 опубликовал **f2e40c6750d4794ae6817c248a45e9b3380f9401** — только5 документов, executable code/тесты/locks не изменены. Подготовлен новый [RELEASE.md](../operations/RELEASE.md); исправление 404 отмечено закрытым. Авторский свежий runtime report: Windows engine pipe отсутствует, host NVIDIA query не подтверждает container CUDA; Docker/worker/volumes/GPU/external HTTPS всё ещё not_run. Доступ к другому ПК по журналу №4 отложен пользователем; новых подключений не предпринималось.
+
+Главный прочитал runbook/DEV-4/ACCEPTANCE, проверил **11 Bash blocks (`bash -n`), 5 Python snippets (`ast.parse`)**, relative links, JSON и production/harness Compose config — exit0. Документация включена merge **2495a6d1114e913f8d36ae40cb6a3ac42f6f8fc0**; это подготовка инструкции, не приёмка O или публикация Release/deploy. Повторный Linux `docker version` → exit1 `permission denied /var/run/docker.sock`. Неизменённые application tests не повторялись. **M4/M, O и I остаются blocked** по тем же точно указанным ниже условиям.
+
+### История M4: отказ до c68ae81 (дефект закрыт)
+
+Проверены M4 **67ec1deb592fbfd8b80437ae5ffeda465aba6adf** и итоговый M **85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d** на опубликованном head **7aab330**. Повторный fetch получил **4513993fd8679d93e39424aa3d63178c84e15fb4**: только DEV-3/HANDOFF, код M и holdout не изменён; свежая передача прочитана. Все **269 tests passed, no skips, 83.43s** воспроизведены главным. Отдельный `ml.cli smoke` → exit0: три synthetic источника, 2 optimizer steps с resume, dev calibration/final evaluation, FP32 model.pt=6,385,243 bytes, data/trained/validated/production=false. Actual CLI train на final и thresholds на final → exit1 без output. Holdout исправлен также на границах trainer/calibration.
+
+**Дефект прежних SHA, исправлен в c68ae81:** `backend/app/storage.py:87` штатно сохраняет upload как `<32hex>.video`. `TimelineAdapter.infer` (`ml/inference.py:51–55`) передаёт этот путь data importer; `ml/data/manifest.py:87–91` определяет контейнер только по suffix и отвергает `.video` до decode. В `ml/data/pts_index.py` также есть suffix→format lookup; исправить только первый whitelist недостаточно.
+
+Главный создал настоящий H.264 MP4 64×48/10fps/1s, сохранил через **LocalStorage.promote**, проверил **VideoValidator** и неизменность байтов/SHA. Inference того же файла под `.mp4` → exit0/coverage=none; под штатным `.video` → `InferenceFailed: decode_unsupported_or_corrupt`. На финальном M это повторено именно через CLI → exit1, timeline output не создан. Проблема затронет обычные accepted uploads при подключении K TimelineProvider; это не плохое видео и не отсутствие trained release.
+
+Минимальный повтор на прежнем коде №3 (до c68ae81) (новая временная папка, только synthetic):
+
+```sh
+review_dir=$(mktemp -d)
+python -m ml.cli smoke --output-dir "$review_dir/smoke"
+ffmpeg -v error -nostdin -f lavfi -i testsrc2=size=64x48:rate=10:duration=1 -c:v libx264 -threads 1 -pix_fmt yuv420p "$review_dir/synthetic.mp4"
+cp "$review_dir/synthetic.mp4" "$review_dir/0123456789abcdef0123456789abcdef.video"
+python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --video "$review_dir/synthetic.mp4" --output "$review_dir/normal.json"
+python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --video "$review_dir/0123456789abcdef0123456789abcdef.video" --output "$review_dir/stored.json"
+```
+
+Последние exit codes: **0 и 1**. Ожидается успешный decode обоих одинаковых файлов с сохранением исходных PTS/hash и unknown coverage. №3: согласовать безопасное определение фактического контейнера для backend-owned paths на всём probe/index/decode пути; сохранить local-only protocols/limits/hash checks, добавить regression с настоящим LocalStorage/VideoValidator и новым SHA. Backend storage/контракты для обхода не ослаблять. На момент этого старого review M4/M **не были приняты и интегрированы**: временные review merges отменены, все авторские commits сохранены. Материалы E `8d8a476` рассмотрены как подготовка; E ждёт I.
 
 A2 принят и включён в `codex/integration`: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382` (19 проверок).
 
