@@ -11,8 +11,8 @@
 | D3 | review | codex/fortress-no3-ml | 54493fcd10b1824356f82df3f6bbbfadc1ea5ffc | Исправлен P1 re-split holdout leak; 136 passed + реальный повторный CLI; нужен повторный review №1 |
 | D4 | review | codex/fortress-no3-ml | 8b263be898a7f62504cce7a27d82ad8cce89e60b | 14 targeted tests; вместе K/ML 150 passed; четыре настоящих CLI passed; приёмка отдельно |
 | D5 | review | codex/fortress-no3-ml | 4ad53e30fe844fba794368e15fa53b91588e007f | 40 targeted tests; K/ML 190 passed; task CLI + JSONL/CSV/COCO/QA smoke passed |
-| D | working | codex/fortress-no3-ml | База D5 4ad53e3 | Продолжение по прямому поручению человека; единый data CLI/readiness |
-| M1 | blocked | codex/fortress-no3-ml | — | Зависит от D |
+| D | review | codex/fortress-no3-ml | 97bb8cdc6f507990edd5fbd469708a3f4aeb806d | 196 tests passed; 15 data CLI --help и реальный pipeline; data/training false |
+| M1 | working | codex/fortress-no3-ml | База D 97bb8cd | Продолжение по поручению человека; единый preprocessing и provenance cache |
 | M2 | blocked | codex/fortress-no3-ml | — | Зависит от M1 |
 | M3 | blocked | codex/fortress-no3-ml | — | Зависит от M2 |
 | M4 | blocked | codex/fortress-no3-ml | — | Зависит от M3 |
@@ -147,3 +147,15 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - `git diff --cached --name-status` — ровно 9 D5 paths; `git diff --cached --check` → exit 0. Реальный датасет не размечался/не оценивался, training не запускался.
 
 После очередного fetch N1 всё ещё не зафиксировал приёмку исправленного D3. Продолжение D выполняется по прямому поручению человека; все собственные D3/D4/D5 остаются review и не объявляются accepted.
+
+## D — собранный data CLI и readiness
+
+- Base `46719d2a3f2164b4569b5d931e3096fb0d6baeb2`; candidate `97bb8cdc6f507990edd5fbd469708a3f4aeb806d`. 10 разрешённых путей D: unified CLI/tests, DATA.md/наблюдённый DATA_READINESS.json, MISSING_MATERIALS и интеграционные уточнения собственных D4/D5 modules/tests. Данные/locks/contracts/shared code не менялись.
+- Unified import/split/extract/tasks/annotation-import/export/validate/report реально запускались отдельными Python-процессами на новых synthetic FFV1/MKV. JSONL/CSV/COCO roundtrip, re-split protection, actual PTS и hashes/mtime originals проверены. Targeted pipeline → exit 0, 4 passed in45.66s; full `python -m pytest tests/contracts/test_schemas.py tests/ml -q` → exit 0, **196 passed in65.54s, no skips**. Код после этого не менялся.
+- Длинные проверки теперь сохраняют local log и exit file вне Git. Предыдущая сессия после обновления environment потеряла final output и не была засчитана; повтор с явным собственным cwd и durable log завершён. Shared checkout не редактировался.
+- Unified inventory реально выполнил CPU weights=None self-test [1,576]. Объём/архив, parent extraction transaction, вложенный PNG corruption, snapshot dataset_readiness schema и invalid labels present-but-unverified покрыты. Top help и все 15 data subcommands --help → exit 0.
+- Интеграционное уточнение: task context содержит immutable frame anchors (PTS/source SHA/artifact hash+geometry). Изменённый на другой существующий PTS кадр отвергается; legacy tasks без anchors требуют regeneration. Parent extract marker теперь хэширует все вложенные frame/clip bytes и учитывает их в общем byte budget. Пустой invalid labels object не заменяется тихо template; annotation_missing=null при имеющемся невалидном input.
+- Отдельный настоящий CLI smoke вне Git создал 4 PNG/2 clips, 6 tasks и COCO roundtrip; report → exit 0, tools_ready=true/validation_passed=true/data_missing=true/annotation_missing=true/data_ready=false/training_ready=false. Это synthetic manifest: не опровержение D1 snapshot с42 пользовательскими видео. Source/asset hashes реально проверены, labels пустые, unknown_rate=null.
+- Local DATA_READINESS report SHA-256 `dc5e5be077fd12a7579fb811ddcf590eafcb77e39b32c8f95e2969c4c4d96168`; содержимое сохранено как docs/model/DATA_READINESS.json. В нём actual K dataset_readiness contract=blocked, provenance synthetic. Никаких метрик качества модели/человеческого gold не создано.
+- Acceptance D: материалы/отсутствующие приложения и фактический case отмечены по D1; safe archive/quarantine/dedup/transitive split/final protection/PTS/masks/COCO/review QA собраны; Python3.11 CPU preflight проверен, target RTX5060/RAM16/Ryzen5 и CUDA явно unverified; DATA.md содержит реализованные команды и отдельные gates/reasons. Оригинальный набор другого чата не оценивался/не менялся, full training не запускался.
+- `git diff --cached --name-status` — ровно 10 разрешённых путей; `git diff --cached --check` → exit 0. Candidate D остаётся review; последняя наблюдённая integration всё ещё содержит старую блокировку D3, новый D3 fix не объявляется принятым автором. Следующий собственный этап по прямому поручению — M1.
