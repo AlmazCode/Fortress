@@ -4,8 +4,8 @@
   "timezone": "Asia/Qyzylorda",
   "owner": "developer-4",
   "branch": "codex/dev4-rules-infra",
-  "tested_code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf",
-  "integration_snapshot": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
+  "tested_code_commit": "d5eb6eff26ffd8039939270b99c8ec6dec12a7e1",
+  "integration_snapshot": "ecce7c2126e8e99e7dea3baff3af7b15b4391891",
   "integration_merge": "8a4cf759095adfa59090536ca7cf83a2932c4726",
   "status": "blocked",
   "scope": "Owned software tooling and native client tests; not full-stack operational acceptance",
@@ -58,6 +58,17 @@
       "scope": "Explicit owned file list; shared backend/contracts/locks/frontend sources not edited",
       "execution_date": "2026-10-17",
       "code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest tests/performance/test_preflight_report.py -q --tb=short",
+      "exit_code": 0,
+      "passed": 21,
+      "subtests_passed": 3,
+      "skipped": 0,
+      "elapsed_sec": 1.86,
+      "execution_date": "2026-10-18",
+      "code_commit": "d5eb6eff26ffd8039939270b99c8ec6dec12a7e1",
+      "scope": "Changed preflight, repository binding, network-only CLI and TLS failure/success scope; not runtime/HTTPS acceptance"
     }
   ],
   "runtime_gates": {
@@ -300,7 +311,7 @@
     "external_hostname": null,
     "external_route_confirmed": false,
     "external_tls_confirmed": false,
-    "comment": "User confirms another computer exists, then defers providing access and requests release launch instructions. No address/connection supplied, no current access question pending. Existing approved Linux container stack retained; no new infrastructure provisioned.",
+    "comment": "User requests Docker/HTTPS fixes; code fixed for network-only diagnostic scope and remediation documented. Other computer exists but no address/access supplied after earlier deferral. External hostname/route/certificate also unprovided; operational settings cannot be changed from this Windows host.",
     "user_reported_alternate_computer": true,
     "access_deferred_by_user": true
   },
@@ -320,7 +331,7 @@
     "O": "Actual O2 and O3 criteria pass on exact checked commits; ordinary push/config/native tests do not close them",
     "B": "Accepted I plus explicit synthetic bootstrap and actual full-stack recovery/capacity/deadline evidence; parser/harness success is insufficient"
   },
-  "previous_report_head": "6d7e6789f70df4445be19e758a209d9b95013ce0",
+  "previous_report_head": "f2e40c6750d4794ae6817c248a45e9b3380f9401",
   "synchronization_method": "fast-forward to accepted integration; exit 0",
   "runtime_attempt_2026_10_18": {
     "checked_integration_sha": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
@@ -541,6 +552,18 @@
     "published_release_or_tag_created": false,
     "scope": "New operations document explicitly requested by user; shared plan/manifest not edited",
     "validation": {
+      "date": "2026-10-18",
+      "bash_blocks": 14,
+      "bash_syntax_exit_code": 0,
+      "documented_tls_public_key_commands_exit_code": 0,
+      "matching_key_pair_verified": true,
+      "mismatching_key_pair_detected": true,
+      "scope": "Local temporary certificate/key command validation; no public certificate issued, no external route or runtime changed",
+      "unchanged_python_and_env_checks": "Five Python snippets/private env and Compose configs retain earlier 2026-10-18 evidence; unrelated unchanged checks not repeated"
+    },
+    "runtime_commands_executed": false,
+    "future_release_owner_action": "Include launch instructions and actual acceptance evidence in release for exact accepted I/release SHA",
+    "previous_validation": {
       "bash_blocks": 11,
       "bash_syntax_exit_code": 0,
       "python_snippets": 5,
@@ -557,8 +580,90 @@
         }
       ],
       "scope": "Documentation syntax, actual private-env generator and actual Compose config only; no container execution"
+    }
+  },
+  "previous_tested_code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf",
+  "docker_https_followup_2026_10_18": {
+    "code_commit": "d5eb6eff26ffd8039939270b99c8ec6dec12a7e1",
+    "integration_snapshot": "ecce7c2126e8e99e7dea3baff3af7b15b4391891",
+    "fetch_exit_code": 0,
+    "fast_forward_exit_code": 0,
+    "tested_blobs": {
+      "infra/scripts/preflight.sh": "f64f4b7666bd3fc648dc0d2c60eca6357b979c2d",
+      "tests/performance/test_preflight_report.py": "4ef0c781ececd1f2501fd29b11ceb462db0a32d7"
     },
-    "runtime_commands_executed": false,
-    "future_release_owner_action": "Include launch instructions and actual acceptance evidence in release for exact accepted I/release SHA"
+    "actual_code_issue": "--network-only still ran complete OS/WSL/Docker/GPU inventory and mixed its blockers into TLS reports",
+    "fix": "Return after repository guard and network inventory; network-only report contains only network blockers; retain strict CA/hostname verification and independent-external gate",
+    "native_tls_cli": {
+      "date": "2026-10-18",
+      "command": "bash infra/scripts/tls-check.sh [--external-url local ephemeral TLS origin]",
+      "observations": [
+        {
+          "case": "no_url",
+          "exit_code": 2,
+          "tls_status": "not_run",
+          "runtime_blockers_included": false,
+          "external_access_verified": false
+        },
+        {
+          "case": "local_private_ca",
+          "exit_code": 0,
+          "tls_status": "ok",
+          "runtime_blockers_included": false,
+          "external_access_verified": false
+        },
+        {
+          "case": "untrusted_chain",
+          "exit_code": 2,
+          "tls_status": "failed",
+          "runtime_blockers_included": false,
+          "external_access_verified": false
+        },
+        {
+          "case": "wrong_hostname",
+          "exit_code": 2,
+          "tls_status": "failed",
+          "runtime_blockers_included": false,
+          "external_access_verified": false
+        }
+      ],
+      "scope": "Actual local TLS CLI with temporary process-local private CA; strict untrusted/name rejection; no external HTTPS or upload/runtime acceptance"
+    },
+    "documentation_validation": {
+      "date": "2026-10-18",
+      "bash_blocks": 14,
+      "bash_syntax_exit_code": 0,
+      "documented_tls_public_key_commands_exit_code": 0,
+      "matching_key_pair_verified": true,
+      "mismatching_key_pair_detected": true,
+      "scope": "Local temporary certificate/key command validation; no public certificate issued, no external route or runtime changed",
+      "unchanged_python_and_env_checks": "Five Python snippets/private env and Compose configs retain earlier 2026-10-18 evidence; unrelated unchanged checks not repeated"
+    },
+    "linux_permission_denied": {
+      "source": "Role-1 DEV-1/STATUS review on a separate Linux host",
+      "path": "/var/run/docker.sock",
+      "recorded_exit_code": 1,
+      "observed_directly_by_role_4": false,
+      "current_user_groups_acl_or_sandbox_verified": false,
+      "fix_applied": false,
+      "required_access": "Connection to the actual Linux host and authorized operator/admin session; not supplied"
+    },
+    "current_windows_engine": {
+      "command": "standalone Compose ls --format json",
+      "exit_code": 1,
+      "reason": "Missing npipe docker_engine, not Linux socket permission denied",
+      "runtime_installed_or_permissions_changed": false
+    },
+    "external_https": {
+      "status": "not_configured_not_run",
+      "hostname": null,
+      "route_confirmed": false,
+      "certificate_error_observed": false,
+      "external_certificate_issued": false,
+      "external_access_verified": false
+    },
+    "release_remediation": "RELEASE.md now distinguishes the two Docker hosts, provides conditional rootful group/login or existing rootless diagnostics, and DNS/route/ACME/certificate-pair/TLS/upload steps",
+    "operational_result": "Blocked on actual host access and external hostname/route/TLS; local tooling fix does not claim engine permissions or external HTTPS repaired",
+    "constraints": "No WSL/VirtualMachinePlatform, VM, Docker reinstall, reboot, permission mutation, insecure socket/TLS bypass, deploy, main/force-push or new chats"
   }
 }
