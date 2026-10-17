@@ -120,3 +120,41 @@ Production не импортирует tests/fixtures: CLI production-only, яв
 Авторский head: `bab9998bb094605ceadbfb42412080fa1e0f3b3f`; опубликованный отчёт: `7e4279d`. Главный прочитал 10 файлов F1, schema validators/key lifecycle/abort/retry/media byte cap/test-only transport, сверил scope и K. Обычный merge `f4ae1b5` содержит точный candidate и журнал №2; чужой код не исправлялся.
 Собственные проверки на Node 24.21.0 / npm 12.2.0: `npm ci --ignore-scripts --no-fund --no-audit --registry=https://registry.npmjs.org` → 0; `npm run typecheck` → 0; `npm test -- src/api/client.test.ts` → 0, **42 passed**; `npm run build` → 0. `npm exec vite build -- --mode fixture` → 1, ожидаемый явный запрет. Production JS не содержит тестового ключа/fixture transport/payload markers. Lock использует только registry.npmjs.org.
 F1 принят и интегрирован: это API-client scaffold, полный экран ещё не реализован (index загружает client.ts). Критерии 1–5 покрыты установленным lock/build/component tests, header-only memory key/reset, AJV K public/UI schemas, explicit synthetic transport и ограниченными retry/abort без повторного POST. Browser workflow/seek/адаптивность не заявляются. F2/F3/F4 теперь ready.
+
+## Проверка D1/O1/R и инфраструктуры
+
+D1 прочитан целиком: bounded read-only hashes/inventory, taxonomy/missing-material gates, runtime info и CPU-only weights=None. `uv sync --locked --group test --extra ml --no-build` → 0; lock не изменился. `uv run --locked --group test --extra ml python -m pytest tests/ml/test_preflight.py -q` → 0, **9 passed in 6.29s**. CLI `python -m ml.preflight --project-root . --self-test --output <new-local-report>` → 0, настоящий CPU `[1,3,224,224]→[1,576]`, torch 2.14.1+cpu/torchvision 0.29.1+cpu. На этом хосте media/annotations не передавались: data_missing/annotation_missing=true, training_ready=false. Это не повторная верификация частного inventory автора и не training. Кандидат 536fe7a интегрирован merge 8dd2da1.
+
+O1/R1–R3/R: прочитаны shell/Python recorder, tri-state engine/typed inputs/session memory, matrix всех C01–C15, source registry и сценарные tests. Только scope №4 и его журнал; поправки O1 в R commit рассмотрены. `.venv/bin/python -m pytest tests/rules tests/performance/test_preflight_report.py -q` → 0, **32 passed, 1 skipped, 29 subtests passed**. Skip — bootstrap PowerShell 7, отсутствующий на текущем Linux. `FORTRESS_PYTHON=<venv-python> sh infra/scripts/preflight.sh --timeout 3 --output <new-local-report>` → 0, фактический Linux inventory: Ubuntu/Python3.11/FFmpeg ok; Docker engine failed, NVIDIA tools missing, GPU container not_run, внешняя сеть not_run. O1 принят как честный инвентарь, не готовая среда.
+
+R критерии покрыты: все C01–C15/mappings; tri-state и пять positive/hard-negative/truncated/occlusion/exception шаблонов; whole-video memory/late events/scene/job isolation; K output validation, explicit unknown actors, source/version/limitations, отсутствие ложных юридических названий. R1 outcome missingSource, R/R3 outcome unknown: юридический gate не пройден, подтверждённых production rules нет. Software этапы приняты с этим явным ограничением, merge df1f398 включает точный 9569729.
+
+Более поздний 5834064 просмотрен, но не принят/не объединён: несовместимые API/Celery entrypoints, solo pool, ping при отключённом remote control, worker env, отсутствующие runtime/HTTPS evidence и infra/.gitattributes вне files. Точные замечания владельцу перечислены в STATUS.md. Чужие исходники не исправлялись, main не менялась.
+
+## Продолжение: приёмка F и D2, повторный review O2/O3
+
+17 октября 2026, стартовый HEAD `2ba4272e9504e7b15c76cecc04f7ed6fa5d98788`, тот же изолированный checkout и `codex/fortress-backend`. Origin/base/clean tree проверены; `git fetch origin` → 0. Получены frontend `96f037c`, ML/data `c485788`, infra `2e368f6`. Выполнялась проверка входящих зависимостей; реализация I не начиналась до принятия M/O.
+
+F: прочитаны App/main, компоненты, query/key/media lifecycle, tests, config и отчёт. Merge `c6d15d5feade48abfcde81207c818510344445a9` включает финальный код `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc` и отчёт `96f037c`. Фактическая merge-дельта — 24 разрешённых пути F1–F4/F и журнал №2; backend/shared contracts не меняются. Прямое сравнение старого F1 head с кандидатом включало уже принятые backend ancestors; scope проверен по фактической staged merge-дельте, а не приписанным автору входящим merges.
+
+- `npm test` → 0, **110 passed / 8 files**, 3.88s, Node 24.21.0 / npm 12.2.0.
+- `npm run build` → 0; внутри `tsc --noEmit` → 0 и Vite build → 0. JS 468.35 kB, CSS 17.80 kB. Lock/dependencies не менялись с предыдущей чистой установки F1.
+- `npm exec vite build -- --mode fixture` и `--mode api-test` → ожидаемые exit 1 с явным запретом. Проверка JS по canonical JPEG, test keys и fixture transport markers → 0, совпадений нет.
+- `git diff --cached --check` → 0 перед merge commit. Код frontend после checks не менялся.
+
+F2 покрывает upload/202/poll/terminal/retry/errors/abort; F3 — bounded protected Blob lifecycle, exact source-second seek, corrupted/missing evidence; F4 — readiness/error/keyboard и responsive styles; F собирает путь и production/test separation. Внешний API/настоящее видео/browser seek не проверялись: I/U. Браузерные 360/768/1440 px и focus — авторское evidence №2, не повторный браузерный прогон главного. Ограничение K violation→finding mapping сохранено честно: источники показываются отдельно, связь не выдумана. F2/F3/F4/F приняты в указанном software объёме после собственных checks.
+
+D2: прочитаны validator, append-only checks, annotation masks, оба draft файла, гайд и C01–C15 mapping. Код `b4961272723cefec463d45ccb49d041afd52150b` с отчётом `c485788` включён обычным merge `47787cbf295a8b0302cba32c35dab11aa49f28c8`, 7 разрешённых путей.
+
+- `.venv/bin/python -m pytest tests/ml/test_taxonomy.py tests/contracts/test_schemas.py -q` → 0, **72 passed in 1.05s** (17 новых taxonomy, 55 contracts).
+- `.venv/bin/python -m ml.data.taxonomy ml/config/object_taxonomy.draft.json` → 0: 9 classes, 0 states, draft.
+- `.venv/bin/python -m ml.data.taxonomy ml/config/action_taxonomy.draft.json` → 0: 14 classes, 6 states, draft.
+- `git diff --cached --check` → 0; после checks код не менялся.
+
+Критерии D2: девять объектов, отдельные actions/states, includes/excludes/hard negatives/visibility/truncation/unmeasured small-object limits, append-only/version constraints, nullable roles/links, вся карта C01–C15 и человеческий review/holdout/pseudo-label policy. D2 принят как draft, без official IDs, human acceptance, annotations или training readiness. D3/D4/D5 и весь M ещё не приняты.
+
+O2/O3: точный `1a1b091`/отчёт `2e368f6` прочитан, merge отсутствует. Prefork и local PID health исправляют часть старых замечаний, но новая env-интерполяция не создаёт отсутствующий Celery export. Сверены опубликованный A CLI, обязательный key env, отсутствие миграции, PID health incompatibility при переходе на CLI. Найден отсутствующий COPY contracts в frontend Dockerfile. Набор COPY inputs воспроизведён во временной папке с локальным node_modules: `npm run build` → ожидаемый **exit 1, TS2307** по четырём imports contracts. Это не запуск контейнера; private log сохранён локально. Исправления чужих файлов не выполнялись. Точные следующие действия №4 — в STATUS.md; Docker/GPU/offline/volumes/external HTTPS остаются blocked.
+
+I теперь ожидает M/O (A/F/R software приняты); Z ожидает I → U/E/B. Это фактическое ревью главного, не независимая человеческая приёмка. Backend 116 checks относятся к неизменённому `043eeb6`, повторно без изменения кода не запускались. Aster, main, deploy, обучение и сообщения другим чатам не использовались.
+
+Повторный fetch принёс только заметку №2 `99dd2c0` об остановке временного preview и ограничении встроенного браузера после restart. Заметка рассмотрена и объединена отдельно; исходники не менялись, live preview не обещается. Общий validator после обновления journals/STATUS/manifest → 0, 36 задач/48 рёбер, сохранены критерии и ownership; это проверка документации. Ancestry F/D2 и отсутствие изменений backend относительно `043eeb6` проверены; `git diff --check` → 0.

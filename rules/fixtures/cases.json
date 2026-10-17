@@ -1,0 +1,21 @@
+{
+  "test_only": true,
+  "provenance": "synthetic explicit rule inputs; not ML validation or applicable policy",
+  "templates": [
+    "prerequisite",
+    "unresolved-state",
+    "cross-session",
+    "presence",
+    "response"
+  ],
+  "scenarios": [
+    "positive",
+    "hard_negative",
+    "truncated",
+    "occlusion",
+    "exception",
+    "unknown_actor",
+    "unvalidated_recognizer",
+    "unknown_exception"
+  ]
+}
