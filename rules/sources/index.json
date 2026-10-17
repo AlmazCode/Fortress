@@ -1,0 +1,23 @@
+{
+  "version": "sources.v1-draft",
+  "sources": [
+    {
+      "id": "provided-case-brief",
+      "source_kind": "unverified",
+      "url": null,
+      "revision": null,
+      "section": null,
+      "snapshot_sha256": "dc922082c077fb57c6eaee4c3e4238dad26688dfd1d56d15c86b7dff634f43e9",
+      "snapshot_path": "rules/sources/snapshots.jsonl",
+      "verified": false,
+      "normative": false,
+      "jurisdiction": null,
+      "applicability": "unknown",
+      "exceptions_reviewed": false,
+      "limitations": [
+        "Only the supplied route summary is available",
+        "Original case, jurisdiction and normative source are missing"
+      ]
+    }
+  ]
+}
