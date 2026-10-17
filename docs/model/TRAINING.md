@@ -1,6 +1,15 @@
 # Передача ML-инструментов на другой локальный ПК
 
-Текущая поставка — software tools и tiny synthetic CPU проверка. Полное обучение/fine-tuning/GPU search/реальная ML-оценка отложены до отдельного поручения. Сейчас нет validated production release; приложение должно возвращать503 model_not_ready. Данные другого чата этим запуском не обучались и не изменялись.
+> Обновление 18 октября 2026: пользователь поручил подготовить реальный первый запуск.
+> Новый [FIRST_TRAINING.md](FIRST_TRAINING.md) описывает готовый Windows/CUDA video-verdict baseline,
+> import текущего annotation package, locked `ml-cuda`, cache и checkpoint/resume.
+> Ниже сохранён отдельный строгий путь событийной модели; его human-review/independent/production
+> требования не снимаются запуском video classifier. Старые наблюдения CPU-only относятся к прежнему окружению.
+
+Исходная событийная поставка проверялась на tiny synthetic CPU. Её полное обучение,
+fine-tuning и независимая оценка требуют отдельных reviewed данных. Новый video-verdict
+baseline и разрешённый пользователем короткий real-data smoke описаны в FIRST_TRAINING.md.
+Validated production release пока отсутствует; приложение сохраняет503 model_not_ready.
 
 ## 1. Checkout и окружение
 
@@ -14,9 +23,17 @@ uv run --locked --group test --extra ml python -m ml.cli --help
 uv run --locked --group test --extra ml python -m pytest tests/contracts/test_schemas.py tests/ml -q
 ```
 
-Для последующих примеров активировать `.venv\Scripts\Activate.ps1` или указывать полный путь `.venv\Scripts\python.exe`. На Linux соответствующий путь `.venv/bin/python`. Python3.11 обязателен по общему pyproject. Наблюдённый здесь runtime: Python3.11.14, torch2.14.1+cpu/torchvision0.29.1+cpu, NumPy2.4.6, PyAV17.1.0, Pillow12.3.0. Shared pyproject/uv.lock не менялись.
+Для последующих примеров активировать `.venv\Scripts\Activate.ps1` или указывать полный путь `.venv\Scripts\python.exe`. На Linux соответствующий путь `.venv/bin/python`. Python3.11 обязателен по общему pyproject. Исторический CPU runtime: Python3.11.14, torch2.14.1+cpu/torchvision0.29.1+cpu, NumPy2.4.6, PyAV17.1.0, Pillow12.3.0. CPU extra сохранён; новый CUDA extra зафиксирован отдельно в общем lock.
 
-Текущий lock выбирает **CPU wheels** для Windows/Linux. CUDA из этого окружения не появляется от наличия видеокарты. Драйвер/совместимый CUDA runtime и отдельное согласованное locked окружение для GPU ещё не проверены; их подготовка требует проверки владельца shared lock. Не менять versions/lock вслепую ради запуска. Baseline train/cache/export на CPU реализован; target RTX5060/RAM16/Ryzen5 и другой ПК остаются unverified.
+Полный software test suite включает backend video validation и требует локальный `ffprobe`:
+если он вне PATH, задать `$env:FORTRESS_TEST_FFPROBE = 'D:\tools\ffprobe.exe'`.
+`uv sync` не устанавливает system executable. Новый video-verdict baseline использует PyAV;
+для его prepare/cache/train Docker и FFmpeg CLI не требуются.
+
+Extra `ml` выбирает **CPU wheels** для Windows/Linux. Extra `ml-cuda` выбирает
+torch2.11.0/torchvision0.26.0 с CUDA12.8; extras взаимоисключающие.
+На RTX5060 проверяются GRU forward/backward и новый baseline cache/train workflow.
+Это не подтверждает независимое качество или compatibility событийного production release.
 
 ```powershell
 New-Item -ItemType Directory -Path D:\FortressArtifacts
@@ -61,7 +78,11 @@ python -m ml.cli resume --cache D:\cache\train-v1 --source-root D:\data\original
 
 100/200 — пример общего optimizer budget, не рекомендация достаточного обучения и не epochs. Baseline: batch1 frozen features→causal GRU1×256→LinearC, masked BCEWithLogitsLoss, AdamW, gradient clipping. Unknown/padded/missing не supervised; all-unknown windows пропускаются без NaN. Scene state сбрасывается; overlapping windows агрегируются по actual PTS.
 
-Config example — JSON-compatible YAML, CPU, seed42. CUDA device можно указать только в отдельно проверенном совместимом runtime; текущий CPU lock его отвергнет. Resume требует точный прежний cache/config/classes/runtime: changing device/lr/seed/taxonomy создаёт новую несовместимую run, не тихий resume. Сохраняются optimizer moments, RNG и sampler order/cursor. Full run создаёт checkpoint в конце; periodic saves не обещаются.
+Config example — JSON-compatible YAML, CPU, seed42. CUDA device требует отдельно выбранного
+`ml-cuda` runtime. Resume событийного trainer требует точный прежний cache/config/classes/runtime:
+changing device/lr/seed/taxonomy создаёт новую несовместимую run. Сохраняются optimizer moments,
+RNG и sampler order/cursor. Событийный trainer сохраняет checkpoint в конце run; новый
+video-verdict trainer из FIRST_TRAINING.md сохраняет его после каждой эпохи.
 
 OOM/NaN/decode/hash mismatch → failure, новая незавершённая generation не публикуется. Сохранить причину, проверить source/byte/RAM budgets и последнюю завершённую immutable generation. Увеличить disk/free-space, уменьшить будущий bounded step budget; менять batch/model/feature576 вне выбранной архитектуры нельзя молча. При изменении существенной config начать новую run; старый checkpoint хранить. Полный train не означает validated production model.
 

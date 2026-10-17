@@ -19,21 +19,39 @@ ml = [
   "tqdm>=4.66,<5", "safetensors>=0.5,<1",
   "opencv-python-headless>=4.10,<5", "av>=14,<18"
 ]
+ml-cuda = [
+  "torch==2.11.0", "torchvision==0.26.0", "numpy>=2,<3",
+  "scikit-learn>=1.6,<2", "pandas>=2,<4", "tensorboard>=2,<3",
+  "tqdm>=4.66,<5", "safetensors>=0.5,<1",
+  "opencv-python-headless>=4.10,<5", "av>=14,<18"
+]
 
 [dependency-groups]
 test = ["pytest>=8,<10", "pytest-asyncio>=0.25,<2", "httpx>=0.27,<1", "openapi-spec-validator>=0.7,<1"]
 
 [tool.uv]
 package = false
+conflicts = [[{extra = "ml"}, {extra = "ml-cuda"}]]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
 [tool.uv.sources]
-torch = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
-torchvision = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+torch = [
+  { index = "pytorch-cpu", extra = "ml", marker = "sys_platform != 'darwin'" },
+  { index = "pytorch-cuda", extra = "ml-cuda", marker = "sys_platform != 'darwin'" }
+]
+torchvision = [
+  { index = "pytorch-cpu", extra = "ml", marker = "sys_platform != 'darwin'" },
+  { index = "pytorch-cuda", extra = "ml-cuda", marker = "sys_platform != 'darwin'" }
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

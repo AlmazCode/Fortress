@@ -39,7 +39,9 @@ def validate_taxonomy(document: dict, *, previous: dict | None = None) -> None:
                 raise ValueError("missing label")
             for field in ("includes", "excludes", "hard_negatives", "unobservable", "case_refs"):
                 values = row.get(field)
-                if not isinstance(values, list) or not values or any(not isinstance(v,str) or not v.strip() for v in values):
+                unmapped = (field == "case_refs" and row.get("case_mapping_status") == "unmapped"
+                            and status == "draft" and document.get("production_ready") is False)
+                if not isinstance(values, list) or (not values and not unmapped) or any(not isinstance(v,str) or not v.strip() for v in values):
                     raise ValueError(f"{key}: missing {field}")
             if not set(row["case_refs"]) <= CASE_IDS:
                 raise ValueError("unknown case route")

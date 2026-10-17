@@ -289,7 +289,8 @@ def smoke_pipeline(destination):
 def main(argv=None):
     arguments = list(sys.argv[1:] if argv is None else argv)
     delegated = {"data": "ml.data_cli", "preflight": "ml.preflight", "train": "ml.train", "resume": "ml.train",
-                 "evaluate": "ml.evaluate", "thresholds": "ml.thresholds", "export": "ml.export"}
+                 "evaluate": "ml.evaluate", "thresholds": "ml.thresholds", "export": "ml.export",
+                 "baseline": "ml.video_baseline"}
     names = [*delegated, "cache", "import", "activate", "rollback", "infer", "smoke"]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=names)

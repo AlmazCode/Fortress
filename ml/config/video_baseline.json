@@ -1,0 +1,14 @@
+{
+  "version": "video-gru-baseline-v2",
+  "selection_metric": "balanced_accuracy_macro_f1_bce",
+  "seed": 42,
+  "epochs": 80,
+  "batch_size": 4,
+  "learning_rate": 0.00003,
+  "weight_decay": 0.1,
+  "dropout": 0.6,
+  "patience": 20,
+  "grad_clip": 1.0,
+  "device": "cuda",
+  "cpu_threads": 4
+}

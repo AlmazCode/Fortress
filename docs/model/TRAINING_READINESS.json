@@ -1,0 +1,64 @@
+{
+  "report_version": "training-readiness-2026-10-18",
+  "branch": "codex/training-readiness",
+  "base_commit": "469b2eb841de187d8e3429dc17514254777d3bdc",
+  "scope": "Local Windows/CUDA first video-verdict baseline; event/rules production readiness remains separate.",
+  "video_training_ready": true,
+  "trained_video_classifier": true,
+  "action_training_ready": false,
+  "production_ready": false,
+  "accuracy_goal_met_on_holdout": false,
+  "independent_80_confirmed": false,
+  "runtime": {
+    "python": "3.11.14",
+    "torch": "2.11.0+cu128",
+    "torchvision": "0.26.0+cu128",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 5060",
+    "gru_forward_backward": "passed"
+  },
+  "data": {
+    "unique_videos": 40,
+    "sampled_source_frames": 2621,
+    "train_videos": 32,
+    "development_videos": 4,
+    "internal_holdout_videos": 4,
+    "independent_external_test": false,
+    "source_videos_and_annotations_unchanged": true,
+    "key_positive_boxes": 0,
+    "key_required_for_video_training": false,
+    "key_boxes_invented": 0,
+    "unlabeled_actions_promoted_to_negative": false,
+    "assistant_proposals_promoted_to_human_gold": false
+  },
+  "verification": {
+    "lock_check_exit_code": 0,
+    "contracts_ml_rules_suite_exit_code": 0,
+    "pytest_passed": 330,
+    "pytest_subtests_passed": 29,
+    "powershell_syntax": "passed",
+    "setup_script_actual_execution": "passed",
+    "cuda_train_then_resume_epochs": [2, 3],
+    "cpu_resume_equals_uninterrupted": true,
+    "raw_video_inference_equals_cached_scoring": true,
+    "smoke_cannot_evaluate_holdout": true
+  },
+  "selected_model": {
+    "views": "three_crop",
+    "completed_epochs": 21,
+    "best_epoch": 1,
+    "threshold": 0.4643677920103073,
+    "threshold_selected_on": "development_only",
+    "threshold_protocol": "dev-score-midpoints-v1",
+    "checkpoint_sha256": "20be8f123a4f0087031a8a392e169f0e73e93ed0556bdeeac28e40eaae839606",
+    "development": {"accuracy": 1.0, "balanced_accuracy": 1.0, "macro_f1": 1.0},
+    "internal_holdout": {"accuracy": 0.75, "balanced_accuracy": 0.75, "macro_f1": 0.7333333333333334,
+                         "false_positives": 1, "false_negatives": 0, "evaluation_count": 1},
+    "peak_allocated_training_vram_bytes": 101845504
+  },
+  "remaining": [
+    "The 80 percent holdout target was not achieved; development accuracy is not independent quality.",
+    "More reviewed procedure examples and a new untouched evaluation set, including another camera angle, are needed for further validation.",
+    "Incomplete coarse action proposals do not enable the existing strict event/rules production training gate."
+  ]
+}
