@@ -32,7 +32,7 @@
 - [x] R2 — Память ролика и связей · №4 · accepted
 - [x] R3 — Правила и сложные примеры · №4 · accepted software; все production cases unsupported
 - [x] R — Правила и источники · №4 · accepted software (9569729); legal gate unknown
-- [ ] O2 — Compose и offline worker · №4 · blocked (entrypoints/frontend build/runtime/scope; 2e368f6)
+- [ ] O2 — Compose и offline worker · №4 · blocked (frontend build/runtime; 3cee753, отчёт b679dc7)
 - [ ] O3 — TLS и внешний smoke · №4 · blocked (нет подтверждённого внешнего HTTPS)
 - [ ] O — Compose и доступ по HTTPS · №4 · blocked (O2/O3)
 - [ ] I — Интеграция без весов · №1 · blocked (M/O; A/F/R software приняты)
@@ -75,7 +75,7 @@ F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` принят главным пос
 - F2/F3/F4/F: код `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc`, отчёт `96f037c`, обычный merge `c6d15d5feade48abfcde81207c818510344445a9`. Главный проверил фактическую дельту 24 файлов, выполнил **110 tests passed**, typecheck и production build. Оба test-mode build ожидаемо отвергнуты; canonical JPEG и тестовые ключи/fixture transport отсутствуют в production bundle. Авторское наблюдение 360/768/1440 px и клавиатуры рассмотрено по отчёту; главным браузер повторно не запускался. Реальный API/video seek остаётся I/U, обучение и качество модели не подтверждаются.
 - D2: код `b4961272723cefec463d45ccb49d041afd52150b`, отчёт `c485788`, merge `47787cbf295a8b0302cba32c35dab11aa49f28c8`. Главный проверил 7 файлов и получил **72 passed** (17 taxonomy + 55 contracts), обе taxonomy CLI прошли. Приняты определения draft: 9 объектов, 14 действий, 6 состояний; официальные 25 ID и человеческая приёмка отсутствуют. D3 готова по принятому K; D4 ждёт принятого D3, D5 — D2/D4.
 
-### Актуальный возврат O2/O3 для 2e368f6
+### История замечаний O2/O3 для 2e368f6
 
 Код `1a1b091f091611ff56ff523daf1aebf137e343ee`, отчёт `2e368f6` просмотрены, но **не интегрированы и не приняты**. Prefork и отказ от remote-control ping исправлены. Настоящие Compose config/private-CA loopback TLS описаны автором; это не внешний HTTPS и не запуск приложения, главный их повторно не выполнял.
 
@@ -84,5 +84,17 @@ F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` принят главным пос
 3. `infra/frontend.Dockerfile:3–8` копирует только frontend, хотя `src/api/types.ts` и fixture module импортируют `../../../contracts/*.json`. Главный воспроизвёл набор COPY-файлов во временной папке с уже установленными dependencies: `npm run build` → **exit 1, TS2307** для job/diagnostics/events/fixtures. Это реальная проверка build inputs, не Docker build. В build stage нужны контракты в разрешаемом относительном пути (при `/frontend` — `/contracts`) и повторный build.
 4. `infra/.gitattributes` всё ещё вне files задач №4. Убрать этот внеплановый путь либо получить актуальное указание человека об области.
 5. Docker build/start, worker DB/Redis + egress, persistence restart, GPU/CUDA и доверенный внешний HTTPS всё ещё не подтверждены. Закрывать O2/O3/O по config или synthetic harness нельзя.
+
+### Актуальная проверка O2/O3: 3cee753 / b679dc7
+
+Код `3cee7531746927cd035b4c4e51e522f150990dbd`, отчёт `b679dc7` проверены главным поверх принятой integration через временный merge без commit. Вся дельта 19 файлов входит в область №4. Кандидат **пока не интегрирован и не принят**: после проверки временный merge отменён, исходный candidate сохранён в Git.
+
+- Закрыты предыдущие замечания по CLI, worker env, миграциям, PID health и внеплановому `.gitattributes`. API/worker используют опубликованный `python -m backend.app.main`; документация задаёт DB/Redis → migrate → остальные сервисы. Health читает `/proc/1/cmdline` при `NOSETPS=1`; его работа в контейнере ещё не проверена.
+- Главный запустил **настоящий Compose v5.5.1 config** и **настоящие loopback HTTP/TLS** через tests на неизменённом кандидате: **53 passed, 1 skipped, 34 subtests passed**. Включены rules/preflight regressions; skip — отсутствующий PowerShell 7. Local private CA и rejection неправильного hostname/недоверенной цепочки не подтверждают внешний маршрут.
+- `infra/frontend.Dockerfile` не изменён: по-прежнему не копирует `contracts/`, предыдущий воспроизведённый TS2307 остаётся открытым. Нужен COPY contracts в `/contracts` при build workdir `/frontend`, затем проверка сборки с окончательным frontend F.
+- На текущем Linux `docker compose version` → 0, но `docker version --format '{{json .Server.Version}}'` → **1, permission denied /var/run/docker.sock**. Проверки build/start/worker egress/volumes/GPU не выполнены. На Windows №4 installer также остановлен системным prerequisite; это отдельный хост и отдельное ограничение, не Linux-ошибка.
+- Доверенный внешний HTTPS не подтверждён. O2/O3/O и I не закрываются по config/local TLS.
+
+Frontend `45c35eb` содержит только синхронизацию журнала с уже принятой F; объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`. Исходники не меняются. Опубликованная ML-ветка остаётся `c485788` (D2); результатов D3–D/M пока нет.
 
 M/O остаются незакрытыми prerequisites I. Z недоступна до I и U/E/B. Прямые сообщения другим чатам не отправлялись; эта сводка — передача замечаний через разрешённый GitHub-процесс.

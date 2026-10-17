@@ -158,3 +158,17 @@ O2/O3: точный `1a1b091`/отчёт `2e368f6` прочитан, merge от�
 I теперь ожидает M/O (A/F/R software приняты); Z ожидает I → U/E/B. Это фактическое ревью главного, не независимая человеческая приёмка. Backend 116 checks относятся к неизменённому `043eeb6`, повторно без изменения кода не запускались. Aster, main, deploy, обучение и сообщения другим чатам не использовались.
 
 Повторный fetch принёс только заметку №2 `99dd2c0` об остановке временного preview и ограничении встроенного браузера после restart. Заметка рассмотрена и объединена отдельно; исходники не менялись, live preview не обещается. Общий validator после обновления journals/STATUS/manifest → 0, 36 задач/48 рёбер, сохранены критерии и ownership; это проверка документации. Ancestry F/D2 и отсутствие изменений backend относительно `043eeb6` проверены; `git diff --check` → 0.
+
+## Повторное продолжение: инфраструктурные исправления 3cee753
+
+Стартовый HEAD `6b16272fded945668b8997498faa0b2d83a541a0`; origin/clean tree/свой checkout проверены. Fetch → 0: №4 `b679dc7` с кодом `3cee7531746927cd035b4c4e51e522f150990dbd`, №2 `45c35eb`; №3 остаётся `c485788`. Сфера №1 не расширялась самостоятельно, I не начиналась при отсутствующих M/O.
+
+Прочитаны изменения CLI/env/migration/health/scope и журнал №4. Для сочетания с текущей integration выполнен временный `git merge --no-ff --no-commit b679dc7`; 19 изменённых файлов сверены с объединённой files-областью №4 — внеплановых путей нет. Backend/frontend/contracts/shared locks не менялись. Проверены также поправки R source provenance и preflight Compose version/TLS-required outcomes.
+
+`FORTRESS_COMPOSE_CLI=/usr/libexec/docker/cli-plugins/docker-compose FORTRESS_TEST_OPENSSL=/usr/bin/openssl .venv/bin/python -m pytest tests/performance/test_compose_isolation.py tests/performance/test_network_smoke.py tests/performance/test_preflight_report.py tests/rules -q` → **0; 53 passed, 1 skipped, 34 subtests passed in 4.52s**. Compose v5.5.1 реально разрешил production/test config; HTTP/TLS loopback реально проверили upload/auth/status/private CA и rejection чужого hostname/untrusted cert. Skip — PowerShell 7, отсутствует на этом Linux. Эти checks не являются запуском приложения в контейнерах или external HTTPS.
+
+`timeout 8s docker version --format '{{json .Server.Version}}'` → **1: permission denied /var/run/docker.sock**. Системные permissions не изменялись. Текущий frontend Dockerfile не отличается от воспроизведённого ранее набора COPY inputs и всё ещё не включает contracts, поэтому замечание build TS2307 сохраняется без повторного неизменённого прогона. Runtime/offline/volumes/GPU и trusted external HTTPS остаются непроверенными.
+
+После checks и `git diff --cached --check` → 0 временный review merge отменён `git merge --abort`; clean tree подтверждён. Это отмена только собственного незакоммиченного merge, candidate и чужие изменения сохранены в Git. O2/O3 не помечены accepted и не включены в integration. Подробный возврат обновлён в STATUS.md.
+
+Журнал №2 `45c35eb` рассмотрен и объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`: только авторское подтверждение опубликованной F acceptance и dependency gate U. Повторный frontend runtime test не нужен: код неизменён. Собственные изменения этого продолжения — общий STATUS/manifest и журнал №1; main/deploy/training/сообщения чатам не выполнялись.
