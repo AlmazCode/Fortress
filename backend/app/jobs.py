@@ -123,12 +123,24 @@ class JobRepository:
             raise ValueError('Result must match this job and its diagnostics')
         try:
             with Session(self.engine) as session, session.begin():
-                changed = session.scalar(update(Job).where(self._current(lease, now)).values(
-                    state='done', lease_owner=None, lease_expires_at=None).returning(Job.job_id))
-                if changed is None:
+                job = session.scalar(select(Job).where(self._current(lease, now)).with_for_update())
+                if job is None:
                     return False
-                session.add(Result(job_id=lease.job_id, public=result.public,
-                                   diagnostics=result.diagnostics, completed_at=now))
+                # A caller timestamp can become stale while waiting for a row
+                # lock. PostgreSQL transaction_timestamp is stale too; use its
+                # wall clock after acquiring the lock and after flushing IO.
+                cutoff = min(job.deadline_at, job.lease_expires_at)
+                completed = max(now, session.scalar(select(func.clock_timestamp())))
+                if completed >= cutoff:
+                    return False
+                job.state, job.lease_owner, job.lease_expires_at = 'done', None, None
+                stored = Result(job_id=lease.job_id, public=result.public,
+                                diagnostics=result.diagnostics, completed_at=completed)
+                session.add(stored)
+                session.flush()
+                if max(now, session.scalar(select(func.clock_timestamp()))) >= cutoff:
+                    session.rollback()
+                    return False
             return True
         except SQLAlchemyError as error:
             raise PersistenceUnavailable('Result commit failed') from error

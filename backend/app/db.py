@@ -13,7 +13,8 @@ def create_db_engine(url: str | URL) -> Engine:
         raise ValueError('Fortress persistence requires PostgreSQL')
     return create_engine(parsed.set(drivername='postgresql+psycopg'), pool_pre_ping=True,
                          pool_size=5, max_overflow=10, pool_timeout=5, echo=False,
-                         hide_parameters=True, connect_args={'connect_timeout': 3})
+                         hide_parameters=True, connect_args={'connect_timeout': 3,
+                             'options': '-c statement_timeout=5000 -c lock_timeout=3000 -c idle_in_transaction_session_timeout=10000'})
 
 
 def migrate(engine: Engine) -> None:
