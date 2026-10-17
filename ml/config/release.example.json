@@ -1,0 +1,9 @@
+{
+  "release_version": "software-smoke-v1",
+  "versions": {
+    "dataset": "synthetic-fixture-only-v1",
+    "split": "replace-with-actual-grouped-v2-version",
+    "annotations": "artificial-smoke-labels-v1",
+    "rules": "unverified-no-production-rules"
+  }
+}

@@ -148,7 +148,7 @@ class MediaService:
         except PersistenceUnavailable:
             raise IntakeError(503, 'service_unavailable', 'Job storage is unavailable.') from None
         if job is None:
-            raise IntakeError(404, 'not_found', 'Job or media is unavailable.')
+            raise IntakeError(404, 'job_not_found', 'Job or media is unavailable.')
         return job
 
     def original(self, job_id):
@@ -156,7 +156,7 @@ class MediaService:
         path = job.upload.path
         if (path.parent != self.storage.originals or path.is_symlink() or not re.fullmatch(r'[a-f0-9]{32}\.video', path.name)
                 or not path.is_file()):
-            raise IntakeError(404, 'not_found', 'Job or media is unavailable.')
+            raise IntakeError(404, 'media_not_found', 'Job or media is unavailable.')
         try:
             if path.stat().st_size != job.upload.size_bytes or not 0 < path.stat().st_size <= MAX_UPLOAD_BYTES:
                 raise IntakeError(400, 'invalid_request', 'Original media is damaged.')
@@ -164,7 +164,7 @@ class MediaService:
                 if hashlib.file_digest(source, 'sha256').hexdigest() != job.upload.sha256:
                     raise IntakeError(400, 'invalid_request', 'Original media is damaged.')
         except OSError:
-            raise IntakeError(404, 'not_found', 'Job or media is unavailable.') from None
+            raise IntakeError(404, 'media_not_found', 'Job or media is unavailable.') from None
         return path
 
     def preview(self, job_id, *, deadline_monotonic=None):
@@ -226,13 +226,13 @@ class MediaService:
         job = self.job(job_id)
         match = re.fullmatch(r'v([0-9]{1,5})f([0-2])', frame_id)
         if not match or job.result is None:
-            raise IntakeError(404, 'not_found', 'Evidence frame is unavailable.')
+            raise IntakeError(404, 'media_not_found', 'Evidence frame is unavailable.')
         try:
             validate_contract('job', job.result)
             frame = job.result['violations'][int(match[1])]['evidence_frames'][int(match[2])]
             return _jpeg(base64.b64decode(frame['image_base64'], validate=True))
         except (IndexError, KeyError):
-            raise IntakeError(404, 'not_found', 'Evidence frame is unavailable.') from None
+            raise IntakeError(404, 'media_not_found', 'Evidence frame is unavailable.') from None
         except (ValueError, ContractError):
             raise IntakeError(400, 'invalid_request', 'Evidence frame is unavailable or damaged.') from None
 

@@ -1,0 +1,298 @@
+{
+  "report_version": "data-readiness-v1",
+  "tools_ready": true,
+  "tools_ready_scope": "Local data modules/taxonomies/schema loaded; dataset/runtime gates reported separately.",
+  "validation_passed": true,
+  "data_missing": true,
+  "annotation_files_present": true,
+  "annotation_missing": true,
+  "annotation_review": "unverified",
+  "object_annotations_ready": false,
+  "temporal_annotations_ready": false,
+  "data_ready": false,
+  "training_ready": false,
+  "runtime_preflight": "separate command; not run by report",
+  "qa": {
+    "qa_version": "annotations-qa-v1",
+    "dataset_revision": "ff46eb9b077e6bf4e5a55ad20b16471c0fb0c7f440b7fdc678b23d5c23222e93",
+    "valid": true,
+    "errors": [],
+    "per_class": {
+      "object.cash_bundle": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.document": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.key": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.stamp": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.bag": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.vessel": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.storage": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.door": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "object.screen": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.manipulate_cash_bundle": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.present_document": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.transfer_cash": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.separate_cash": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.open_storage": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.close_storage": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.leave_station": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.enter_scene": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.open_door": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.count_cash": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.place_key": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.handle_stamp": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.use_computer": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "action.lift_vessel": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "state.cash_on_surface": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "state.storage_open": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "state.door_open": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "state.key_visible": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "state.screen_lit": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      },
+      "state.people_visible": {
+        "records": 0,
+        "reviewed_observable": 0,
+        "unknown_or_unreviewed": 0
+      }
+    },
+    "per_case": {
+      "C01": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C02": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C03": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C04": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C05": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C06": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C07": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C08": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C09": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C10": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C11": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C12": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C13": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C14": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      },
+      "C15": {
+        "annotation_records": 0,
+        "normative_status": "unknown"
+      }
+    },
+    "per_video": {
+      "video-17177655641c318d81cb27c2": {},
+      "video-250fcb5adc4650e66f8cde84": {},
+      "video-9972931a1ef2c9ac0cd06686": {},
+      "video-ce16a3edb697c828f8b6f38b": {}
+    },
+    "annotation_records": 0,
+    "unknown_rate": null,
+    "disagreement_count": 0,
+    "duplicate_annotation_count": 0,
+    "small_side_diagnostic_pixels": 16,
+    "small_object_recognition_limit": "not measured",
+    "assets_verified": true,
+    "sources_verified": true,
+    "rights_confirmed": true,
+    "real_data": false,
+    "independence": "unverified",
+    "object_annotations_ready": false,
+    "temporal_annotations_ready": false,
+    "data_ready": false,
+    "training_ready": false,
+    "training_gate_reason": "Data QA does not verify runtime, local encoder weights or authorize training.",
+    "limitations": [
+      "No all-original real dataset verified.",
+      "Human evidence for independent, previously unseen final is absent.",
+      "Scene review incomplete.",
+      "Object annotation gate closed.",
+      "Temporal annotation gate closed."
+    ]
+  },
+  "contract": {
+    "schema_version": "1.0",
+    "dataset_version": "isolated-tiny-synthetic-v1",
+    "state": "blocked",
+    "checks": [
+      {
+        "name": "data_validation",
+        "status": "passed",
+        "detail": "Manifest/annotation/geometry/source validation; see QA errors."
+      },
+      {
+        "name": "real_sources",
+        "status": "failed",
+        "detail": "Original sources and actual local SHA-256 are required; synthetic verifies code only."
+      },
+      {
+        "name": "rights",
+        "status": "passed",
+        "detail": "Source audit must explicitly confirm rights for active originals."
+      },
+      {
+        "name": "reviewed_temporal_data",
+        "status": "failed",
+        "detail": "Reviewed taxonomy/scenes/labels and independent final evidence required."
+      }
+    ],
+    "limitations": [
+      "No all-original real dataset verified.",
+      "Human evidence for independent, previously unseen final is absent.",
+      "Scene review incomplete.",
+      "Object annotation gate closed.",
+      "Temporal annotation gate closed."
+    ],
+    "provenance": {
+      "kind": "synthetic",
+      "source_id": "isolated-tiny-synthetic-v1",
+      "sha256": "637f562859b4c20f15583b90a7b961ebf857e2cbfcd5006d0f9eb6a211592855"
+    }
+  }
+}

@@ -137,7 +137,7 @@ def network_inventory(url=None, probe_external=False, wan_ip=None, public_ip=Non
 
 
 def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None, public_ip=None,
-            gpu_image=None, container_smoke=False, runner=run):
+            gpu_image=None, container_smoke=False, runner=run, network_only=False):
     probe = lambda args: runner(args, timeout=timeout, cwd=cwd)
     repo = verify_repository(cwd, probe)
     report = {'schema_version':1, 'generated_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -151,6 +151,10 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
         report['blockers'].append('Repository origin/root/base binding did not pass; runtime probes were not run')
         return report
     report['network'] = network_inventory(external_url, probe_external, wan_ip, public_ip, timeout)
+    if network_only:
+        report['scope'] = 'Network inventory and explicit TLS probe only; no OS, WSL, Docker or GPU probes.'
+        report['blockers'].extend(report['network']['blockers'])
+        return report
     checks = report['checks']
     if platform.system() == 'Windows':
         checks['os'] = probe(['powershell.exe','-NoProfile','-NonInteractive','-Command', "Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,TotalVisibleMemorySize | ConvertTo-Json -Compress"])
@@ -215,7 +219,9 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
                 checks['gpu_container'] = probe(['docker','run','--rm','--pull','never','--network','none','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges','--gpus','all','--entrypoint','nvidia-smi',image['stdout']])
     engine = parsed_json(checks['docker_engine'])
     docker_ready = isinstance(engine, dict) and engine.get('os_type') == 'linux' and bool(engine.get('server_version'))
-    compose_ready = docker_ready and checks['compose']['status'] == 'ok' and bool(re.match(r'^v?2\.', checks['compose']['stdout']))
+    compose_version = re.match(r'^v?(\d+)\.(\d+)\.(\d+)', checks['compose']['stdout'])
+    compose_ready = (docker_ready and checks['compose']['status'] == 'ok' and compose_version is not None
+                     and tuple(map(int,compose_version.groups())) >= (2,24,4))
     ffmpeg_ready = checks['ffmpeg']['status'] == 'ok' and checks['ffprobe']['status'] == 'ok'
     gpu_ready = bool(gpu_rows) and docker_ready and checks['gpu_container']['status'] == 'ok'
     report['readiness'].update({'os_ready':linux_runtime, 'python311_ready':python_ready, 'docker_ready':docker_ready,
@@ -225,7 +231,7 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
     requirements = {'os_ready':'Run the Linux preflight inside the intended Ubuntu/WSL2 environment',
                     'python311_ready':'A working Python 3.11 interpreter was not verified',
                     'docker_ready':'A working Linux Docker daemon was not verified',
-                    'compose_ready':'Docker Compose v2 with working Docker daemon was not verified',
+                    'compose_ready':'Docker Compose >=2.24.4 with working Docker daemon was not verified',
                     'ffmpeg_ready':'Working FFmpeg and ffprobe were not verified',
                     'gpu_ready':'NVIDIA container runtime was not verified with an actual local container'}
     report['blockers'].extend(message for flag, message in requirements.items() if not report['readiness'][flag])
@@ -245,21 +251,26 @@ def main(argv=None):
     parser.add_argument('--wan-ip')
     parser.add_argument('--public-ip')
     parser.add_argument('--network-only', action='store_true')
+    parser.add_argument('--require-tls', action='store_true', help='Exit 2 unless a trusted current-host TLS probe actually succeeds')
     parser.add_argument('--container-smoke', action='store_true')
     parser.add_argument('--gpu-image')
     args = parser.parse_args(argv)
     if not 1 <= args.timeout <= 60:
         parser.error('--timeout must be between 1 and 60 seconds')
-    report = collect(Path.cwd(), args.timeout, args.external_url, args.probe_external, args.wan_ip, args.public_ip, args.gpu_image, args.container_smoke)
+    report = collect(Path.cwd(), args.timeout, args.external_url, args.probe_external, args.wan_ip, args.public_ip, args.gpu_image, args.container_smoke,
+                     network_only=args.network_only)
     if args.network_only:
         report = {'schema_version':1, 'report_status':report['report_status'], 'repository_ready':report['repository']['ready'],
-                  'network':report['network'], 'readiness':{'external_access_verified':False}, 'blockers':report['blockers']}
+                  'network':report['network'], 'readiness':{'external_access_verified':False}, 'blockers':report['blockers'],
+                  'scope':report['scope']}
     text = json.dumps(report, ensure_ascii=True, indent=2) + '\n'
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(text, encoding='utf-8')
     sys.stdout.write(text)
-    return 3 if report['report_status'] == 'repository_mismatch' else 2 if args.strict and not report['readiness'].get('service_ready', False) else 0
+    return (3 if report['report_status'] == 'repository_mismatch'
+            else 2 if args.require_tls and report['network']['tls_probe']['status'] != 'ok'
+            else 2 if args.strict and not report['readiness'].get('service_ready', False) else 0)
 
 
 if __name__ == '__main__':
