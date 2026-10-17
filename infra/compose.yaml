@@ -32,7 +32,9 @@ services:
       context: ..
       dockerfile: infra/api.Dockerfile
       target: production
+    command: [uvicorn, "${FORTRESS_API_APP:?Set verified API module:attribute from accepted A/I}", --host, 0.0.0.0, --port, "8000", --no-access-log]
     environment:
+      FORTRESS_API_APP: ${FORTRESS_API_APP:?Set verified API module:attribute from accepted A/I}
       FORTRESS_API_KEY: ${FORTRESS_API_KEY:?Set API key outside Git}
       DATABASE_URL: ${DATABASE_URL:?Set private PostgreSQL DSN using postgres hostname}
       REDIS_URL: redis://redis:6379/0
@@ -64,8 +66,9 @@ services:
       context: ..
       dockerfile: infra/worker.Dockerfile
       target: production
-    command: [celery, -A, "backend.app.celery_app:celery_app", worker, --concurrency=1, --prefetch-multiplier=1, --pool=solo, "--hostname=fortress-worker@%h", --loglevel=WARNING]
+    command: [celery, -A, "${FORTRESS_WORKER_APP:?Set verified Celery module:attribute from accepted A/I}", worker, --concurrency=1, --prefetch-multiplier=1, --pool=prefork, --soft-time-limit=239, --time-limit=240, --pidfile=/tmp/fortress-worker.pid, "--hostname=fortress-worker@%h", --loglevel=WARNING]
     environment:
+      FORTRESS_WORKER_APP: ${FORTRESS_WORKER_APP:?Set verified Celery module:attribute from accepted A/I}
       DATABASE_URL: ${DATABASE_URL:?Set private PostgreSQL DSN}
       REDIS_URL: redis://redis:6379/0
       FORTRESS_RUNTIME_ROOT: /var/lib/fortress/media
@@ -96,7 +99,9 @@ services:
     mem_limit: 3g
     cpus: 2
     healthcheck:
-      test: [CMD-SHELL, 'celery -A backend.app.celery_app:celery_app inspect ping --destination "fortress-worker@$$HOSTNAME" --timeout 3']
+      # A4 deliberately disables remote control. Check the local main process;
+      # DB/broker/model readiness is a separate application acceptance check.
+      test: [CMD, python, -c, "import os,pathlib; p=int(pathlib.Path('/tmp/fortress-worker.pid').read_text()); assert p>0; os.kill(p,0)"]
       interval: 30s
       timeout: 8s
       retries: 3

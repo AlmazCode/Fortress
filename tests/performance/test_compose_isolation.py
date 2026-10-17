@@ -1,6 +1,9 @@
 """Static configuration checks. A pass is not a Docker/network/volume test."""
 from pathlib import Path
+import json
+import os
 import re
+import subprocess
 import unittest
 import yaml
 
@@ -68,6 +71,68 @@ class ComposeStaticTests(unittest.TestCase):
         self.assertNotIn('alias ',text)
         self.assertIn('client_max_body_size 201m',text)
         self.assertIn('proxy_read_timeout 300s',text)
+
+    def test_worker_pool_matches_backend_hard_deadline_and_remote_control_policy(self):
+        from backend.app.celery_app import create_celery
+        app=create_celery('redis://redis:6379/0')
+        worker=self.compose['services']['worker']
+        self.assertFalse(app.conf.worker_enable_remote_control)
+        self.assertEqual(app.conf.worker_pool,'prefork')
+        self.assertIn('--pool='+app.conf.worker_pool,worker['command'])
+        self.assertNotIn('inspect',' '.join(worker['healthcheck']['test']))
+        self.assertIn('--time-limit='+str(app.conf.task_time_limit),worker['command'])
+
+
+class ComposeCliTests(unittest.TestCase):
+    """Actual config resolution, with dummy values and no daemon/start/network."""
+    @classmethod
+    def setUpClass(cls):
+        cls.executable=os.environ.get('FORTRESS_COMPOSE_CLI')
+        if not cls.executable:
+            raise unittest.SkipTest('Set FORTRESS_COMPOSE_CLI for actual Compose config checks')
+
+    def resolve(self, *, overlay=False, missing=None):
+        env={key:value for key,value in os.environ.items() if not key.startswith('FORTRESS_')}
+        env.update(FORTRESS_API_KEY='synthetic-config-only',POSTGRES_PASSWORD='synthetic-config-only',
+                   DATABASE_URL='postgresql+psycopg://fortress:synthetic-config-only@postgres/fortress',
+                   FORTRESS_TLS_DIR=str(ROOT/'infra'),FORTRESS_BIND_IP='127.0.0.1',FORTRESS_HTTPS_PORT='8443',
+                   FORTRESS_API_APP='test_only.api:app',FORTRESS_WORKER_APP='test_only.worker:app')
+        if missing: env.pop(missing)
+        command=[self.executable,'--env-file',os.devnull,'-f',str(ROOT/'infra/compose.yaml')]
+        if overlay: command+=['-f',str(ROOT/'infra/compose.test.yaml')]
+        return subprocess.run(command+['config','--format','json'],cwd=ROOT,env=env,
+                              capture_output=True,text=True,timeout=20)
+
+    def test_resolved_production_keeps_worker_isolated_and_real_entrypoints_explicit(self):
+        process=self.resolve()
+        self.assertEqual(process.returncode,0,process.stderr)
+        value=json.loads(process.stdout)
+        services=value['services']
+        self.assertEqual(set(services['worker']['networks']),{'backend'})
+        self.assertTrue(value['networks']['backend']['internal'])
+        self.assertIn('test_only.api:app',services['api']['command'])
+        self.assertIn('test_only.worker:app',services['worker']['command'])
+        self.assertIn('--pool=prefork',services['worker']['command'])
+        self.assertEqual(services['worker']['deploy']['resources']['reservations']['devices'][0]['count'],1)
+        self.assertEqual(services['nginx']['ports'][0]['host_ip'],'127.0.0.1')
+        self.assertTrue(all(not service.get('ports') for name,service in services.items() if name!='nginx'))
+
+    def test_resolved_overlay_replaces_both_commands_and_removes_gpu(self):
+        process=self.resolve(overlay=True)
+        self.assertEqual(process.returncode,0,process.stderr)
+        value=json.loads(process.stdout)
+        for name in ('api','worker','nginx'):
+            self.assertEqual(value['services'][name]['build']['target'],'harness')
+        for name in ('api','worker'):
+            self.assertEqual(value['services'][name]['command'][:2],['python','/opt/fortress-smoke.py'])
+        self.assertFalse(value['services']['worker']['deploy']['resources'].get('reservations',{}).get('devices'))
+
+    def test_missing_production_exports_fail_before_a_container_can_start(self):
+        for name in ('FORTRESS_API_APP','FORTRESS_WORKER_APP'):
+            with self.subTest(name=name):
+                process=self.resolve(missing=name)
+                self.assertNotEqual(process.returncode,0)
+                self.assertIn(name,process.stderr)
 
 
 if __name__=='__main__': unittest.main()

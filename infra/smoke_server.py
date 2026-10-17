@@ -105,14 +105,17 @@ class NoRedirect(HTTPRedirectHandler):
         raise HTTPError(request.full_url,code,'Redirect refused',headers,fp)
 
 
+def loopback_hostname(hostname):
+    try: return ipaddress.ip_address(hostname).is_loopback
+    except ValueError: return hostname.lower() == 'localhost'
+
+
 def checked_url(url, allow_local_http=False):
     parsed=urlsplit(url)
     if not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ('','/'):
         raise ValueError('Use an origin URL without credentials, path, query or fragment')
     if parsed.scheme=='http' and allow_local_http:
-        try: local=ipaddress.ip_address(parsed.hostname).is_loopback
-        except ValueError: local=parsed.hostname=='localhost'
-        if not local: raise ValueError('Plain HTTP is allowed only for a loopback harness')
+        if not loopback_hostname(parsed.hostname): raise ValueError('Plain HTTP is allowed only for a loopback harness')
     elif parsed.scheme!='https':
         raise ValueError('HTTPS with normal certificate verification is required')
     return parsed
@@ -150,7 +153,7 @@ def client_smoke(url, key, *, allow_local_http=False, ca_file=None, timeout=10):
     if status!=200 or result.get('synthetic') is not True or result.get('status')!='smoke_complete' or result.get('bytes_received')!=len(PAYLOAD):
         raise ValueError('Synthetic status mismatch')
     return {'synthetic':True,'harness':'infrastructure_only','current_host_smoke_passed':True,
-            'tls_verified':parsed.scheme=='https','local_only':parsed.scheme=='http',
+            'tls_verified':parsed.scheme=='https','local_only':loopback_hostname(parsed.hostname),
             'external_access_verified':False,'independent_external_observer_required':True,
             'unauthenticated_status':401,'upload_status':202,'poll_status':200,
             'elapsed_sec':round(time.monotonic()-started,6),

@@ -5,6 +5,7 @@ services:
     build: {target: harness}
   api:
     build: {target: harness}
+    command: [python, /opt/fortress-smoke.py, serve, --host, 0.0.0.0, --port, "8000"]
     environment:
       FORTRESS_INFRA_SMOKE: "1"
   worker:

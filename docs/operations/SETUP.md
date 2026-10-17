@@ -1,13 +1,13 @@
 # Локальная инфраструктура: подготовка и границы проверки
 
-Ветка №4 содержит конфигурацию, а не выполненное развёртывание. Docker/WSL на текущем хосте отсутствуют; `docker compose config`, build, start, volumes restart, GPU и offline runtime checks **not_run**. Полное приложение строится и запускается после интеграции I. Статические тесты YAML и HTTP harness не заменяют эти критерии.
+Ветка №4 содержит конфигурацию и проверенные инструменты, а не выполненное развёртывание. На текущем Windows-хосте отдельно запущен официальный standalone Compose v5.6.0: production и test overlay проходят настоящий `config`, включая merge/reset. Docker engine/WSL отсутствуют; build, start, volumes restart, GPU и offline runtime checks **not_run**. Полное приложение строится и запускается после интеграции I. Проверка config и loopback HTTP/TLS не заменяют эти критерии.
 
 ## Подготовка
 
 1. На целевом Ubuntu/WSL2 ПК выполнить [preflight](PREFLIGHT.md). Нужны Docker/Compose ≥2.24.4, NVIDIA runtime, FFmpeg/ffprobe и совместимость Python/locks/GPU. Наличие nvidia-smi на Windows этого не доказывает.
 2. Подготовить вне Git private env-файл по `infra/env.example`: новый сильный API-ключ, пароль PostgreSQL, URL-encoded PostgreSQL DSN с hostname `postgres`, абсолютный каталог TLS с `fullchain.pem` и `privkey.pem`. Не копировать секреты в frontend/VITE_*.
 3. Подготовить локальные веса и совместимый trained release отдельно. Runtime ничего не скачивает. Текущий K `uv.lock` использует CPU Torch wheels; CUDA-worker **не считается готовым**, пока №1/№3 не согласуют и не проверят совместимый GPU lock. №4 этот общий lock сам не меняет.
-4. После I сверить реальные entry points: `backend.app.main:app` и `backend.app.celery_app:celery_app`, environment `FORTRESS_API_KEY`, DATABASE_URL, REDIS_URL, пути media/release. Сейчас wiring подготовлен по карте файлов K; полный runtime не проверен.
+4. После A/I взять фактически проверенные экспорты API и Celery instance у №1, записать в private env `FORTRESS_API_APP=module:attribute` и `FORTRESS_WORKER_APP=module:attribute`. Без этих значений Compose config завершается ошибкой. Принятые A1–A5 (`4e5d9b0`) содержат только `create_celery(broker_url)` и `register_tasks(app, factory)`, а не готовый `celery_app` export; API main также ещё отсутствует. Одного имени файла недостаточно. Сверить остальные environment `FORTRESS_API_KEY`, DATABASE_URL, REDIS_URL и пути media/release с A/I. Factory, test runner и несуществующий export не заменяют production assembly.
 
 Примеры ниже используют путь `/PRIVATE/fortress.env` как placeholder. Заменить реальным абсолютным private env-файлом; не публиковать его. `config --quiet` не печатает подставленные secrets.
 
@@ -20,11 +20,13 @@ docker compose --env-file /PRIVATE/fortress.env -f infra/compose.yaml up -d --wa
 docker compose --env-file /PRIVATE/fortress.env -f infra/compose.yaml stop
 ```
 
-Эти команды документируют подготовленный интерфейс; на текущем хосте они не выполнялись. Не запускать production image по одному наличию YAML. Отсутствующие backend/ML/frontend файлы должны прийти из принятых веток перед I.
+Config фактически проверен отдельным Compose CLI с dummy values без подключения к daemon; остальные команды документируют подготовленный интерфейс и не выполнялись. Не запускать production image по одному наличию YAML. Отсутствующие backend/ML/frontend файлы должны прийти из принятых веток перед I.
 
 ## До I: только infrastructure harness
 
 `compose.test.yaml` — явный overlay, переключающий api/worker/nginx на изолированные build targets `harness`, снимающий GPU reservation и устанавливающий `FORTRESS_INFRA_SMOKE=1`. Эти targets копируют только stdlib smoke_server.py и помеченную static страницу, не импортируют настоящий backend/ML/frontend. PostgreSQL/Redis остаются настоящими локальными контейнерами, но harness не проверяет durable job/outbox semantics.
+
+Compose интерполирует base до merge: для этого отдельного harness env-файла также нужны непустые `FORTRESS_API_APP`/`FORTRESS_WORKER_APP`. Допустимо явно поставить `harness.unused:app`: overlay заменяет обе команды, эти exports не импортируются. Такие значения не переносить в production env. Настоящий CLI test проверяет именно итоговые targets/commands и снятие GPU, а не только чтение YAML.
 
 ```sh
 docker compose --env-file /PRIVATE/fortress.env -f infra/compose.yaml -f infra/compose.test.yaml config --quiet
@@ -42,7 +44,7 @@ Named volumes `media/models/postgres/redis` постоянны. Приложен
 
 Остановка/повторный up не должна стирать volumes. Не применять `down -v`, prune или удаление данных ради теста. Перед обновлением сделать согласованный backup: `pg_dump` согласованной PostgreSQL БД и копию media/models/Redis AOF в закрытое локальное хранилище, с проверкой восстановления. Конкретный recovery/fencing/outbox прогон принадлежит B после I; сейчас persistence/restart не проверены.
 
-API healthcheck подтверждает TCP listener, не готовность модели. Worker production health подтверждает Celery ping, не ML readiness. Health PostgreSQL/Redis и startup ordering не заменяют application/migration/release checks. Производственные inference/latency/память не измерены.
+API healthcheck подтверждает TCP listener, не готовность модели. Worker production health читает PID file и проверяет живой локальный main process; DB/broker/model readiness отдельно не подтверждается. Backend A4 отключает remote control, поэтому `inspect ping` здесь неприменим. Worker использует prefork, concurrency/prefetch=1, soft/hard limits 239/240s; dispatcher передаёт уменьшенный остаток deadline. `solo` не обеспечивает production hard kill. Health PostgreSQL/Redis и startup ordering не заменяют application/migration/release checks. Производственные inference/latency/память не измерены.
 
 Ресурсные caps: worker 3 GiB, api 512 MiB, postgres 384 MiB, redis/nginx по 128 MiB; CPU worker 2, threads 2, concurrency/prefetch 1. Это настройки, не измеренное потребление всего сервиса или гарантия SLA. Host/Docker overhead и модель требуют отдельного benchmark.
 
@@ -57,3 +59,5 @@ API healthcheck подтверждает TCP listener, не готовность
 - [PostgreSQL 17 bookworm](https://hub.docker.com/v2/repositories/library/postgres/tags/17-bookworm)
 
 Получение digest не означает, что image скачан, собран или проверен на нужной архитектуре. OS FFmpeg определяется подписанным Debian snapshot `20261001T000000Z`; доступность snapshot/build не проверена. Python dependency graph берётся из общего uv.lock; uv bootstrap фиксирован версией 0.13.1 и SHA-256 Linux x86_64 wheel из фактически прочитанного [PyPI release JSON](https://pypi.org/pypi/uv/0.13.1/json). Эти Dockerfiles предназначены для согласованного x86_64 ПК; bootstrap на другой архитектуре fail-closed по hash. Frontend использует собственный package-lock №2; API-ключа в build args нет.
+
+Для локальной проверки config скачан только [официальный Compose v5.6.0](https://github.com/docker/compose/releases/tag/v5.6.0), `docker-compose-windows-x86_64.exe`, SHA-256 `8aeaa0055e660e12cf07cd70680dc8333957fe6718528b91ec3da084eab62483`; hash сверён с digest asset в GitHub API до запуска. Файл хранится вне Git, системные программы/службы не менялись. `FORTRESS_COMPOSE_CLI=/absolute/path/docker-compose.exe python -m pytest tests/performance/test_compose_isolation.py -q` включает настоящие config tests; без переменной они явно skipped. Это не установка Docker engine.
