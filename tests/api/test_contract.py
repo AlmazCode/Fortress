@@ -82,7 +82,53 @@ async def test_real_http_upload_worker_result_diagnostics_media(database, redis_
             assert frame.status_code == 200 and frame.content.startswith(b'\xff\xd8')
             for path in [f'/api/v1/jobs/{job_id}', prefix, prefix+'/media', prefix+'/preview', prefix+'/frames/v0f0']:
                 assert (await client.get(path, headers={'X-API-Key': 'wrong'})).status_code == 401
-            assert (await client.get(f'/api/v1/jobs/{uuid4()}')).status_code == 404
+            for frame_id in ['unknown', 'v99999f0', 'v0f2']:
+                missing = await client.get(prefix + '/frames/' + frame_id)
+                assert missing.status_code == 404
+                assert missing.json()['error']['code'] == 'media_not_found'
+                validate_contract('diagnostics', missing.json())
+
+
+@pytest.mark.asyncio
+async def test_real_http_not_found_jobs_use_contract_error_body(database, redis_runtime, tmp_path):
+    app = build(database, redis_runtime, tmp_path, production=True)
+    with http_server(app) as url:
+        async with httpx.AsyncClient(base_url=url, headers={'X-API-Key': KEY}) as client:
+            for job_id in [str(uuid4()), 'malformed-id']:
+                for path in [f'/api/v1/jobs/{job_id}', f'/api/ui/v1/jobs/{job_id}',
+                             f'/api/ui/v1/jobs/{job_id}/media', f'/api/ui/v1/jobs/{job_id}/preview',
+                             f'/api/ui/v1/jobs/{job_id}/frames/v0f0']:
+                    response = await client.get(path)
+                    assert response.status_code == 404
+                    assert response.json()['error']['code'] == 'job_not_found'
+                    validate_contract('diagnostics', response.json())
+                    assert response.headers['cache-control'] == 'private, no-store'
+                    assert KEY not in response.text and str(tmp_path) not in response.text
+            response = await client.get('/api/unknown-route')
+            assert response.status_code == 404
+            assert response.json()['error']['code'] == 'job_not_found'
+            validate_contract('diagnostics', response.json())
+
+
+@pytest.mark.asyncio
+async def test_real_http_not_found_media_preserves_existing_job(database, redis_runtime, tmp_path, clip):
+    app = build(database, redis_runtime, tmp_path)
+    with http_server(app) as url:
+        async with httpx.AsyncClient(base_url=url, headers={'X-API-Key': KEY}) as client:
+            accepted = await client.post('/api/v1/analyze', files={'file': ('synthetic.mp4', clip.read_bytes())})
+            assert accepted.status_code == 202
+            job_id = accepted.json()['job_id']
+            job = app.state.repository.get(job_id)
+            job.upload.path.unlink()
+            for suffix in ['/media', '/preview', '/frames/v0f0', '/frames/unknown']:
+                response = await client.get(f'/api/ui/v1/jobs/{job_id}' + suffix)
+                assert response.status_code == 404
+                assert response.json()['error']['code'] == 'media_not_found'
+                validate_contract('diagnostics', response.json())
+                assert response.headers['cache-control'] == 'private, no-store'
+                assert KEY not in response.text and str(tmp_path) not in response.text
+            response = await client.get(f'/api/v1/jobs/{job_id}')
+            assert response.status_code == 200 and response.json()['status'] == 'processing'
 
 
 @pytest.mark.asyncio

@@ -15,7 +15,7 @@ def create_api_router(repository, release, *, test_only=False):
         repository.expire(now=datetime.now(timezone.utc))
         job = repository.get(job_id)
         if job is None:
-            raise IntakeError(404, 'not_found', 'Job is unavailable.')
+            raise IntakeError(404, 'job_not_found', 'Job is unavailable.')
         return job
     @router.get('/api/v1/jobs/{job_id}')
     async def status(job_id: str):

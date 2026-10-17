@@ -135,7 +135,7 @@ def create_app(settings=None, *, test_components=None):
     @app.exception_handler(HTTPException)
     async def http_error(request, error):
         status = error.status_code
-        code = {400: 'invalid_request', 401: 'invalid_key', 404: 'not_found', 413: 'upload_too_large', 415: 'unsupported_media', 429: 'capacity_exceeded'}.get(status, 'invalid_request')
+        code = {400: 'invalid_request', 401: 'invalid_key', 404: 'job_not_found', 413: 'upload_too_large', 415: 'unsupported_media', 429: 'capacity_exceeded'}.get(status, 'invalid_request')
         failure = IntakeError(status, code, 'Request could not be completed.')
         return JSONResponse(failure.payload(), status_code=status)
     @app.get('/healthz')
