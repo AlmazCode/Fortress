@@ -114,3 +114,9 @@ Production не импортирует tests/fixtures: CLI production-only, яв
 ## Входящие кандидаты после обновления Git
 
 После завершения A получены F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` (отчёт `7e4279d`), D1 `536fe7af06cadb4ff9513da1bf8dcafb6e6198e6` (отчёт `9aa9dda`) и №4 `5834064` (O1/R и частичные O2/O3). Начинается проверка точных commits; они не приняты по одному отчёту. I ждёт F/M/R/O, O явно blocked по настоящему Docker/offline/external HTTPS.
+
+## Проверка входящего F1
+
+Авторский head: `bab9998bb094605ceadbfb42412080fa1e0f3b3f`; опубликованный отчёт: `7e4279d`. Главный прочитал 10 файлов F1, schema validators/key lifecycle/abort/retry/media byte cap/test-only transport, сверил scope и K. Обычный merge `f4ae1b5` содержит точный candidate и журнал №2; чужой код не исправлялся.
+Собственные проверки на Node 24.21.0 / npm 12.2.0: `npm ci --ignore-scripts --no-fund --no-audit --registry=https://registry.npmjs.org` → 0; `npm run typecheck` → 0; `npm test -- src/api/client.test.ts` → 0, **42 passed**; `npm run build` → 0. `npm exec vite build -- --mode fixture` → 1, ожидаемый явный запрет. Production JS не содержит тестового ключа/fixture transport/payload markers. Lock использует только registry.npmjs.org.
+F1 принят и интегрирован: это API-client scaffold, полный экран ещё не реализован (index загружает client.ts). Критерии 1–5 покрыты установленным lock/build/component tests, header-only memory key/reset, AJV K public/UI schemas, explicit synthetic transport и ограниченными retry/abort без повторного POST. Browser workflow/seek/адаптивность не заявляются. F2/F3/F4 теперь ready.

@@ -12,10 +12,10 @@
 - [x] A4 — Outbox и один worker · №1 · accepted
 - [x] A5 — Дедлайны и сбои backend · №1 · accepted
 - [x] A — API и надёжная очередь · №1 · accepted
-- [ ] F1 — Клиент API и ключ · №2 · review (bab9998)
-- [ ] F2 — Загрузка и статусы · №2 · unverified
-- [ ] F3 — Видео и доказательства · №2 · unverified
-- [ ] F4 — Ошибки и доступность UI · №2 · unverified
+- [x] F1 — Клиент API и ключ · №2 · accepted (bab9998, merge f4ae1b5)
+- [ ] F2 — Загрузка и статусы · №2 · ready (F1 принят)
+- [ ] F3 — Видео и доказательства · №2 · ready (F1 принят)
+- [ ] F4 — Ошибки и доступность UI · №2 · ready (F1 принят)
 - [ ] F — Интерфейс анализа · №2 · unverified
 - [ ] D1 — Аудит данных и среды · №3 · review (536fe7a)
 - [ ] D2 — Классы и инструкция разметки · №3 · unverified
@@ -50,3 +50,5 @@ A4 принят в `codex/integration`: `61a69ce8edc254b4d62ab0652eb8f89df146e43
 A5 и исправленный A1 приняты в `codex/integration`: `4e5d9b09b292af03f27991b32cadf9aae2af64d6`. Ветка frontend `551454a` содержит только прежний отчёт о блокировке по K; код frontend отсутствует, K теперь доступен.
 
 A принят в `codex/integration`: `043eeb6d125f3b77d71b74de3b56c6a1cee91e70`. **116 tests passed, no skips**. Общая программная сдача пока blocked по недостающим F/M/R/O и внешней инфраструктуре; обученная модель также отсутствует по плану.
+
+F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` принят главным после review и собственных checks, merge `f4ae1b5` в integration. F2/F3/F4 открыты.
