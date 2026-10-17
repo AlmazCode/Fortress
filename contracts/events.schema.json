@@ -1,0 +1,696 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fortress.invalid/contracts/v1/events.schema.json",
+  "title": "Fortress events v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "video_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scene_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preprocessing_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "coverage": {
+      "enum": [
+        "full",
+        "partial",
+        "none"
+      ]
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Observation"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RuleFinding"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "video_id",
+    "scene_id",
+    "preprocessing_version",
+    "model_version",
+    "coverage",
+    "observations",
+    "findings"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Interval": {
+      "type": "object",
+      "properties": {
+        "start_sec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end_sec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "scene_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "start_sec",
+        "end_sec",
+        "scene_id"
+      ],
+      "additionalProperties": false
+    },
+    "TimeMapping": {
+      "type": "object",
+      "properties": {
+        "source_pts": {
+          "type": "integer"
+        },
+        "time_base": {
+          "type": "object",
+          "properties": {
+            "num": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "den": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "num",
+            "den"
+          ],
+          "additionalProperties": false
+        },
+        "origin_pts": {
+          "type": "integer"
+        },
+        "timestamp_sec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rotation": {
+          "enum": [
+            0,
+            90,
+            180,
+            270
+          ]
+        },
+        "valid": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source_pts",
+        "time_base",
+        "origin_pts",
+        "timestamp_sec",
+        "rotation",
+        "valid"
+      ],
+      "additionalProperties": false
+    },
+    "Observation": {
+      "type": "object",
+      "properties": {
+        "class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "interval": {
+          "$ref": "#/$defs/Interval"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "enum": [
+            "present",
+            "absent_verified",
+            "unknown",
+            "unreviewed"
+          ]
+        },
+        "known_mask": {
+          "type": "boolean"
+        },
+        "visibility": {
+          "enum": [
+            "visible",
+            "partial",
+            "occluded",
+            "unknown"
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Relation"
+          }
+        }
+      },
+      "required": [
+        "class_id",
+        "interval",
+        "score",
+        "state",
+        "known_mask",
+        "visibility",
+        "actor_id",
+        "relations"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "known_mask": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "unreviewed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "known_mask": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "present"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "known_mask": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "absent_verified"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "known_mask": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "absent_verified"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "visibility": {
+                "const": "visible"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "present"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "visibility": {
+                "enum": [
+                  "visible",
+                  "partial"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RuleFinding": {
+      "type": "object",
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "triggered",
+            "not_triggered",
+            "unknown"
+          ]
+        },
+        "interval": {
+          "$ref": "#/$defs/Interval"
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "support": {
+          "enum": [
+            "supported",
+            "unsupported"
+          ]
+        },
+        "observability": {
+          "enum": [
+            "full",
+            "partial",
+            "none"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        }
+      },
+      "required": [
+        "rule_id",
+        "status",
+        "interval",
+        "actor_id",
+        "reason",
+        "support",
+        "observability",
+        "source"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "triggered",
+                  "not_triggered"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "support": {
+                "const": "supported"
+              },
+              "observability": {
+                "enum": [
+                  "full",
+                  "partial"
+                ]
+              },
+              "source": {
+                "properties": {
+                  "verified": {
+                    "const": true
+                  },
+                  "source_kind": {
+                    "enum": [
+                      "official",
+                      "internal_policy"
+                    ]
+                  },
+                  "snapshot_sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "support": {
+                "const": "unsupported"
+              }
+            },
+            "required": [
+              "support"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "unknown"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_triggered"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observability": {
+                "const": "full"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Source": {
+      "type": "object",
+      "properties": {
+        "source_kind": {
+          "enum": [
+            "official",
+            "internal_policy",
+            "synthetic",
+            "unverified"
+          ]
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "source_kind",
+        "url",
+        "revision",
+        "section",
+        "snapshot_sha256",
+        "verified",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "original",
+            "synthetic"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "kind",
+        "source_id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Preprocessing": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "size": {
+          "const": 224
+        },
+        "fps": {
+          "const": 2
+        },
+        "window_frames": {
+          "const": 32
+        },
+        "overlap": {
+          "const": 0.5
+        },
+        "views": {
+          "const": 1
+        },
+        "resize": {
+          "const": "letterbox"
+        },
+        "mean": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "std": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "version",
+        "size",
+        "fps",
+        "window_frames",
+        "overlap",
+        "views",
+        "resize",
+        "mean",
+        "std"
+      ],
+      "additionalProperties": false
+    },
+    "Relation": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "known": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "subject_id",
+        "object_id",
+        "known"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "known": {
+                "const": true
+              }
+            },
+            "required": [
+              "known"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "object_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,587 @@
+{
+  "schema_version": "1.0",
+  "test_only": true,
+  "provenance": {
+    "kind": "synthetic",
+    "description": "Artificial JPEG for schema tests only. No trained weights, validated bank events or verified norms. Zero hashes are placeholders, never valid file-backed releases."
+  },
+  "cases": [
+    {
+      "name": "processing",
+      "schema": "job",
+      "payload": {
+        "job_id": "00000000-0000-4000-8000-000000000001",
+        "status": "processing"
+      }
+    },
+    {
+      "name": "no_violation",
+      "schema": "job",
+      "payload": {
+        "job_id": "00000000-0000-4000-8000-000000000001",
+        "status": "done",
+        "verdict": "no_violation",
+        "violations": []
+      }
+    },
+    {
+      "name": "violation",
+      "schema": "job",
+      "payload": {
+        "job_id": "00000000-0000-4000-8000-000000000001",
+        "status": "done",
+        "verdict": "violation",
+        "violations": [
+          {
+            "type": "synthetic_test_event",
+            "timecode_sec": 0,
+            "description": "Synthetic contract example only.",
+            "evidence_frames": [
+              {
+                "timestamp_sec": 0,
+                "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAQABADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDz+iiivcPKP//Z"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "failed",
+      "schema": "job",
+      "payload": {
+        "job_id": "00000000-0000-4000-8000-000000000001",
+        "status": "failed",
+        "reason": "deadline_exceeded"
+      }
+    },
+    {
+      "name": "insufficient_evidence",
+      "schema": "job",
+      "payload": {
+        "job_id": "00000000-0000-4000-8000-000000000001",
+        "status": "failed",
+        "reason": "insufficient_evidence"
+      }
+    },
+    {
+      "name": "model_not_ready",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "model_not_ready",
+          "message": "Import a validated trained release.",
+          "status": 503
+        }
+      }
+    },
+    {
+      "name": "unknown",
+      "schema": "events",
+      "payload": {
+        "schema_version": "1.0",
+        "video_id": "test-video-1",
+        "scene_id": "test-scene-1",
+        "preprocessing_version": "letterbox-v1",
+        "model_version": "untrained-test-only",
+        "coverage": "none",
+        "observations": [
+          {
+            "class_id": "synthetic_action",
+            "interval": {
+              "start_sec": 0,
+              "end_sec": 1,
+              "scene_id": "test-scene-1"
+            },
+            "score": null,
+            "state": "unknown",
+            "known_mask": false,
+            "visibility": "occluded",
+            "actor_id": null,
+            "relations": []
+          }
+        ],
+        "findings": [
+          {
+            "rule_id": "synthetic_rule",
+            "status": "unknown",
+            "interval": {
+              "start_sec": 0,
+              "end_sec": 1,
+              "scene_id": "test-scene-1"
+            },
+            "actor_id": null,
+            "reason": "Conditions not visible.",
+            "support": "unsupported",
+            "observability": "none",
+            "source": {
+              "source_kind": "unverified",
+              "url": null,
+              "revision": null,
+              "section": null,
+              "snapshot_sha256": null,
+              "verified": false,
+              "limitations": [
+                "No verified normative source."
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "objects",
+      "schema": "objects",
+      "payload": {
+        "schema_version": "1.0",
+        "dataset_version": "synthetic-v1",
+        "taxonomy_version": "draft-v1",
+        "frames": [
+          {
+            "frame_id": "test-frame-1",
+            "video_id": "test-video-1",
+            "scene_id": "test-scene-1",
+            "width": 16,
+            "height": 16,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "time": {
+              "source_pts": 10,
+              "origin_pts": 10,
+              "time_base": {
+                "num": 1,
+                "den": 10
+              },
+              "timestamp_sec": 0,
+              "rotation": 0,
+              "valid": true
+            },
+            "objects": [
+              {
+                "object_id": "test-object-1",
+                "class_id": "synthetic_object",
+                "bbox": [
+                  0,
+                  0,
+                  10,
+                  10
+                ],
+                "visibility": "partial",
+                "review_status": "unreviewed",
+                "reviewer": null,
+                "actor_id": null
+              }
+            ],
+            "provenance": {
+              "kind": "synthetic",
+              "source_id": "synthetic-test-only-frame-16x16",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "manifest",
+      "schema": "manifest",
+      "payload": {
+        "schema_version": "1.0",
+        "dataset_version": "synthetic-v1",
+        "split_version": "synthetic-v1",
+        "videos": [
+          {
+            "video_id": "test-video-1",
+            "canonical_id": "test-video-1",
+            "group_id": "test-scene-1",
+            "scene_id": "test-scene-1",
+            "path": "fixtures/video.mp4",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "split": "train",
+            "duration_sec": 1,
+            "width": 16,
+            "height": 16,
+            "source_start_pts": 10,
+            "time_base": {
+              "num": 1,
+              "den": 10
+            },
+            "rotation": 0,
+            "vfr": true,
+            "official_label": null,
+            "provenance": {
+              "kind": "synthetic",
+              "source_id": "synthetic-test-only-frame-16x16",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "annotations",
+      "schema": "annotations",
+      "payload": {
+        "schema_version": "1.0",
+        "annotation_version": "synthetic-v1",
+        "dataset_version": "synthetic-v1",
+        "taxonomy_version": "draft-v1",
+        "records": [
+          {
+            "video_id": "test-video-1",
+            "scene_id": "test-scene-1",
+            "interval": {
+              "start_sec": 0,
+              "end_sec": 1,
+              "scene_id": "test-scene-1"
+            },
+            "class_id": "synthetic_action",
+            "state": "unknown",
+            "visibility": "unknown",
+            "actor_id": null,
+            "relations": [],
+            "review_status": "unreviewed",
+            "reviewer": null,
+            "valid": true
+          }
+        ],
+        "provenance": {
+          "kind": "synthetic",
+          "source_id": "synthetic-test-only-frame-16x16",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "name": "release",
+      "schema": "release",
+      "payload": {
+        "schema_version": "1.0",
+        "release_version": "synthetic-test-v1",
+        "intended_use": "test_only",
+        "training_status": "untrained",
+        "checkpoint": "checkpoint.safetensors",
+        "backbone": "mobilenet_v3_small",
+        "weights": "IMAGENET1K_V1",
+        "feature_dim": 576,
+        "model_config": {
+          "gru_hidden_size": 256,
+          "gru_layers": 1,
+          "classes": 1
+        },
+        "taxonomy": {
+          "path": "taxonomy.json",
+          "version": "draft-v1",
+          "status": "draft"
+        },
+        "preprocessing": {
+          "version": "letterbox-v1",
+          "size": 224,
+          "fps": 2,
+          "window_frames": 32,
+          "overlap": 0.5,
+          "views": 1,
+          "resize": "letterbox",
+          "mean": [
+            0.485,
+            0.456,
+            0.406
+          ],
+          "std": [
+            0.229,
+            0.224,
+            0.225
+          ]
+        },
+        "thresholds": "thresholds.json",
+        "metrics": {
+          "path": "metrics.json",
+          "validation_status": "not_validated",
+          "independent_test": false
+        },
+        "model_card": "model-card.md",
+        "versions": {
+          "dataset": "synthetic-v1",
+          "split": "synthetic-v1",
+          "annotations": "synthetic-v1",
+          "rules": "draft-v1"
+        },
+        "files": [
+          {
+            "path": "checkpoint.safetensors",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "checkpoint"
+          },
+          {
+            "path": "config.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "config"
+          },
+          {
+            "path": "taxonomy.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "taxonomy"
+          },
+          {
+            "path": "preprocessing.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "preprocessing"
+          },
+          {
+            "path": "thresholds.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "thresholds"
+          },
+          {
+            "path": "metrics.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "metrics"
+          },
+          {
+            "path": "model-card.md",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size_bytes": 1,
+            "role": "model_card"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dataset_readiness",
+      "schema": "dataset_readiness",
+      "payload": {
+        "schema_version": "1.0",
+        "dataset_version": "synthetic-v1",
+        "state": "blocked",
+        "checks": [
+          {
+            "name": "real-annotations",
+            "status": "not_run",
+            "detail": "Only synthetic fixtures."
+          }
+        ],
+        "limitations": [
+          "Not a training dataset."
+        ],
+        "provenance": {
+          "kind": "synthetic",
+          "source_id": "synthetic-test-only-frame-16x16",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "name": "model_status",
+      "schema": "diagnostics",
+      "payload": {
+        "schema_version": "1.0",
+        "status": "not_ready",
+        "reason": "model_not_ready",
+        "release_version": null,
+        "trained": false,
+        "validated": false,
+        "test_only": false,
+        "limitations": [
+          "No trained release."
+        ]
+      }
+    },
+    {
+      "name": "error_invalid_request",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "invalid_request",
+          "status": 400,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_invalid_key",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "invalid_key",
+          "status": 401,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_job_not_found",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "job_not_found",
+          "status": 404,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_media_not_found",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "media_not_found",
+          "status": 404,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_upload_too_large",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "upload_too_large",
+          "status": 413,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_unsupported_media",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "unsupported_media",
+          "status": 415,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_capacity_exceeded",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "capacity_exceeded",
+          "status": 429,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_model_not_ready",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "model_not_ready",
+          "status": 503,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "error_service_unavailable",
+      "schema": "diagnostics",
+      "payload": {
+        "error": {
+          "code": "service_unavailable",
+          "status": 503,
+          "message": "Synthetic error example."
+        }
+      }
+    },
+    {
+      "name": "ui_diagnostics",
+      "schema": "diagnostics",
+      "payload": {
+        "schema_version": "1.0",
+        "job_id": "00000000-0000-4000-8000-000000000001",
+        "public": {
+          "job_id": "00000000-0000-4000-8000-000000000001",
+          "status": "failed",
+          "reason": "insufficient_evidence"
+        },
+        "stage": "failed",
+        "processed_sec": 1,
+        "duration_sec": 1,
+        "coverage": "none",
+        "unknown": [
+          "actor"
+        ],
+        "unsupported": [
+          "synthetic_rule"
+        ],
+        "limitations": [
+          "No supported observable checks."
+        ],
+        "versions": {
+          "dataset": "synthetic-v1",
+          "annotations": null,
+          "split": null,
+          "rules": "draft-v1",
+          "model": "untrained-test-only",
+          "preprocessing": "letterbox-v1",
+          "taxonomy": "draft-v1"
+        },
+        "timeline": {
+          "schema_version": "1.0",
+          "video_id": "test-video-1",
+          "scene_id": "test-scene-1",
+          "preprocessing_version": "letterbox-v1",
+          "model_version": "untrained-test-only",
+          "coverage": "none",
+          "observations": [
+            {
+              "class_id": "synthetic_action",
+              "interval": {
+                "start_sec": 0,
+                "end_sec": 1,
+                "scene_id": "test-scene-1"
+              },
+              "score": null,
+              "state": "unknown",
+              "known_mask": false,
+              "visibility": "occluded",
+              "actor_id": null,
+              "relations": []
+            }
+          ],
+          "findings": [
+            {
+              "rule_id": "synthetic_rule",
+              "status": "unknown",
+              "interval": {
+                "start_sec": 0,
+                "end_sec": 1,
+                "scene_id": "test-scene-1"
+              },
+              "actor_id": null,
+              "reason": "Conditions not visible.",
+              "support": "unsupported",
+              "observability": "none",
+              "source": {
+                "source_kind": "unverified",
+                "url": null,
+                "revision": null,
+                "section": null,
+                "snapshot_sha256": null,
+                "verified": false,
+                "limitations": [
+                  "No verified normative source."
+                ]
+              }
+            }
+          ]
+        },
+        "media": {
+          "original": null,
+          "preview": null
+        },
+        "provenance": {
+          "kind": "synthetic",
+          "source_id": "synthetic-test-only-frame-16x16",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    }
+  ]
+}

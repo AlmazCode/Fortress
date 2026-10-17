@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "version": "draft-v1",
+  "status": "draft",
+  "production_ready": false,
+  "actions": [],
+  "objects": [],
+  "missing": [
+    "Authoritative action/object class IDs and reviewed annotations absent from agreed base."
+  ],
+  "policy": "Append-only confirmed IDs. C01–C15 are case routes, not action labels."
+}
