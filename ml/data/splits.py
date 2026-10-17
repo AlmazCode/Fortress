@@ -57,20 +57,35 @@ def validate_splits(manifest: dict, *, near_candidates: list[dict] = ()) -> None
 def assign_splits(manifest: dict, *, eligible_video_ids: list[str], seed: int,
                   dev_fraction: float = 0.2, final_video_ids: list[str] = (),
                   near_candidates: list[dict] = (), final_independence_evidence: str | None = None) -> dict:
-    validate_contract("manifest", manifest)
+    validate_splits(manifest, near_candidates=near_candidates)
     if not isinstance(seed, int) or isinstance(seed, bool) or not 0 <= dev_fraction < 1:
         raise ValueError("integer seed and dev_fraction in [0,1) required")
     result = copy.deepcopy(manifest)
     records = result["videos"]
     ids = {row["video_id"] for row in records}
-    eligible, final = set(eligible_video_ids), set(final_video_ids)
-    if not eligible <= ids or not final <= eligible:
+    eligible, requested_final = set(eligible_video_ids), set(final_video_ids)
+    if not eligible <= ids or not requested_final <= eligible:
         raise ValueError("eligible/final IDs must reference eligible manifest videos")
+    previous_final = {row["video_id"] for row in records if row["split"] == "independent_test"}
+    assigned = any(row["split"] != "excluded" for row in records)
+    if assigned and requested_final - previous_final:
+        raise ValueError("final selection is immutable on an assigned manifest; existing holdout must be retained")
+    if not previous_final <= eligible:
+        raise ValueError("existing final groups are no longer eligible; resolve rights/identity before re-split")
     groups = _components(records, near_candidates)
     by_id = {row["video_id"]: row for row in records}
-    # Ignore old assignment and input row order in the reproducible key.
+    final = set()
+    for group in groups:
+        if set(group) & (previous_final | requested_final):
+            final.update(group)
+        # Persist transitive near/source membership at the K boundary, even if
+        # the next API caller omits the optional near-candidate sidecar.
+        component_id = "component:" + stable_hash(group)
+        for video_id in group:
+            by_id[video_id]["group_id"] = component_id
+    # Normalize only mutable train/dev assignments; final reservations are in key.
     normalized = sorted(({**row, "split": "excluded"} for row in records), key=lambda r: r["video_id"])
-    key = {"algorithm": "grouped-v1", "seed": seed, "manifest": normalized,
+    key = {"algorithm": "grouped-v2", "seed": seed, "manifest": normalized,
            "eligible": sorted(eligible), "final": sorted(final), "dev_fraction": dev_fraction,
            "components": groups, "final_independence_evidence": final_independence_evidence}
     working, held, excluded = [], [], []
@@ -94,7 +109,7 @@ def assign_splits(manifest: dict, *, eligible_video_ids: list[str], seed: int,
             for video_id in group:
                 by_id[video_id]["split"] = split
     result["videos"] = sorted(records, key=lambda r: r["video_id"])
-    result["split_version"] = "grouped-v1-" + stable_hash(key)
+    result["split_version"] = "grouped-v2-" + stable_hash(key)
     validate_splits(result, near_candidates=near_candidates)
     counts = {split: sum(r["split"] == split for r in records)
               for split in ("train", "dev_validation", "independent_test", "excluded")}
@@ -107,8 +122,10 @@ def assign_splits(manifest: dict, *, eligible_video_ids: list[str], seed: int,
         limitations.append("Insufficient eligible groups for both train and dev.")
     if any(row["provenance"]["kind"] == "synthetic" for row in records):
         limitations.append("Synthetic fixtures test code only; they do not establish a real dataset.")
-    return {"manifest": result, "audit": {"split_algorithm": "grouped-v1", "seed": seed,
+    return {"manifest": result, "audit": {"split_algorithm": "grouped-v2", "seed": seed,
             "input_sha256": stable_hash(key), "components": groups, "counts": counts,
+            "final_policy": "immutable-on-assigned-manifest-v1", "final_video_ids": sorted(final),
+            "previous_final_video_ids": sorted(previous_final),
             "final_independence_evidence": final_independence_evidence,
             "final_independence": "human_asserted_not_verified" if final_independence_evidence else "unverified",
             "data_state": "split_candidate" if eligible else "data_not_ready",
@@ -130,7 +147,8 @@ def main(argv=None) -> int:
     parser.add_argument("--output", required=True, type=Path, help="new JSON bundle; never overwrite")
     parser.add_argument("--seed", required=True, type=int)
     parser.add_argument("--dev-fraction", type=float, default=0.2)
-    parser.add_argument("--final-video-id", action="append", default=[])
+    parser.add_argument("--final-video-id", action="append", default=[],
+                        help="reserve initial holdout; on re-split existing final is retained and reselection is rejected")
     args = parser.parse_args(argv)
     try:
         bundle = json.loads(args.input.read_text(encoding="utf-8-sig"))
@@ -139,7 +157,8 @@ def main(argv=None) -> int:
         eligible = [row["video_id"] for row in bundle["audit"]["sources"] if row["eligible_for_split"]]
         result = assign_splits(bundle["manifest"], eligible_video_ids=eligible, seed=args.seed,
                                dev_fraction=args.dev_fraction, final_video_ids=args.final_video_id,
-                               near_candidates=bundle["duplicates"]["near_candidates"])
+                               near_candidates=bundle["duplicates"]["near_candidates"],
+                               final_independence_evidence=bundle.get("split_audit", {}).get("final_independence_evidence"))
         bundle["manifest"] = result["manifest"]
         bundle["split_audit"] = result["audit"]
         with args.output.open("x", encoding="utf-8") as output:

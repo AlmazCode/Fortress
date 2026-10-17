@@ -25,6 +25,11 @@ probe_limits:
 # min_duration_ratio=0.95, max_pairs=200000. Candidates require source-pixel review;
 # even unconfirmed edges are conservatively held together for partitioning.
 # Explicit --final-video-id reserves the WHOLE group. No automatic "independent" claim.
+# Re-split retains every existing independent_test group even when the flag is omitted
+# or the seed changes. Final selection is immutable after any train/dev/final assignment;
+# selecting another final is rejected before output. A holdout migration requires a
+# separate reviewed dataset/split change; previously used train/dev cannot become
+# "independent" by rerunning this command. Transitive groups persist in manifest.group_id.
 # No 30/10 assumption; no final/jury data in training or threshold calibration.
 # Decode API/rotation reference: https://pyav.basswood.io/docs/stable/api/video.html
 # The locked PyAV 17.1.0 implementation is checked by real tiny decode tests.
