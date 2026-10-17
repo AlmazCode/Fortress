@@ -2,6 +2,8 @@
 
 Ветка №4 содержит конфигурацию и проверенные инструменты, а не выполненное развёртывание. На текущем Windows-хосте отдельно запущен официальный standalone Compose v5.6.0: production и test overlay проходят настоящий `config`, включая merge/reset. Docker engine/WSL отсутствуют; build, start, volumes restart, GPU и offline runtime checks **not_run**. Полное приложение строится и запускается после интеграции I. Проверка config и loopback HTTP/TLS не заменяют эти критерии.
 
+Актуальное указание пользователя: **пока без виртуализации/WSL**. Установка системных компонентов отложена. Рабочие native Windows инструменты: frontend build, реальный HTTP/TLS client и process-resource sampler; [BENCHMARK.md](BENCHMARK.md). Native Linux путь без контейнеров — [RECOVERY.md](RECOVERY.md). Принятый POSIX worker не объявляется рабочим native Windows сервисом.
+
 ## Подготовка
 
 1. На целевом Ubuntu/WSL2 ПК выполнить [preflight](PREFLIGHT.md). Нужны Docker/Compose ≥2.24.4, NVIDIA runtime, FFmpeg/ffprobe и совместимость Python/locks/GPU. Наличие nvidia-smi на Windows этого не доказывает.
@@ -75,6 +77,10 @@ API healthcheck подтверждает TCP listener, не готовность
 wsl --install --no-distribution
 ```
 
-После требуемой Windows перезагрузки повторить проверенный per-user installer, запустить Docker Desktop и проверить `wsl --version`, `docker version`, `docker compose version`, затем preflight. Готовность engine/GPU остаётся false до реального успешного запуска. Перезагрузка сейчас не выполнялась. Официальные основания: [Docker Windows install / per-user prerequisites](https://docs.docker.com/desktop/setup/install/windows-install/), [Microsoft WSL install](https://learn.microsoft.com/en-us/windows/wsl/install).
+Этот системный шаг **отложен пользователем**, сейчас не выполняется. Если позднее будет выбран WSL-хост: после требуемой Windows перезагрузки повторить проверенный per-user installer, запустить Docker Desktop и проверить `wsl --version`, `docker version`, `docker compose version`, затем preflight. Готовность engine/GPU остаётся false до реального успешного запуска. Официальные основания: [Docker Windows install / per-user prerequisites](https://docs.docker.com/desktop/setup/install/windows-install/), [Microsoft WSL install](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 Для Linux checkout сохранять LF shell scripts; при новом Windows clone использовать repository-local настройку line endings. Внеплановый `infra/.gitattributes` удалён по замечанию review; общие Git settings и чужие checkout не менялись.
+
+## Проверка frontend build inputs без Docker
+
+Frontend импортирует общие contracts из относительного пути `../../../contracts/*.json`. Build stage теперь копирует contracts в `/contracts` рядом с `/frontend`. До этого TS2307 воспроизведён интегратором; после исправления №4 воспроизвёл точный COPY layout в отдельной новой локальной папке, выполнил `npm ci --ignore-scripts --no-audit --no-fund` и `npm run build`: **exit 0**, typecheck и Vite production build прошли, 173 modules. Node 22.22.2. Frontend/src/lock №2 не изменены. Это настоящая проверка inputs/build на native Windows, не `docker build` и не проверка Nginx runtime.

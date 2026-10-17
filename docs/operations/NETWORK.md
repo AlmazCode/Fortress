@@ -17,6 +17,8 @@ sh infra/scripts/network-smoke.sh --url https://HOSTNAME --key-file /PRIVATE/smo
 
 `network-smoke` предназначен **только для infra harness** из compose.test.yaml, отправляет небольшой синтетический маркер, не видео. Harness требует специальный synthetic header/body, отказывает реальным файлам, ограничен 4 KiB/128 in-memory records, проверяет auth и возвращает `smoke_complete`, а не публичный ML verdict. Вывод всегда содержит synthetic/infrastructure_only и не является API/ML acceptance.
 
+Для настоящего API добавлен **отдельный** `infra/scripts/smoke.sh`, запускающий [benchmark.py](../../tests/performance/benchmark.py). Аргументы — `--url`, `--key-file`, новый `--output`, режим production-gate либо явный synthetic-analysis; описание и ограничения в [BENCHMARK.md](BENCHMARK.md). На Windows тот же Python CLI работает напрямую без shell/VM. Он проверяет header auth, ошибку 404 по K, readiness gate либо upload/status/original/preview/JPEG, не использует protocol marker старого harness. Сам script не запускает/не изменяет сервисы и не устанавливает виртуализацию.
+
 Для loopback HTTP unit smoke есть явный `--allow-local-http`, разрешённый только для localhost/loopback. Его результат `local_only=true`, `tls_verified=false`, `external_access_verified=false`. Даже trusted HTTPS с текущего хоста не заявляется независимым внешним наблюдением. Внешний клиент должен реально выполнить проверку по разрешённому маршруту; главный сохраняет и проверяет его фактический отчёт в O3, а после I/B — на настоящем API. В текущей среде такой маршрут/hostname/сертификат не предоставлены, gate остаётся blocked.
 
 ## Фактически проверено сейчас
