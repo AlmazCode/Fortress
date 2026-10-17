@@ -1,0 +1,31 @@
+{
+  "projectId": "8e42e063-af93-488f-93db-ee5395d8e6fd",
+  "planId": "d1ca61a5-59c1-48ad-a8e9-c7b4cb337077",
+  "tasks": 36,
+  "perDeveloper": {
+    "1": 9,
+    "2": 6,
+    "3": 12,
+    "4": 9
+  },
+  "taskDefinitionsMatchAppliedPlan": true,
+  "statusesReconciledWithGitHub": false,
+  "sourceSha256": "93898a093109acaf57bdadd03710805f88a4f1d159465bd5503bbe7fbdb18f13",
+  "appliedSourceSha256": "46dfa01dbb833353d3ce598c4cb97bb8f8fa6d810aa431b09ee083f535153832",
+  "files": {
+    "PLAN.md": "b721fc5c70905a7c10f4f2f30e7fb6ac8ff1acdc0210705b6fe22ef4f4a55f46",
+    "plan.json": "07e23763073c12e46eee10d60490913070a706e0b113a108c0fe3ec5bccc7129",
+    "REQUIREMENTS.md": "de1e764167321106cc76513c3dd54a2cd44d5c6fb8a4cd3f53e7172eff57c3de",
+    "DEV1_BACKEND.md": "37ed93bd641530ef55dd7f343a6d5eb6ca43e30e225d4222c59aeee0f275bba6",
+    "status/DEV-1.md": "f3b14c44d6fc7e1881cd0a9d79de2ebbe8c514bc9306f20eeb485f9bef287552",
+    "DEV2_FRONTEND.md": "12ff4cdd9a5696e52f9fd386e3e9e972f8cd0387b3de1ea72e1948f982bc6f7e",
+    "status/DEV-2.md": "df2b6c7963be06e310bf7075626f0137511f083d9b7bd61fc4c0a78a8cd2dc5a",
+    "DEV3_ML_DATA.md": "4a8073c8b88acb7d458ad3a62186d9dc15277d1bd67a0ecd0bc5a1771f7e9ac6",
+    "status/DEV-3.md": "2ee20314956c4de02a73fe776a757020b922739ab125448c5d1bbabc7edfaab8",
+    "DEV4_RULES_INFRA.md": "1094b2d2652cccc29606fa7ccd37dbc85a49e3ca3bc86beaeddc6520daa34640",
+    "status/DEV-4.md": "ffd5c7dbc4af72ed732a15649018cbcf12fb4ae8b58789cf2fb3d4adbd7f4df3",
+    "STATUS.md": "db8729c8dc1c3e4827740e065bf36a2d6743b79386e1143663e296a7edc92521",
+    "PROMPTS.md": "23ad731f2ea18fdd7febd76db3a043d1731753277b66d3941f448488ea4eedcd",
+    "README.md": "6baddd8845a37060d4a22514130e3e413c927b2da2849638e64eb0ba86e46849"
+  }
+}
