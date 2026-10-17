@@ -130,3 +130,31 @@ O1/R1–R3/R: прочитаны shell/Python recorder, tri-state engine/typed i
 R критерии покрыты: все C01–C15/mappings; tri-state и пять positive/hard-negative/truncated/occlusion/exception шаблонов; whole-video memory/late events/scene/job isolation; K output validation, explicit unknown actors, source/version/limitations, отсутствие ложных юридических названий. R1 outcome missingSource, R/R3 outcome unknown: юридический gate не пройден, подтверждённых production rules нет. Software этапы приняты с этим явным ограничением, merge df1f398 включает точный 9569729.
 
 Более поздний 5834064 просмотрен, но не принят/не объединён: несовместимые API/Celery entrypoints, solo pool, ping при отключённом remote control, worker env, отсутствующие runtime/HTTPS evidence и infra/.gitattributes вне files. Точные замечания владельцу перечислены в STATUS.md. Чужие исходники не исправлялись, main не менялась.
+
+## Продолжение: приёмка F и D2, повторный review O2/O3
+
+17 октября 2026, стартовый HEAD `2ba4272e9504e7b15c76cecc04f7ed6fa5d98788`, тот же изолированный checkout и `codex/fortress-backend`. Origin/base/clean tree проверены; `git fetch origin` → 0. Получены frontend `96f037c`, ML/data `c485788`, infra `2e368f6`. Выполнялась проверка входящих зависимостей; реализация I не начиналась до принятия M/O.
+
+F: прочитаны App/main, компоненты, query/key/media lifecycle, tests, config и отчёт. Merge `c6d15d5feade48abfcde81207c818510344445a9` включает финальный код `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc` и отчёт `96f037c`. Фактическая merge-дельта — 24 разрешённых пути F1–F4/F и журнал №2; backend/shared contracts не меняются. Прямое сравнение старого F1 head с кандидатом включало уже принятые backend ancestors; scope проверен по фактической staged merge-дельте, а не приписанным автору входящим merges.
+
+- `npm test` → 0, **110 passed / 8 files**, 3.88s, Node 24.21.0 / npm 12.2.0.
+- `npm run build` → 0; внутри `tsc --noEmit` → 0 и Vite build → 0. JS 468.35 kB, CSS 17.80 kB. Lock/dependencies не менялись с предыдущей чистой установки F1.
+- `npm exec vite build -- --mode fixture` и `--mode api-test` → ожидаемые exit 1 с явным запретом. Проверка JS по canonical JPEG, test keys и fixture transport markers → 0, совпадений нет.
+- `git diff --cached --check` → 0 перед merge commit. Код frontend после checks не менялся.
+
+F2 покрывает upload/202/poll/terminal/retry/errors/abort; F3 — bounded protected Blob lifecycle, exact source-second seek, corrupted/missing evidence; F4 — readiness/error/keyboard и responsive styles; F собирает путь и production/test separation. Внешний API/настоящее видео/browser seek не проверялись: I/U. Браузерные 360/768/1440 px и focus — авторское evidence №2, не повторный браузерный прогон главного. Ограничение K violation→finding mapping сохранено честно: источники показываются отдельно, связь не выдумана. F2/F3/F4/F приняты в указанном software объёме после собственных checks.
+
+D2: прочитаны validator, append-only checks, annotation masks, оба draft файла, гайд и C01–C15 mapping. Код `b4961272723cefec463d45ccb49d041afd52150b` с отчётом `c485788` включён обычным merge `47787cbf295a8b0302cba32c35dab11aa49f28c8`, 7 разрешённых путей.
+
+- `.venv/bin/python -m pytest tests/ml/test_taxonomy.py tests/contracts/test_schemas.py -q` → 0, **72 passed in 1.05s** (17 новых taxonomy, 55 contracts).
+- `.venv/bin/python -m ml.data.taxonomy ml/config/object_taxonomy.draft.json` → 0: 9 classes, 0 states, draft.
+- `.venv/bin/python -m ml.data.taxonomy ml/config/action_taxonomy.draft.json` → 0: 14 classes, 6 states, draft.
+- `git diff --cached --check` → 0; после checks код не менялся.
+
+Критерии D2: девять объектов, отдельные actions/states, includes/excludes/hard negatives/visibility/truncation/unmeasured small-object limits, append-only/version constraints, nullable roles/links, вся карта C01–C15 и человеческий review/holdout/pseudo-label policy. D2 принят как draft, без official IDs, human acceptance, annotations или training readiness. D3/D4/D5 и весь M ещё не приняты.
+
+O2/O3: точный `1a1b091`/отчёт `2e368f6` прочитан, merge отсутствует. Prefork и local PID health исправляют часть старых замечаний, но новая env-интерполяция не создаёт отсутствующий Celery export. Сверены опубликованный A CLI, обязательный key env, отсутствие миграции, PID health incompatibility при переходе на CLI. Найден отсутствующий COPY contracts в frontend Dockerfile. Набор COPY inputs воспроизведён во временной папке с локальным node_modules: `npm run build` → ожидаемый **exit 1, TS2307** по четырём imports contracts. Это не запуск контейнера; private log сохранён локально. Исправления чужих файлов не выполнялись. Точные следующие действия №4 — в STATUS.md; Docker/GPU/offline/volumes/external HTTPS остаются blocked.
+
+I теперь ожидает M/O (A/F/R software приняты); Z ожидает I → U/E/B. Это фактическое ревью главного, не независимая человеческая приёмка. Backend 116 checks относятся к неизменённому `043eeb6`, повторно без изменения кода не запускались. Aster, main, deploy, обучение и сообщения другим чатам не использовались.
+
+Повторный fetch принёс только заметку №2 `99dd2c0` об остановке временного preview и ограничении встроенного браузера после restart. Заметка рассмотрена и объединена отдельно; исходники не менялись, live preview не обещается. Общий validator после обновления journals/STATUS/manifest → 0, 36 задач/48 рёбер, сохранены критерии и ownership; это проверка документации. Ancestry F/D2 и отсутствие изменений backend относительно `043eeb6` проверены; `git diff --check` → 0.

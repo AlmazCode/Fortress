@@ -20,14 +20,14 @@
     "docs/github-plan/PROVENANCE.json": "23c1de563a77a0b0470daea4847054c71005210d902b1aefcc3e17e89b3c770a",
     "docs/github-plan/README.md": "edf99857618ba2f02731c0aac603b0ff859494857cf814b7fc30e50e1ac0b445",
     "docs/github-plan/REQUIREMENTS.md": "1810c145eeb4c12165fb51658c57ead9960e2e37af07ddecf50412d9ee621cd3",
-    "docs/github-plan/STATUS.md": "6f1914fb6c44b5260a574c27fb6513785348f87add0ef29d5633acf0b7eff1ff",
+    "docs/github-plan/STATUS.md": "32baf5116eb02018512a0cc7a1ff977e064fa68019830f5f7e15ca4fad9f6492",
     "docs/github-plan/WORKFLOW.md": "45ed4e06f0656e750b2a30252d067107f72701ae99c450ed565fc8be0dfb631e",
     "docs/github-plan/archive/REQUIREMENTS.aster.md": "de1e764167321106cc76513c3dd54a2cd44d5c6fb8a4cd3f53e7172eff57c3de",
     "docs/github-plan/archive/plan.aster.json": "07e23763073c12e46eee10d60490913070a706e0b113a108c0fe3ec5bccc7129",
     "docs/github-plan/plan.json": "4565e35dfeceb6ffff3d311ed6806571067229f95450643941b8dad0fc931844",
-    "docs/github-plan/status/DEV-1.md": "f44ca34713e62659de2d44434594c185ea3888978ce5723f18dd8f678b7ef7d8",
-    "docs/github-plan/status/DEV-2.md": "1666aa120b3d13ba58f7273b5fe9a58cef07ea88be6c82eff6e302ed2b0282ce",
-    "docs/github-plan/status/DEV-3.md": "955a003fab121f2b157056a9f76f5cfaeb1bac7de4e8b1b9e32e8b162db1eef4",
+    "docs/github-plan/status/DEV-1.md": "62f4c3a974fde1ed6d3f5317aea0a781e493ac8aec657b192808db9269af94fa",
+    "docs/github-plan/status/DEV-2.md": "bc2d4c027c58506ae17caad5e4bf9beb5f9dad3f8764806509cce144b80f3e78",
+    "docs/github-plan/status/DEV-3.md": "93fe3e08b3d57126b3b25bd522c34a132c5d64b1a7fec110d2463679d8f9682a",
     "docs/github-plan/status/DEV-4.md": "fc1c0c19286a875c544d60d6e91250173ac605d25eb4b6069ce6590bc362a77b",
     "docs/github-plan/validate_plan.py": "e2ba99c6fd4d7311c79b0722cd70b21430855dd598756f7026a447c5905cd164"
   }
