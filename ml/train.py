@@ -100,7 +100,8 @@ def train(cache_dir: Path, destination: Path, *, spec: CacheSpec, encoder: Froze
     runtime = runtime_info()
     signature = {"config": config.descriptor(), "architecture": architecture.descriptor(),
                  "cache_key": spec.key(), "class_ids": list(spec.class_ids), "encoder": cache["encoder"],
-                 "preprocessing": cache["preprocessing"], "runtime": runtime, "smoke": smoke}
+                 "preprocessing": cache["preprocessing"], "runtime": runtime, "smoke": smoke,
+                 "training_spec": spec.descriptor()}
     signature_sha = stable_hash(signature)
     previous = None if resume is None else safe_torch_load(resume)
     resume_sha = None if resume is None else file_sha256(resume)
