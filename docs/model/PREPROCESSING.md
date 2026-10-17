@@ -32,6 +32,8 @@ Cache completeness отдельно от dataset/model readiness. production_cac
 
 load_cache проверяет предоставленный immutable CacheSpec и все derived bytes; он может читать переносимый snapshot без media. Он не утверждает, что любые внешние файлы по старому пути всё ещё те же. Перед raw-source reuse проверку делает build_cache; real-training CLI должен подтвердить текущий data readiness/source context.
 
+Общий `ml.cli cache` пересчитывает data QA по actual originals/assets/canonical labels/context/taxonomies и сохраняет optional readiness_binding. Его четыре dataset/split/annotation/taxonomy fingerprints и полный report hash входят в cache config; tampering даже с пересчитанным artifact marker отвергается. QA dataset_revision отдельно включает весь annotation context, тогда как CacheSpec.dataset_sha256 означает immutable manifest content. Legacy API caches без binding допустимы для tiny synthetic smoke; future real training требует bound data_ready, explicit instruction flag, real pretrained cache и source_root для повторной проверки original SHA. Production_cache_ready по одному feature cache по-прежнему false.
+
 ## Наблюдённые проверки
 
 Targeted M1 —28 tests passed. До публикации тесты воспроизвели и закрыли JSON tuple/list inconsistency на reuse и старый cache при изменённом original. Invalidation каждого SHA/class order/partition/test provenance, corrupted/foreign cache, source mutation, annotation crop, header/object/numeric/mask errors и partial-write recovery покрыты.

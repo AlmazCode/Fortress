@@ -7,7 +7,7 @@ import pytest
 
 from contracts.python_ports import validate_contract
 from ml.data.deduplicate import stable_hash
-from ml.data.manifest import ProbeLimits, SourceRejected, build_manifest
+from ml.data.manifest import ProbeLimits, SourceRejected, build_manifest, probe_video
 from ml.data.pts_index import build_index, iter_indexed_frames, time_mapping, validate_index
 from ml.data.scenes import define_scenes, sample_scenes, temporal_windows, validate_scenes
 from ml.data.splits import assign_splits
@@ -34,6 +34,24 @@ def tiny_index(root, *, points=(4,5,7,8), rotation=0, name="tiny"):
     manifest=assign_splits(manifest,eligible_video_ids=[record["video_id"]],seed=17)["manifest"]
     return build_index(root,manifest["videos"][0],dataset_version=manifest["dataset_version"],
                        split_version=manifest["split_version"]),path
+
+
+def test_stored_video_name_keeps_index_hash_and_decode_limits(tmp_path):
+    index, path = tiny_index(tmp_path, rotation=90)
+    stored = path.with_suffix(".video")
+    path.rename(stored)
+    index["path"] = stored.name
+    index["index_sha256"] = stable_hash({k: v for k, v in index.items() if k != "index_sha256"})
+    decoded = list(iter_indexed_frames(tmp_path, index))
+    assert [row["source_pts"] for row, _ in decoded] == [row["source_pts"] for row in index["frames"]]
+    assert [int(frame.rotation) % 360 for _, frame in decoded] == [90] * len(decoded)
+    for decode in (lambda: probe_video(stored, limits=ProbeLimits(max_frames=1)),
+                   lambda: list(iter_indexed_frames(tmp_path, index, limits=ProbeLimits(max_frames=1)))):
+        with pytest.raises(SourceRejected, match="budget"):
+            decode()
+    stored.write_bytes(stored.read_bytes() + b"changed")
+    with pytest.raises(SourceRejected, match="hash"):
+        list(iter_indexed_frames(tmp_path, index))
 
 
 def test_vfr_nonzero_pts_roundtrip_and_actual_K_time_mapping(tmp_path):

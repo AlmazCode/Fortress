@@ -144,8 +144,10 @@ def _verify_sources(source_root: Path, windows: list[dict]) -> None:
 
 def build_cache(destination: Path, *, source_root: Path, spec: CacheSpec, windows: list[dict], frames,
                 encoder: torch.nn.Module, encoder_metadata: dict,
-                config: PreprocessConfig=PreprocessConfig(), max_bytes: int=2*1024**3) -> dict:
+                config: PreprocessConfig=PreprocessConfig(), max_bytes: int=2*1024**3,
+                readiness_binding: dict|None=None) -> dict:
     wanted=_validate_windows(windows,spec)
+    validate_data_binding(readiness_binding,spec)
     _verify_sources(source_root,windows)
     if config.fingerprint()!=spec.preprocessing_sha256 or stable_hash(encoder_metadata)!=spec.encoder_sha256:
         raise ValueError("preprocessing/encoder descriptor fingerprint mismatch")
@@ -201,7 +203,7 @@ def build_cache(destination: Path, *, source_root: Path, spec: CacheSpec, window
                 entry=register(window["window_id"]+".npz",payload.getvalue())
                 entries.append({"window_id":window["window_id"],"path":entry["path"],"size":size})
             document={"cache_version":spec.version,"spec":spec.descriptor(),"windows":windows,"entries":entries,
-                      "encoder":encoder_metadata,"preprocessing":config.descriptor()}
+                      "encoder":encoder_metadata,"preprocessing":config.descriptor(),"readiness_binding":readiness_binding}
             register("cache.json",__import__("json").dumps(document,ensure_ascii=False,indent=2,allow_nan=False).encode()+b"\n")
             _verify_sources(source_root,windows)
             return {"kind":"feature-cache-v1","spec":spec.descriptor(),"window_count":len(windows),"feature_dim":576,
@@ -258,6 +260,7 @@ def load_cache(directory: Path, spec: CacheSpec, *, max_bytes: int=2*1024**3) ->
             or PreprocessConfig(**document["preprocessing"]).fingerprint()!=spec.preprocessing_sha256):
         raise ValueError("cache descriptor fingerprints changed")
     _validate_windows(document["windows"],spec)
+    validate_data_binding(document.get("readiness_binding"),spec)
     if len(document["entries"])!=len(document["windows"]):
         raise ValueError("cache entry/window count mismatch")
     arrays=[]
@@ -267,4 +270,25 @@ def load_cache(directory: Path, spec: CacheSpec, *, max_bytes: int=2*1024**3) ->
             raise ValueError("cache entry identity mismatch")
         arrays.append(_numeric_npz(directory/entry["path"],entry["size"],len(spec.class_ids)))
     return {"spec":spec,"windows":document["windows"],"arrays":arrays,"encoder":document["encoder"],
-            "preprocessing":document["preprocessing"],"test_only":spec.test_only}
+            "preprocessing":document["preprocessing"],"test_only":spec.test_only,
+            "readiness_binding":document.get("readiness_binding")}
+
+
+def cache_configuration(classes, binding=None):
+    return {"version":"temporal-cache-v1","rate":2,"size":32,"stride":16,"class_ids":list(classes),
+            "readiness_binding_sha256":None if binding is None else stable_hash(binding)}
+
+
+def validate_data_binding(binding, spec):
+    if binding is None:return
+    from contracts.python_ports import validate_contract
+    report=binding["report"]
+    expected={key:getattr(spec,key) for key in ("dataset_sha256","split_sha256","annotation_sha256","taxonomy_sha256")}
+    if (binding["version"]!="training-data-binding-v1" or binding["inputs"]!=expected
+            or not isinstance(binding["qa_revision"],str) or re.fullmatch("[a-f0-9]{64}",binding["qa_revision"]) is None
+            or report["report_version"]!="data-readiness-v1" or report["qa"]["qa_version"]!="annotations-qa-v1"
+            or binding["qa_revision"]!=report["qa"]["dataset_revision"]
+            or report["contract"]["provenance"]["sha256"]!=spec.dataset_sha256
+            or stable_hash(cache_configuration(spec.class_ids,binding))!=spec.config_sha256):
+        raise ValueError("cache/readiness/QA input binding mismatch")
+    validate_contract("dataset_readiness",report["contract"])

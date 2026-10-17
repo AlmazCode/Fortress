@@ -11,7 +11,7 @@ import platform
 import torch
 import torchvision
 
-from ml.cache import CacheSpec, encoder_fingerprint, load_cache
+from ml.cache import CacheSpec, encoder_fingerprint, load_cache, _verify_sources
 from ml.data.annotation_tasks import read_json
 from ml.data.deduplicate import stable_hash
 from ml.data.extract_frames import artifact_transaction
@@ -72,7 +72,7 @@ def runtime_info():
             "device_count": torch.cuda.device_count() if torch.cuda.is_available() else 0}
 
 
-def _gate(spec, cache, config, steps, smoke, allow_real_training, readiness):
+def _gate(spec, cache, config, steps, smoke, allow_real_training, readiness, source_root):
     if spec.partition != "train":
         raise ValueError("only train partition may update weights")
     if type(steps) is not int or not 1 <= steps <= 1000000:
@@ -81,19 +81,28 @@ def _gate(spec, cache, config, steps, smoke, allow_real_training, readiness):
         if (not spec.test_only or config.device != "cpu" or steps > 4 or len(cache["arrays"]) > 4
                 or len(spec.class_ids) > 8 or any(len(w["samples"]) > 32 for w in cache["windows"])):
             raise ValueError("smoke requires tiny test-only CPU data, <=4 steps/windows, <=8 classes, T<=32")
-    elif (not allow_real_training or spec.test_only or not isinstance(readiness, dict)
-          or readiness.get("data_ready") is not True
-          or readiness.get("dataset_revision") != spec.dataset_sha256):
-        raise ValueError("future training requires explicit instruction, real reviewed readiness and matching revision")
+    else:
+        binding=cache["readiness_binding"]
+        report=None if binding is None else binding["report"]
+        if (not allow_real_training or spec.test_only or not isinstance(report,dict) or source_root is None
+                or readiness is not None and stable_hash(readiness)!=stable_hash(report)
+                or report.get("data_ready") is not True or report.get("validation_passed") is not True
+                or report["qa"].get("valid") is not True or report["qa"].get("temporal_annotations_ready") is not True
+                or report["qa"].get("real_data") is not True or report["qa"].get("rights_confirmed") is not True
+                or report["qa"].get("sources_verified") is not True or report["qa"].get("assets_verified") is not True
+                or report["contract"]["state"]!="ready"):
+            raise ValueError("future training requires explicit instruction, freshly bound real reviewed readiness and source_root")
+        _verify_sources(source_root,cache["windows"])
     if config.device == "cuda" and not torch.cuda.is_available():
         raise ValueError("requested CUDA runtime is unavailable")
 
 
 def train(cache_dir: Path, destination: Path, *, spec: CacheSpec, encoder: FrozenEncoder,
           config: TrainConfig = TrainConfig(), steps: int = 2, resume: Path | None = None,
-          smoke: bool = True, allow_real_training: bool = False, readiness: dict | None = None):
+          smoke: bool = True, allow_real_training: bool = False, readiness: dict | None = None,
+          source_root: Path | None = None):
     cache = load_cache(cache_dir, spec)
-    _gate(spec, cache, config, steps, smoke, allow_real_training, readiness)
+    _gate(spec, cache, config, steps, smoke, allow_real_training, readiness, source_root)
     if not isinstance(encoder, FrozenEncoder) or encoder.descriptor() != cache["encoder"]:
         raise ValueError("training requires the exact frozen MobileNet encoder of this cache")
     architecture = ModelConfig(len(spec.class_ids))
@@ -182,6 +191,8 @@ def train(cache_dir: Path, destination: Path, *, spec: CacheSpec, encoder: Froze
                     order = list(range(len(cache["arrays"])))
                 if encoder_fingerprint(model.encoder) != cache["encoder"]["state_sha256"]:
                     raise ValueError("frozen encoder mutated")
+                if not smoke:
+                    _verify_sources(source_root,cache["windows"])
                 checkpoint = {"checkpoint_version": "training-checkpoint-v1", "signature": signature,
                               "signature_sha256": signature_sha,
                               "model": {k: v.detach().cpu() for k, v in model.state_dict().items()},
@@ -217,6 +228,7 @@ def main(argv=None):
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--allow-real-training", action="store_true")
     parser.add_argument("--readiness", type=Path)
+    parser.add_argument("--source-root", type=Path, help="required for future real training source-hash verification")
     parser.add_argument("--encoder-weights", type=Path)
     parser.add_argument("--encoder-sha256")
     args = parser.parse_args(argv)
@@ -229,7 +241,7 @@ def main(argv=None):
         result = train(args.cache, args.output_dir, spec=spec, encoder=encoder, config=config,
                        steps=args.steps, resume=args.resume, smoke=args.smoke,
                        allow_real_training=args.allow_real_training,
-                       readiness=None if args.readiness is None else read_json(args.readiness))
+                       readiness=None if args.readiness is None else read_json(args.readiness),source_root=args.source_root)
         print(json.dumps(result["data"], indent=2))
         return 0
     except (ValueError, KeyError, TypeError, RuntimeError, OSError) as error:
