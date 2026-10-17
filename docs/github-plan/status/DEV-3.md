@@ -1,6 +1,6 @@
 # Журнал разработчика №3 — ML / Данные
 
-Рабочий процесс — Git/GitHub, без Aster. Проверка 17 октября 2026 года.
+Рабочий процесс — Git/GitHub, без Aster. Последняя проверка 18 октября 2026 года.
 Своя ветка: `codex/fortress-no3-ml`; пакет инструкций и база этой проверки:
 `c70a6d366c9b48b090368b92ca1bb60b692f6c26`.
 
@@ -16,8 +16,8 @@
 | M2 | review | codex/fortress-no3-ml | e30bfb6 + 6c9f4c27b3e5d90d37edb15054bc62d178ac9049 | 15 targeted passed; actual CPU resume exact; signature включает training CacheSpec |
 | M3 | review | codex/fortress-no3-ml | a23f946 + e7db22fe270215c1a0cb8404f7db4d384931edaf | Split manifest включён в package; сверены train source set/dev calibration IDs |
 | M4 | review | codex/fortress-no3-ml | 67ec1deb592fbfd8b80437ae5ffeda465aba6adf | 16 targeted passed; K/ML265 passed до дополнительной проверки; safe loader/atomic rollback/PTS inference |
-| M | working | codex/fortress-no3-ml | База M4 67ec1de | Общий ML CLI, tiny pipeline и инструкции другого ПК |
-| E | blocked | codex/fortress-no3-ml | — | Зависит от I |
+| M | review | codex/fortress-no3-ml | 85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d | K/ML269 passed; полный tiny CLI pipeline; TRAINING/CLI готовы; production false |
+| E | blocked | codex/fortress-no3-ml | — | I не принят/не опубликован: integration bfff454 всё ещё ждёт M/O; инструменты проверены в M, E после I |
 
 ## Подготовка до push K
 
@@ -207,3 +207,22 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - Intervals не пересекают сцены; missing sample/gap/uncalibrated threshold остаётся unknown. Высокий score не устанавливает visibility; default без независимого visibility context даёт coverage=none. Explicit partial/visible context допускает predicted positive; negative только visible+interval_complete. Это predictions, не gold. Actor IDs=null, participants known=false, findings пусты и принадлежат внешнему R. Unreviewed raw scenes не выдаются за установленную segmentation.
 - Missing/corrupt decode, изменённый original hash, invalid/deadline exceeded и injected inference OOM/RuntimeError дают InferenceFailed, не clean verdict. Full model budget на двух smoke classes фактически: encoder3756752 + GRU/head2564104 =6320856 tensor bytes; model.pt6385243 bytes (6.385243MB/6.089442MiB), training checkpoint с optimizer11543771 bytes. Production taxonomy/real accuracy/performance не измерены.
 - Первые targeted tests выявили только Windows fixture ошибки чтения UTF-8 и перезаписи mmap source; fixtures исправлены (clone перед намеренной порчей). Продуктовые packages не перезаписываются. `git diff --check` → exit0; shared lock/contracts/backend/чужой dataset не менялись. Следующий этап M, E всё ещё требует внешнего I.
+
+## M — общий CLI и передача на другой ПК
+
+- Candidate `85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d`, base `0d3e348`: ровно девять разрешённых M путей, +686/-14 строк. ml/cli.py собирает data/preflight/cache/train/resume/evaluate/thresholds/export/import/activate/rollback/infer/smoke. Новые CLI.md/TRAINING.md и PREPROCESSING.md описывают actual flags, raw PTS/annotation/COCO/QA, future train и честные hardware/data/release gaps.
+- `python -m pytest tests/ml/test_tiny_pipeline.py -q` → **3 passed in69.79s**, exit0. В subprocess реально выполнены общие CLI cache/train с train.example.yaml/resume/dev+final scoring/thresholds/evaluate/export/import/две activation/rollback/infer; production import случайного пакета отвергнут. Проверены --help всех13 команд, обязательный previous checkpoint у resume и immutable smoke reuse.
+- Финальный `python -m pytest tests/contracts/test_schemas.py tests/ml -q` → **269 passed in137.76s**, exit0, no skips. Это полный общий run на финальных исходниках после integration fixes. `git diff --check`/staged scope → exit0. Сравнение contracts/pyproject/uv.lock/shared plan/status с собственной K base не показывает изменений.
+- Standalone `python -m ml.cli smoke --output-dir <new-local-dir>` → exit0: три tiny32×24 generated FFV1/VFR/nonzeroPTS originals, actual grouped train/dev/final, task PNG/canonical labels, три raw-pixel MobileNet caches, AdamW step1+resume total2, dev calibration, independent_test score calculations, export/import и source-time inference. Искусственные labels/simulated reviewers не human gold; data_ready=false/trained=false/validated=false/production_ready=false, verdict_metrics=null/timeline coverage=none.
+- Local summary SHA `6ec6d86efe72322748563e604578c70a27341b992850dc698750b5f875f8640b`; smoke package SHA `b81ffe159a0516fbdebea0c0ff80245ffd115bff97bc7ab4d7fb22e4f2dc4351`; whole model SHA `6b89924cc8a3622d4d47d4f06763a5de3eeb2f200b737371f45cfcca60096c5f`. M-smoke-location.txt, actual outputs/helper logs/exit files сохранены вне Git. Whole FP32 model6385243 bytes и optimizer checkpoint11543771 bytes относятся только к C2 smoke variant.
+- Cache CLI заново вызывает actual data QA (все original/image hashes/полные canonical labels/scenes/обе taxonomies/evidence), сохраняет report+QA revision+четыре input fingerprints и связывает их с config SHA. Даже подмена data_ready с пересчитанными artifact file/metadata hashes отвергается binding check. Полная разметка валидируется до ordered class subset; random cache допускается только на synthetic active sources. Legacy unbound API cache остаётся допустимым для tiny smoke.
+- Integration выявила, что ранний future-training gate ожидал dataset_revision в другой структуре, чем D report. Теперь future real train требует freshly bound data_ready/valid/temporal/real/rights/assets/source report, явный allow-real-training, non-test pretrained cache и source_root с SHA до/после. Readiness report change invalidates config/resume. Положительная real-training ветка не запускалась; все проверки только tiny synthetic CPU.
+- Настоящий CLI import обнаружил duplicate expected_manifest_sha256 между source и staged-load; options разделены, перенос со trusted SHA теперь проходит тест. Help-тест приведён к обоим допустимым CLI return/SystemExit0. Других runtime/source изменений после финальных269 checks нет.
+- TRAINING.md содержит checked CPU locked setup/тесты/smoke и реализованные будущие команды full train/resume/dev/final/export/hash/import/atomic rollback. Текущий общий lock CPU-only; CUDA/другой ПК/положительная local pretrained ветка/между-build перенос не проверены. Production release/реальная цель>=0.80/latency/RAM/VRAM и normative applicability не выдумываются. Raw inference без независимой observability сохраняет unknown, не no_violation.
+
+## Итог проверки N1 и зависимость E
+
+- Последний `git fetch origin` → exit0; `origin/codex/integration` всё ещё `bfff45447f74a5263b1d728e05ebb41490d91b58`. DEV-1 содержит отказ **старому** D3 d0b9704, нового review54493fc не опубликовано. `git merge-base --is-ancestor 54493fcd10b1824356f82df3f6bbbfadc1ea5ffc origin/codex/integration` → exit1. Это отсутствие опубликованной приёмки исправления, а не повторно обнаруженная утечка в новом D3.
+- D1/D2 остаются accepted в ранее принятом software/draft объёме. D3 исправлен и вместе с D4/D5/D/M1–M4/M остаётся review; продолжение сделано по прямому поручению человека, acceptance не присвоен автором. Все проверенные commits публикуются normal push в свою ветку по ранее данному разрешению.
+- E требует I. В опубликованной integration I ещё ждёт M/O, поэтому E не объявляется выполненной. Файлы/команды/реальный CPU handoff подготовлены и проверены в M; после I требуется проверить сочетание с backend/rules и его фактический SHA. Без I нельзя заявлять application/HTTP/production integration. Чужие backend/infra/files, main и dataset другого чата не изменялись.
+- Shared checkout read-only проверен: main на исходном46b7bc9, существующие open/ и case docx сохранены. Aster/subagents/сообщения другим чатам/PR/deploy/full training/real-data evaluation не использовались. Shared manifest/AUDIT хэши собственного журнала должен штатно обновить N1 при интеграции; №3 их не редактирует.
