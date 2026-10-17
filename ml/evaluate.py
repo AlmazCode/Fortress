@@ -168,6 +168,7 @@ def evaluate(packet, thresholds):
     events = event_metrics(packet.get("truth_events", []), packet.get("predicted_events", []),
                            tolerance_sec=packet["event_protocol"]["tolerance_sec"])
     return {"version": "ml-evaluation-v1", "input_sha256": stable_hash(packet), "split": packet["split"],
+            "split_manifest": copy.deepcopy(packet["manifest"]),
             "manifest_sha256": packet["manifest_sha256"], "checkpoint_sha256": packet["checkpoint_sha256"],
             "dataset_sha256": packet["dataset_sha256"], "taxonomy_sha256": packet["taxonomy_sha256"],
             "class_ids": packet["class_ids"], "thresholds_sha256": stable_hash(thresholds),
@@ -208,6 +209,8 @@ def score_cache(directory, checkpoint_path, manifest, *, encoder_weights=None, e
     validate_splits(manifest)
     if stable_hash(manifest) != spec.dataset_sha256:
         raise ValueError("evaluation manifest differs from cache dataset revision")
+    if training_spec is not None:
+        validate_training_lineage(original, manifest)
     videos = {row["video_id"]: row for row in manifest["videos"]}
     for window in cache["windows"]:
         original = videos[window["video_id"]]
@@ -250,6 +253,15 @@ def score_cache(directory, checkpoint_path, manifest, *, encoder_weights=None, e
               "event_protocol": {"version": "event-boundary-v1", "tolerance_sec": .5}}
     validate_packet(packet)
     return packet
+
+
+def validate_training_lineage(spec, manifest):
+    validate_splits(manifest)
+    if (spec.partition != "train" or spec.dataset_sha256 != stable_hash(manifest)
+            or spec.split_sha256 != stable_hash(manifest["split_version"])
+            or spec.source_sha256 != stable_hash({r["video_id"]: r["sha256"] for r in manifest["videos"]
+                                                  if r["split"] == "train"})):
+        raise ValueError("training cache must cover the declared train sources of the immutable split manifest")
 
 
 def write_new_json(path, document):

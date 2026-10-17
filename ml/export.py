@@ -16,6 +16,7 @@ from ml.data.extract_frames import artifact_transaction
 from ml.data.taxonomy import class_ids, validate_taxonomy
 from ml.models import FrozenEncoder, ModelConfig, VideoActionModel
 from ml.models.encoder import file_sha256, safe_torch_load
+from ml.evaluate import validate_training_lineage
 from ml.preprocessing import PreprocessConfig
 from ml.thresholds import validate_thresholds
 
@@ -49,6 +50,7 @@ def _production_gate(spec, encoder, taxonomy, thresholds, metrics, approval, che
     expected = {"checkpoint_sha256": checkpoint_sha, "metrics_sha256": stable_hash(metrics),
                 "taxonomy_sha256": stable_hash(taxonomy), "dataset_sha256": spec.dataset_sha256}
     if (spec.test_only or encoder["test_only"] or encoder["weights"] != "IMAGENET1K_V1"
+            or any(r["provenance"]["kind"] != "original" for r in metrics["split_manifest"]["videos"] if r["split"] != "excluded")
             or taxonomy["status"] != "reviewed" or taxonomy["production_ready"] is not True
             or metrics["test_only"] or metrics["split"] != "independent_test"
             or any(v is None for v in thresholds["values"].values())
@@ -95,6 +97,12 @@ def export_package(checkpoint_path: Path, destination: Path, *, taxonomy: dict, 
             raise ValueError("export metrics/thresholds/training lineage mismatch")
     if thresholds["manifest_sha256"] != metrics["manifest_sha256"]:
         raise ValueError("calibration/evaluation split manifest changed")
+    split_manifest = metrics["split_manifest"]
+    validate_training_lineage(spec, split_manifest)
+    videos = {r["video_id"]: r for r in split_manifest["videos"]}
+    if (metrics["manifest_sha256"] != stable_hash(split_manifest) or not thresholds["dev_video_ids"]
+            or any(videos[k]["split"] != "dev_validation" for k in thresholds["dev_video_ids"])):
+        raise ValueError("threshold selection must reference actual dev-only sources")
     preprocessing = PreprocessConfig(**signature["preprocessing"])
     encoder_meta = signature["encoder"]
     encoder = FrozenEncoder(test_only=spec.test_only, seed=encoder_meta.get("seed", 42),
@@ -129,7 +137,7 @@ def export_package(checkpoint_path: Path, destination: Path, *, taxonomy: dict, 
                      "rules.json": ("rules", {"version": versions["rules"], "applicability_verified": False,
                                                "note": "External rules provenance/applicability belongs to R; version reference only."}),
                      "split.json": ("split", {"version": versions["split"], "sha256": spec.split_sha256,
-                                               "manifest_sha256": metrics["manifest_sha256"]}),
+                                               "manifest_sha256": metrics["manifest_sha256"], "manifest": split_manifest}),
                      "annotations.json": ("annotations", {"version": versions["annotations"],
                                                             "sha256": spec.annotation_sha256})}
         files = [{**register("model.pt"), "role": "checkpoint"}]
