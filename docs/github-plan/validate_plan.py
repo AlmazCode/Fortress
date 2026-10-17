@@ -134,7 +134,11 @@ def check(root: Path, refresh: bool = False) -> dict:
         expected = {t['id'] for t in tasks if t['owner'] == n}
         require(headings == expected, f'{filename}: task scope mismatch')
         status = (doc / f'status/DEV-{n}.md').read_text(encoding='utf-8')
-        require(set(re.findall(r'^\| ([A-Z]+[0-9]?) \|', status, re.M)) == expected, f'DEV-{n} journal task scope mismatch')
+        # Ownership is declared in the Task/State table. Review and dependency
+        # tables later in the journal may legitimately reference other roles.
+        table = re.search(r'^\| Task \| State \|[^\n]*\n((?:\|[^\n]*(?:\n|$))+)', status, re.M)
+        declared = [] if table is None else re.findall(r'^\| ([A-Z]+[0-9]?) \|', table.group(1), re.M)
+        require(set(declared) == expected and len(declared) == len(expected), f'DEV-{n} journal task scope mismatch')
         item = next((x for x in provenance['personalBriefs'] if x['developer'] == n), {})
         require(item.get('matchingTasks') == len(expected) and item.get('matchingCopies') == 2 and item.get('reviewInstruction') == 'automatic-all', f'Developer {n}: brief provenance incomplete')
 
