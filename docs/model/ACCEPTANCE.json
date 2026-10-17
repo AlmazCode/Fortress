@@ -1,0 +1,86 @@
+{
+  "report_version": "ml-handoff-preparation-v1",
+  "task": "E",
+  "state": "blocked",
+  "reason": "I has not been accepted/published; software handoff material is prepared, integration verification is outstanding.",
+  "observed_local_date": "2026-10-18",
+  "repository": "https://github.com/AlmazCode/Fortress",
+  "branch": "codex/fortress-no3-ml",
+  "verified_code_commit": "85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d",
+  "fixed_D3_commit": "54493fcd10b1824356f82df3f6bbbfadc1ea5ffc",
+  "dependency": {
+    "task": "I",
+    "accepted_commit": null,
+    "observed_integration_commit": "bfff45447f74a5263b1d728e05ebb41490d91b58",
+    "fixed_D3_integrated": false
+  },
+  "software_checks": {
+    "command": "python -m pytest tests/contracts/test_schemas.py tests/ml -q",
+    "exit_code": 0,
+    "passed": 269,
+    "skipped": 0,
+    "elapsed_seconds": 137.76,
+    "scope": "Local contract/data/ML software checks; tiny synthetic CPU, no real ML validation."
+  },
+  "tiny_pipeline": {
+    "command": "python -m ml.cli smoke --output-dir <new local directory>",
+    "exit_code": 0,
+    "source_kind": "synthetic",
+    "videos": 3,
+    "total_optimizer_steps": 2,
+    "resumed": true,
+    "calibration_partition": "dev_validation",
+    "evaluation_partition": "independent_test",
+    "summary_sha256": "6ec6d86efe72322748563e604578c70a27341b992850dc698750b5f875f8640b",
+    "package_sha256": "b81ffe159a0516fbdebea0c0ff80245ffd115bff97bc7ab4d7fb22e4f2dc4351",
+    "model_sha256": "6b89924cc8a3622d4d47d4f06763a5de3eeb2f200b737371f45cfcca60096c5f"
+  },
+  "event_protocol": {
+    "version": "event-boundary-v1",
+    "tolerance_sec": 0.5,
+    "matching": "maximum one-to-one within video/scene/class; both endpoints within tolerance"
+  },
+  "real_validation": {
+    "status": "not_evaluated",
+    "verdict_accuracy": null,
+    "balanced_accuracy": null,
+    "macro_f1": null,
+    "target_each": 0.8,
+    "event_precision": null,
+    "event_recall": null,
+    "event_f1": null,
+    "support_fp_fn_coverage_unknown": null
+  },
+  "smoke_budget": {
+    "classes": 2,
+    "encoder_tensor_bytes": 3756752,
+    "gru_head_tensor_bytes": 2564104,
+    "whole_model_tensor_bytes": 6320856,
+    "whole_model_file_bytes": 6385243,
+    "all_model_files_bytes": 6385243,
+    "training_checkpoint_bytes_with_optimizer": 11543771,
+    "MB": 1000000,
+    "MiB": 1048576,
+    "whole_model_limit_bytes": 12000000,
+    "all_models_limit_bytes": 35000000,
+    "production_taxonomy_budget_verified": false
+  },
+  "readiness": {
+    "software_candidate": true,
+    "data_ready_scope": "Only the provided synthetic fixture; other chat's evolving dataset has not been evaluated.",
+    "data_ready": false,
+    "trained": false,
+    "validated": false,
+    "production_ready": false,
+    "expected_backend_without_release": "503 model_not_ready",
+    "other_pc_cuda_verified": false,
+    "current_lock": "CPU torch/torchvision",
+    "runtime_downloads": false
+  },
+  "remaining": [
+    "N1 review/integration of corrected D3 and D4/D5/D/M candidates",
+    "accepted I SHA and final E application handoff verification",
+    "real reviewed data/rights/taxonomy/independent final evidence/local pretrained weights",
+    "separately instructed real training/evaluation/quality and production budget/performance checks"
+  ]
+}
