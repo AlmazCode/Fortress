@@ -10,6 +10,22 @@ Standalone `python -m ml.cli smoke --output-dir <new-directory>` → exit0: тр
 
 Общий набор также покрывает extraction/COCO roundtrip/annotation QA и regression D3 re-split: прежний independent_test не возвращается в train/dev, поздний выбор final отвергается, transitive source/near groups сохраняются. Исправленный D3 — **54493fcd10b1824356f82df3f6bbbfadc1ea5ffc**, вместо отклонённого d0b9704.
 
+## Повторный review D3 для №1
+
+После fetch ветки №1 `codex/integration` и `codex/fortress-backend` остаются на **bfff45447f74a5263b1d728e05ebb41490d91b58**. Последний опубликованный STATUS/DEV-1 проверяет старый **d0b9704b005e85675191baf0c0737b5d6da8cc49**; нового замечания к54493fc нет. Оба54493fc и итоговый M85e5b21 присутствуют в ветке №3 и отсутствуют в ancestry integration. Это кандидаты review, не accepted.
+
+Сопоставление замечаний с уже пройденными проверками в [test_splits.py](../../tests/ml/test_splits.py):
+
+| Сценарий | Поведение исправленного D3 | Регрессия |
+| --- | --- | --- |
+| Повторный split без повторного final flag, seed17 и99 | Previous final входит в reserved holdout; старые final IDs не возвращаются ни одним train/dev selector | `test_resplit_without_final_flag_preserves_holdout_for_every_selector` |
+| Связанные source/точные дубли/near candidates транзитивно | Вся компонента остаётся final после re-split с seed99; новая связь final↔train отвергается до output | `test_resplit_preserves_transitive_final_source_duplicate_and_candidate_groups` |
+| Повтор без near-candidate sidecar | Компонента сохранена в manifest.group_id и не распадается на partitions | `test_near_components_persist_when_resplit_caller_omits_candidate_sidecar` |
+| Другая final selection после назначения split | Новый final из ранее train/dev отвергается; повтор прежнего final idempotent | `test_final_selection_is_immutable_after_assignment_and_repeated_flags_are_idempotent` |
+| Реальный CLI, независимые и связанные источники | Seeds17/99 сохраняют final1/final3; training/threshold_calibration исключают все final IDs; rejected reselection не пишет output, originals/первый bundle неизменны | `test_real_cli_resplit_retains_final_and_rejects_reselection_without_output` |
+
+Эти API/CLI регрессии уже входят в зафиксированный общий run **269 passed**, exit0, на M85e5b21. При повторной передаче проверена неизменность splits.py/test_splits.py относительно54493fc и всех ML/K/test sources относительно85e5b21 через `git diff --exit-code` →0. Успешный набор повторно не запускался: новых исходников, контрактов и воспроизводимого дефекта №1 не появилось. Для review diff исправления: `git diff d0b9704 54493fc -- ml/data/splits.py tests/ml/test_splits.py`.
+
 ## Что передать другому ПК
 
 - Точный принятый code commit/общий lock/контракты, [CLI.md](CLI.md) и [TRAINING.md](TRAINING.md).
