@@ -17,7 +17,7 @@
 | M3 | review | codex/fortress-no3-ml | a23f946 + e7db22fe270215c1a0cb8404f7db4d384931edaf | Split manifest включён в package; сверены train source set/dev calibration IDs |
 | M4 | review | codex/fortress-no3-ml | 67ec1deb592fbfd8b80437ae5ffeda465aba6adf | 16 targeted passed; K/ML265 passed до дополнительной проверки; safe loader/atomic rollback/PTS inference |
 | M | review | codex/fortress-no3-ml | 85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d | K/ML269 passed; полный tiny CLI pipeline; TRAINING/CLI готовы; production false |
-| E | blocked | codex/fortress-no3-ml | — | I не принят/не опубликован: integration bfff454 всё ещё ждёт M/O; инструменты проверены в M, E после I |
+| E | blocked | codex/fortress-no3-ml | Подготовка 8d8a47669034f5ac4751a45e3531b91d651a998c | Протокол/card/handoff/report подготовлены; I не принят/не опубликован, финальная E после I |
 
 ## Подготовка до push K
 
@@ -226,3 +226,11 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - D1/D2 остаются accepted в ранее принятом software/draft объёме. D3 исправлен и вместе с D4/D5/D/M1–M4/M остаётся review; продолжение сделано по прямому поручению человека, acceptance не присвоен автором. Все проверенные commits публикуются normal push в свою ветку по ранее данному разрешению.
 - E требует I. В опубликованной integration I ещё ждёт M/O, поэтому E не объявляется выполненной. Файлы/команды/реальный CPU handoff подготовлены и проверены в M; после I требуется проверить сочетание с backend/rules и его фактический SHA. Без I нельзя заявлять application/HTTP/production integration. Чужие backend/infra/files, main и dataset другого чата не изменялись.
 - Shared checkout read-only проверен: main на исходном46b7bc9, существующие open/ и case docx сохранены. Aster/subagents/сообщения другим чатам/PR/deploy/full training/real-data evaluation не использовались. Shared manifest/AUDIT хэши собственного журнала должен штатно обновить N1 при интеграции; №3 их не редактирует.
+
+## Подготовка материалов E без заявления её завершения
+
+- Documentation candidate `8d8a47669034f5ac4751a45e3531b91d651a998c`: ровно четыре разрешённых E пути/200 строк — EVALUATION.md, MODEL_CARD.template.md, HANDOFF.md, ACCEPTANCE.json. Это независимая подготовка материалов; I по-прежнему отсутствует, финальная E blocked.
+- Протокол заранее фиксирует event-boundary-v1/tolerance0.5с, independent source/scene/group holdout и запрет настройки по final, реальные цели verdict accuracy/balanced accuracy/macro-F1>=0.80, support/FP/FN/coverage/unknown/absolute errors и event P/R/F1. Настоящие показатели остаются null/not evaluated, source/actor/observability gaps сохранены.
+- Шаблон card явно not trained/not validated, права/официальные IDs/local pretrained weights/другой ПК/real quality/нормативные материалы unknown. Доступный case не назван отсутствующим, evolving dataset другого чата не оценивался. Smoke C2 bytes отдельно от production-taxonomy budget.
+- Machine report state=blocked, dependency I accepted_commit=null; verified_code_commit85e5b21 и actual269 checks/exit0/137.76s, standalone smoke hashes/false readiness записаны. JSON parse/явные consistency assertions и существование связанных handoff файлов → exit0. `git diff --cached --check` → exit0. Код не менялся, общий269 run не повторялся ради documentation-only правок.
+- Следующее необходимое действие — N1 review/integration ветки, затем точный принятый I SHA и проверка E на собранном составе. Ни код №1, ни внешняя application integration вместо него не выполнялись.
