@@ -79,6 +79,13 @@ class PreflightTests(unittest.TestCase):
         self.assertFalse(report['readiness']['gpu_ready'])
         self.assertFalse(any(command[:2] == ['docker','run'] for command in fake.calls))
 
+    def test_compose_version_must_support_explicit_reset_overlay(self):
+        engine_command=('docker','info','--format','{"server_version":{{json .ServerVersion}},"os_type":{{json .OSType}},"runtimes":{{json .Runtimes}}}')
+        for version,expected in [('2.23.0',False),('2.24.4',True),('v2.39.0',True)]:
+            fake=SyntheticCommands({engine_command:json.dumps({'server_version':'fixture','os_type':'linux'}),('docker','compose','version','--short'):version})
+            with self.subTest(version=version):
+                self.assertEqual(PREFLIGHT.collect(ROOT,runner=fake)['readiness']['compose_ready'],expected)
+
     def test_optional_gpu_smoke_only_uses_local_image_without_network(self):
         engine_command = ('docker','info','--format','{"server_version":{{json .ServerVersion}},"os_type":{{json .OSType}},"runtimes":{{json .Runtimes}}}')
         outputs = {engine_command:json.dumps({'server_version':'fixture','os_type':'linux','runtimes':{}}),

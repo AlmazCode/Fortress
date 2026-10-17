@@ -1,0 +1,148 @@
+name: fortress
+services:
+  nginx:
+    build:
+      context: ..
+      dockerfile: infra/frontend.Dockerfile
+      target: production
+    ports:
+      - "${FORTRESS_BIND_IP:-127.0.0.1}:${FORTRESS_HTTPS_PORT:-8443}:443"
+    volumes:
+      - type: bind
+        source: ${FORTRESS_TLS_DIR:?Set private certificate directory}
+        target: /etc/nginx/tls
+        read_only: true
+    depends_on:
+      api: {condition: service_healthy}
+    networks: [edge]
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD-SHELL, 'nginx -t -q']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: &logging
+      driver: local
+      options: {max-size: 10m, max-file: "3"}
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+      target: production
+    environment:
+      FORTRESS_API_KEY: ${FORTRESS_API_KEY:?Set API key outside Git}
+      DATABASE_URL: ${DATABASE_URL:?Set private PostgreSQL DSN using postgres hostname}
+      REDIS_URL: redis://redis:6379/0
+      FORTRESS_RUNTIME_ROOT: /var/lib/fortress/media
+      FORTRESS_RELEASE_ROOT: /var/lib/fortress/models
+      FORTRESS_MAX_UNFINISHED_JOBS: "1"
+      FORTRESS_DEADLINE_SEC: "240"
+    volumes:
+      - media:/var/lib/fortress/media
+      - models:/var/lib/fortress/models:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    networks: [edge, backend]
+    sysctls: {net.ipv4.ip_forward: "0"}
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1
+    healthcheck:
+      test: [CMD, python, -c, "import socket; socket.create_connection(('127.0.0.1',8000),3).close()"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+    logging: *logging
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/worker.Dockerfile
+      target: production
+    command: [celery, -A, "backend.app.celery_app:celery_app", worker, --concurrency=1, --prefetch-multiplier=1, --pool=solo, "--hostname=fortress-worker@%h", --loglevel=WARNING]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set private PostgreSQL DSN}
+      REDIS_URL: redis://redis:6379/0
+      FORTRESS_RUNTIME_ROOT: /var/lib/fortress/media
+      FORTRESS_RELEASE_ROOT: /var/lib/fortress/models
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      OPENBLAS_NUM_THREADS: "2"
+      TORCH_HOME: /var/lib/fortress/models/cache
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      PIP_NO_INDEX: "1"
+    volumes:
+      - media:/var/lib/fortress/media
+      - models:/var/lib/fortress/models:ro
+    networks: [backend]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp:size=128m]
+    restart: unless-stopped
+    mem_limit: 3g
+    cpus: 2
+    healthcheck:
+      test: [CMD-SHELL, 'celery -A backend.app.celery_app:celery_app inspect ping --destination "fortress-worker@$$HOSTNAME" --timeout 3']
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 30s
+    logging: *logging
+
+  postgres:
+    image: postgres:17-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    environment:
+      POSTGRES_DB: fortress
+      POSTGRES_USER: fortress
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set private database password}
+    volumes: [postgres:/var/lib/postgresql/data]
+    networks: [backend]
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: 1
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U fortress -d fortress']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *logging
+
+  redis:
+    image: redis:7.4-bookworm@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
+    command: [redis-server, /usr/local/etc/redis/redis.conf]
+    volumes:
+      - redis:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks: [backend]
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *logging
+
+networks:
+  edge: {driver: bridge}
+  backend: {driver: bridge, internal: true}
+volumes:
+  media:
+  models:
+  postgres:
+  redis:

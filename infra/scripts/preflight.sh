@@ -215,7 +215,9 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
                 checks['gpu_container'] = probe(['docker','run','--rm','--pull','never','--network','none','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges','--gpus','all','--entrypoint','nvidia-smi',image['stdout']])
     engine = parsed_json(checks['docker_engine'])
     docker_ready = isinstance(engine, dict) and engine.get('os_type') == 'linux' and bool(engine.get('server_version'))
-    compose_ready = docker_ready and checks['compose']['status'] == 'ok' and bool(re.match(r'^v?2\.', checks['compose']['stdout']))
+    compose_version = re.match(r'^v?(\d+)\.(\d+)\.(\d+)', checks['compose']['stdout'])
+    compose_ready = (docker_ready and checks['compose']['status'] == 'ok' and compose_version is not None
+                     and tuple(map(int,compose_version.groups())) >= (2,24,4))
     ffmpeg_ready = checks['ffmpeg']['status'] == 'ok' and checks['ffprobe']['status'] == 'ok'
     gpu_ready = bool(gpu_rows) and docker_ready and checks['gpu_container']['status'] == 'ok'
     report['readiness'].update({'os_ready':linux_runtime, 'python311_ready':python_ready, 'docker_ready':docker_ready,
@@ -225,7 +227,7 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
     requirements = {'os_ready':'Run the Linux preflight inside the intended Ubuntu/WSL2 environment',
                     'python311_ready':'A working Python 3.11 interpreter was not verified',
                     'docker_ready':'A working Linux Docker daemon was not verified',
-                    'compose_ready':'Docker Compose v2 with working Docker daemon was not verified',
+                    'compose_ready':'Docker Compose >=2.24.4 with working Docker daemon was not verified',
                     'ffmpeg_ready':'Working FFmpeg and ffprobe were not verified',
                     'gpu_ready':'NVIDIA container runtime was not verified with an actual local container'}
     report['blockers'].extend(message for flag, message in requirements.items() if not report['readiness'][flag])
@@ -245,6 +247,7 @@ def main(argv=None):
     parser.add_argument('--wan-ip')
     parser.add_argument('--public-ip')
     parser.add_argument('--network-only', action='store_true')
+    parser.add_argument('--require-tls', action='store_true', help='Exit 2 unless a trusted current-host TLS probe actually succeeds')
     parser.add_argument('--container-smoke', action='store_true')
     parser.add_argument('--gpu-image')
     args = parser.parse_args(argv)
@@ -259,7 +262,9 @@ def main(argv=None):
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(text, encoding='utf-8')
     sys.stdout.write(text)
-    return 3 if report['report_status'] == 'repository_mismatch' else 2 if args.strict and not report['readiness'].get('service_ready', False) else 0
+    return (3 if report['report_status'] == 'repository_mismatch'
+            else 2 if args.require_tls and report['network']['tls_probe']['status'] != 'ok'
+            else 2 if args.strict and not report['readiness'].get('service_ready', False) else 0)
 
 
 if __name__ == '__main__':

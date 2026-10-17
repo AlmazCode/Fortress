@@ -1,0 +1,23 @@
+# Explicit infra-only harness. Not the real API, model or persistence acceptance.
+# Requires Compose >=2.24.4 for !reset. Never use this overlay for production.
+services:
+  nginx:
+    build: {target: harness}
+  api:
+    build: {target: harness}
+    environment:
+      FORTRESS_INFRA_SMOKE: "1"
+  worker:
+    build: {target: harness}
+    command: [python, /opt/fortress-smoke.py, worker]
+    environment:
+      FORTRESS_INFRA_SMOKE: "1"
+    deploy:
+      resources:
+        reservations:
+          devices: !reset []
+    healthcheck:
+      test: [CMD, python, /opt/fortress-smoke.py, probe-worker]
+      interval: 30s
+      timeout: 10s
+      retries: 3

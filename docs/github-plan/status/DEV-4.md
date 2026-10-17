@@ -9,8 +9,8 @@ Git/GitHub, без Aster. Своя ветка: `codex/dev4-rules-infra`. Баз�
 | R2 | review | codex/dev4-rules-infra | См. Git-историю | Память whole-video, late events, scene/job isolation проверены synthetic observations |
 | R3 | review | codex/dev4-rules-infra | См. Git-историю | 5 технических шаблонов проверены; все production cases честно unknown/unsupported |
 | R | review | codex/dev4-rules-infra | См. Git-историю | Код R1–R3 собран; нормативная/ML приёмка не пройдена |
-| O2 | working | codex/dev4-rules-infra | — | K локально проверен; Docker runtime отсутствует, готовится config/harness |
-| O3 | blocked | codex/dev4-rules-infra | — | Требует O1/O2 и разрешённого внешнего hostname/TLS/маршрута |
+| O2 | blocked | codex/dev4-rules-infra | См. Git-историю | Config/Dockerfiles/static tests готовы; реальный Compose/build/offline/volumes not_run без Docker; CPU lock не подтверждает CUDA |
+| O3 | blocked | codex/dev4-rules-infra | См. Git-историю | Nginx/scripts/local synthetic harness проверены; нет trusted внешнего hostname/TLS/маршрута |
 | O | blocked | codex/dev4-rules-infra | — | Требует O3 |
 | B | blocked | codex/dev4-rules-infra | — | Требует интеграции I и реальных сервисов |
 
@@ -39,3 +39,17 @@ K `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f` интегрирован локал
 Session memory хранит историю ролика, дедуплицирует overlapping observations, сортирует поздние события той же сцены, разделяет scenes/jobs и не превращает score в actor ID. Absence требует явных достаточных metadata; источник и exceptions проверяются отдельно. Source frames создаёт pipeline, не rule pack.
 
 Далее: O2 config + synthetic harness и O3 scripts. Docker/GPU runtime, volumes restart, worker egress и trusted внешний HTTPS остаются not_run/blocked до реальной среды и маршрута. Главный подтверждает интеграцию; запись не является independent/human approval.
+
+## O2 / O3: подготовлено и проверено
+
+Созданы Compose nginx/api/worker/redis/postgres, persistent named volumes, отдельная internal backend network, GPU reservation только worker, limits/concurrency/prefetch/threads. DB/Redis не имеют published ports; Nginx по умолчанию только 127.0.0.1:8443. Это static topology, реальная изоляция не доказана без запуска.
+
+Образы закреплены реальными index digests из официального Docker Hub tag API; uv bootstrap — версия/hash Linux x86_64 wheel из PyPI. Python graph — исходный K lock, frontend — отдельный npm lock №2. K содержит CPU Torch wheels, поэтому production CUDA compatibility остаётся отдельным blocker до согласованного исправления №1/№3. Runtime не устанавливает пакеты/веса.
+
+Для O3 подготовлены Nginx TLS proxy, bounded upload/timeouts, защищённые API/media proxy без direct media alias/access log; TLS/смoke scripts и отдельный explicit infra-only harness. Harness не импортирует модель/приложение, принимает только tiny synthetic marker и не выдаёт ML verdict. Local loopback HTTP tests реально проверяют 401 → upload 202 → synthetic status, wrong key, over-limit/неподдержанное тело, bound 128 records и явный запуск. Это не внешний HTTPS, Nginx/container или реальный API.
+
+После последних изменений: `python -m pytest tests/performance tests/rules -q` в Python 3.11.17 — exit 0, **47 passed, 32 subtests passed**. Отдельно ранее 55 tests неизменённого K — exit 0. `bash -n` для shell scripts — exit 0; реальный tls-check без hostname — ожидаемый exit 2. Статические Compose тесты не объявляются `docker compose config`.
+
+Оставшиеся обязательные проверки: Docker Compose config/build/start; настоящие GPU/CUDA/PyTorch checks; worker DB/Redis connectivity + egress; persistent volumes restart; доверенный внешний TLS upload/status; настоящий API/media путь после I; B fault/offline/capacity/deadline/benchmark после I. Сейчас они **not_run/blocked**, итог всего направления не объявлен готовым. Команды/ограничения/первичные источники — SETUP.md, NETWORK.md, PREFLIGHT.md; нормативные пробелы — SOURCES.md/CASE_SUPPORT.md.
+
+Начатый по ошибочно указанному номеру frontend сохранён в отдельном dev2 worktree без дальнейших правок и не включён в результаты №4.
