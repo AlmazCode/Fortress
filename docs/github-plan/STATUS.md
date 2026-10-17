@@ -1,6 +1,6 @@
 # Сводка проекта — ведёт только главный
 
-Интеграционная ветка: `codex/integration`. Последние проверенные интеграции: исправление A `c46a2c0`, F merge `c6d15d5`, D1/D2, D3–D/M1–M3 до merge `30c9df6`, M4/M с исправлением `c68ae81` и отчётом `21de016` включены merge `894e869`; код инфраструктуры №4 `1137423` + отчёт `8aee9d1` включены merge `3e19b04`, но O2/O3/O остаются blocked по runtime/HTTPS (K, все A1–A5 и F1–F4 входят по ancestry). Общая main не изменяется. Приёмка ниже — фактическая проверка главным №1, не независимая человеческая приёмка. Приёмка этапов относится только к указанному объёму; legal/ML/GPU/external HTTPS gates описаны отдельно ниже.
+Интеграционная ветка: `codex/integration`. Последние проверенные интеграции: исправление A `c46a2c0`, F merge `c6d15d5`, D1/D2, D3–D/M1–M3 до merge `30c9df6`, M4/M с исправлением `c68ae81` и отчётом `21de016` включены merge `894e869`; код инфраструктуры №4 `1137423` + отчёт `8aee9d1` включены merge `3e19b04`, TLS diagnostic fix `d5eb6ef` + отчёт `1a7cbd9` включены merge `6d45879`; O2/O3/O остаются blocked по runtime/HTTPS (K, все A1–A5 и F1–F4 входят по ancestry). Общая main не изменяется. Приёмка ниже — фактическая проверка главным №1, не независимая человеческая приёмка. Приёмка этапов относится только к указанному объёму; legal/ML/GPU/external HTTPS gates описаны отдельно ниже.
 
 Принятые commits: K — `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f`; A1 — `a84cce5e19c8b5a96286473aa9283c2c6b3a1194`. Команды, покрытие и ограничения — [журнал №1](status/DEV-1.md).
 
@@ -44,6 +44,16 @@
 ## Актуальное review 18 октября 2026: новые SHA №3/№4
 
 Результаты ниже заменяют старые возвраты D3/M4 .video/COPY contracts. История дальше относится к прежним SHA. Проверки выполнены главным в собственном checkout; это не человеческая/ML/production приёмка.
+
+### №4: новый TLS diagnostic fix принят, runtime не закрыт
+
+Fresh fetch: code **d5eb6eff26ffd8039939270b99c8ec6dec12a7e1**, report/head **1a7cbd985c631a9d491bde64a9307393f683b2e5**; включены merge **6d45879ffb1826ada886429ba9cb9caf8ce2eb3d** после проверки. `preflight --network-only`/`tls-check.sh` теперь прекращает работу после repository guard и network/TLS probes, не запускает OS/WSL/Docker/GPU inventory и не смешивает её blockers с TLS. Full preflight, строгая проверка chain/hostname и `external_access_verified=false` сохранены. Дельта6 путей относится только к tooling/tests/operations/DEV-4; backend/ML/contracts/locks неизменны.
+
+Главный: `FORTRESS_TEST_OPENSSL=/usr/bin/openssl .venv/bin/python -m pytest tests/performance/test_preflight_report.py tests/performance/test_https.py tests/performance/test_network_smoke.py -q --tb=short` → **exit0, 44 passed, 1 skipped, 7 subtests passed, 12.15s**. Skip — нет PowerShell7 на Linux. Отдельный настоящий CLI с временным loopback TLS: нет URL→exit2/not_run; process-local trusted CA→exit0/ok; untrusted chain и wrong hostname→exit2/failed. Все reports содержат только network blockers и не заявляют external access. Проверены14 Bash blocks RELEASE.md (`bash -n`), JSON, реальные OpenSSL public-key/SHA pipelines: одинаковая пара совпадает, другой ключ отличается; secrets/CA не устанавливались и не публиковались.
+
+Docker на Linux главного по-прежнему **exit1 permission denied**. Теперь read-only уточнено: default context→unix:///var/run/docker.sock, socket `root:docker`/0660, текущий процесс не состоит в `docker`. Это отличается от отсутствующего engine pipe на Windows №4. Permissions/groups/системные настройки не менялись. Внешний hostname/route/trusted TLS и внешний observer не предоставлены, поэтому внешняя certificate failure не утверждается.
+
+**O2/O3/O остаются blocked**: до I нужны настоящий отдельный synthetic Compose harness build/start, DB/Redis при запрещённом worker egress, persistent volumes/restart, target GPU/CUDA evidence и trusted HTTPS/upload/status извне. Build/start собранного приложения и его HTTP/browser повтор относятся к I/B после принятия prerequisites. Новый фикс улучшает диагностику; Docker runtime и внешний доступ им не подтверждены. M4/M приняты, I всё ещё ждёт O.
 
 ### №3: M4/M приняты после исправления штатного .video
 
