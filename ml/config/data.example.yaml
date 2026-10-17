@@ -1,0 +1,35 @@
+# Local paths are configurable. Originals remain read-only; output bundles stay outside Git.
+# Example: python -m ml.data.manifest --config local-data.yaml --output new-import.json
+# Then: python -m ml.data.splits --input new-import.json --seed 17 --output new-split.json
+# Empty sources produces data_not_ready and manifest=null, never a real empty K dataset.
+dataset_version: local-draft-v1
+source_root: ./local-data  # must be an existing local directory
+sources: []
+# Populate only with actual sources and confirmed provenance:
+# - path: videos/example.mp4
+#   source_id: actual-original-recording-id
+#   group_id: actual-source-session-group
+#   kind: original             # synthetic is reserved for isolated code fixtures
+#   rights: unknown            # confirmed only after explicit human evidence
+#   viewpoint: null            # do not infer independence from the file name
+probe_limits:
+  max_sources: 500
+  max_source_bytes: 2147483648
+  max_frames: 200000
+  max_frame_pixels: 16777216
+  max_decoded_pixels: 4000000000
+  max_decode_seconds: 120
+# ZIP API: extract_zip(source, NEW_destination, limits=ArchiveLimits(...)).
+# No archive scripts execute. Reject traversal/links/collisions/byte-count/ratio limits.
+# Near config: dhash64-first-8-at-1sec-v1, max_hamming=4, min_samples=3,
+# min_duration_ratio=0.95, max_pairs=200000. Candidates require source-pixel review;
+# even unconfirmed edges are conservatively held together for partitioning.
+# Explicit --final-video-id reserves the WHOLE group. No automatic "independent" claim.
+# Re-split retains every existing independent_test group even when the flag is omitted
+# or the seed changes. Final selection is immutable after any train/dev/final assignment;
+# selecting another final is rejected before output. A holdout migration requires a
+# separate reviewed dataset/split change; previously used train/dev cannot become
+# "independent" by rerunning this command. Transitive groups persist in manifest.group_id.
+# No 30/10 assumption; no final/jury data in training or threshold calibration.
+# Decode API/rotation reference: https://pyav.basswood.io/docs/stable/api/video.html
+# The locked PyAV 17.1.0 implementation is checked by real tiny decode tests.

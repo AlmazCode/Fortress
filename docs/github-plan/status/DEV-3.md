@@ -6,9 +6,9 @@
 
 | Task | State | Branch | Commit / PR | Проверки / блокер |
 | --- | --- | --- | --- | --- |
-| D1 | review | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | 9 targeted tests + реальный inventory/CPU CLI passed; ожидает проверки главного |
-| D2 | review | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | 17 tests + обе taxonomy CLI passed; ожидает проверки главным |
-| D3 | ready | codex/fortress-no3-ml | База K 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | K получен, интегрирован и проверен |
+| D1 | accepted | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | Принят главным, merge 8dd2da1; software D1, training gate закрыт |
+| D2 | accepted | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | Принят главным как draft, merge 47787cb; final taxonomy/human review не заявлены |
+| D3 | review | codex/fortress-no3-ml | d0b9704b005e85675191baf0c0737b5d6da8cc49 | 48 targeted D3 tests; вместе K+D1+D2+D3 129 passed; manifest/split CLI passed |
 | D4 | blocked | codex/fortress-no3-ml | — | Зависит от D3 |
 | D5 | blocked | codex/fortress-no3-ml | — | Зависит от D2/D4 |
 | D | blocked | codex/fortress-no3-ml | — | Зависит от D1/D5 |
@@ -77,3 +77,28 @@ Target Python/PyTorch/Torchvision/CUDA, 576 feature shape, preprocessing, annota
 После fetch подтверждена интеграционная ветка `codex/integration` на `c22a4a6`: STATUS.md принимает K `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f`, но D1 ещё review. `git diff --stat origin/codex/integration -- contracts pyproject.toml uv.lock` пуст: используемый K/lock не изменён.
 
 Человек явно разрешил обычный push проверенных commits №3 в codex/fortress-no3-ml; разрешение распространяется на следующие проверенные результаты №3. D1 и журнал уже опубликованы. D2 остаётся review до проверки главным. Официальная taxonomy, человеческая разметка, права и training readiness не подтверждены; обучение и реальная ML-оценка не выполнялись. Следующая независимая задача — D3; D4 ждёт принятого D3.
+
+## D3 — готовый кандидат
+
+- Base: `c4857881d6a7e44af9f643b2ea2dc4713241abbc`; candidate: `d0b9704b005e85675191baf0c0737b5d6da8cc49`. Diff — add только десяти разрешённых файлов D3, 1068 строк; contracts/locks и исходный датасет не изменялись.
+- `.venv/Scripts/python.exe -m pytest tests/contracts/test_schemas.py tests/ml -q` — exit 0, **129 passed**, no skips (K 55, D1 9, D2 17, D3 48). Проверялся неизменённый код кандидата до commit.
+- Первый targeted D3 run: 43 passed / 2 failed — выявлены implicit directory case collision и необработанный zlib error. Исправлены до итоговой проверки: collision отвергается до extraction, повреждённый поток откатывает private staging. Повторный промежуточный run 45 passed; затем добавлены реальные rotation/reflection и pre-allocation entry-limit проверки, вошедшие в финальные 129.
+- `python -m ml.data.manifest --help` и `python -m ml.data.splits --help` через собственный Python3.11 — оба exit 0.
+- Настоящий отдельный CLI smoke вне Git: сгенерированы четыре tiny synthetic FFV1/matroska видео 32×24 с исходными PTS; `python -m ml.data.manifest --config <local-config> --output <new-import.json>` — exit 0, videos=4, imported_unassigned, training_ready=false. `python -m ml.data.splits --input <import.json> --output <new-split.json> --seed 17 --final-video-id <explicit-synthetic-id>` — exit 0, train=2/dev=1/final=1/excluded=0, training_ready=false. Полные аргументы и отчёты сохранены в локальном checkpoint, не в Git.
+- SHA-256 import report: `753d007e902a0564aa8722a9e5b27c4e187516dbdc06e8496a05a7192322a5a7`; split report: `6110fe44e1c5af6e13a8fa5f57efc3303fdaf1211884cb85cc9aec6a7f106a88`. Это проверка кода, не фактический split исходных видео и не ML-оценка.
+- `git diff --cached --name-status` — ровно область D3; `git diff --cached --check` — exit 0.
+
+Покрытие acceptance D3:
+1. ZIP rejects traversal/absolute/Windows drives/UNC/mixed separators, links/special files, reserved names, explicit и implicit case/Unicode collisions, file-directory collisions, entry/compressed/uncompressed/ratio limits. Central-directory count проверяется до allocation ZipFile; ZIP64/split ZIP не поддерживаются и отвергаются. Реальный bad deflate и скрипт проверены: originals не меняются, script не выполняется, частичный staging удаляется только внутри проверенного output parent, destination не перезаписывается.
+2. Read-only full decode и SHA-256, original/synthetic provenance и source/video/group/scene IDs; относительные local-only paths. Карантин с причиной/доступностью/правами в audit sidecar, поскольку K запрещает дополнительные поля manifest. Missing identities явно unverified/excluded. Corrupt/budget/unsupported sources не попадают в manifest; пустой набор даёт manifest=null/data_not_ready.
+3. Exact SHA clusters; near candidates через versioned early dHash sequence с config/hash/threshold/distances и ограничением пар. Кандидаты требуют source-pixel review и могут пропускать edits/shifts; это ограничение записано, originals не удаляются. Static scene similarity не объявляется доказанной идентичностью.
+4. Transitive source/group/canonical/scene/SHA/near-candidate components делятся целиком. Даже excluded member исключает всю связанную группу. Seed+normalized manifest/config дают воспроизводимую split_version; explicit final защищён от training и threshold_calibration selectors. Не заявлена проверенная независимость ракурса.
+5. Только tiny synthetic; нет 30/10, выдуманного минимального объёма или готового real dataset. Нет прав/групп — неeligible/excluded; нет источников — data_not_ready. Training_ready всегда false до следующих annotation/readiness gates.
+
+Ограничения: поддержаны локальные MP4/MOV/M4V/MKV/WebM/AVI; неподдержанные контейнеры, changing geometry и отражение/scale/perspective display transform карантинируются. Loop budgets native decoder не равны OS process isolation; это явно указано в audit/API. Сцены пока unsegmented, D4 должен проверить реальные границы. Настоящий dataset другого чата не извлекался/не делился/не размечался.
+
+## Проверка интеграции и следующий gate
+
+После нового fetch `origin/codex/integration` = `2ba4272e9504e7b15c76cecc04f7ed6fa5d98788`. Главный принял software D1 и включил точный `536fe7a` merge `8dd2da1`; ancestry check exit 0, STATUS.md и журнал №1 это фиксируют. Собственная строка D1 обновлена по фактической приёмке, не по авторской самооценке. K/pyproject/uv.lock всё ещё без изменений относительно этой integration. D2 и D3 — опубликованные кандидаты review; D4 не начинается до проверки и интеграции D3 по AGENTS.md/WORKFLOW.md. Следующее действие главного — review/integrate D2/D3, затем №3 получает точный принятый D3 SHA и выполняет D4.
+
+Последующий fetch: integration `c00516e` принимает D2 `b4961272723cefec463d45ccb49d041afd52150b` как draft (merge `47787cb`); ancestry check exit 0. Строка D2 синхронизирована с приёмкой главным. D3 и журнал опубликованы до `ad39b03f0ba751137f441a19e6644ca0da0c2e50`, remote head подтверждён через ls-remote, рабочее дерево чистое. Старое упоминание c485788 в чужой сводке отражает её время проверки, а не отсутствие опубликованного D3.
