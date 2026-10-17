@@ -7,7 +7,7 @@
 | Task | State | Branch | Commit / PR | Проверки / блокер |
 | --- | --- | --- | --- | --- |
 | D1 | accepted | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | Принят главным, merge 8dd2da1; software D1, training gate закрыт |
-| D2 | review | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | 17 tests + обе taxonomy CLI passed; ожидает проверки главным |
+| D2 | accepted | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | Принят главным как draft, merge 47787cb; final taxonomy/human review не заявлены |
 | D3 | review | codex/fortress-no3-ml | d0b9704b005e85675191baf0c0737b5d6da8cc49 | 48 targeted D3 tests; вместе K+D1+D2+D3 129 passed; manifest/split CLI passed |
 | D4 | blocked | codex/fortress-no3-ml | — | Зависит от D3 |
 | D5 | blocked | codex/fortress-no3-ml | — | Зависит от D2/D4 |
@@ -100,3 +100,5 @@ Target Python/PyTorch/Torchvision/CUDA, 576 feature shape, preprocessing, annota
 ## Проверка интеграции и следующий gate
 
 После нового fetch `origin/codex/integration` = `2ba4272e9504e7b15c76cecc04f7ed6fa5d98788`. Главный принял software D1 и включил точный `536fe7a` merge `8dd2da1`; ancestry check exit 0, STATUS.md и журнал №1 это фиксируют. Собственная строка D1 обновлена по фактической приёмке, не по авторской самооценке. K/pyproject/uv.lock всё ещё без изменений относительно этой integration. D2 и D3 — опубликованные кандидаты review; D4 не начинается до проверки и интеграции D3 по AGENTS.md/WORKFLOW.md. Следующее действие главного — review/integrate D2/D3, затем №3 получает точный принятый D3 SHA и выполняет D4.
+
+Последующий fetch: integration `c00516e` принимает D2 `b4961272723cefec463d45ccb49d041afd52150b` как draft (merge `47787cb`); ancestry check exit 0. Строка D2 синхронизирована с приёмкой главным. D3 и журнал опубликованы до `ad39b03f0ba751137f441a19e6644ca0da0c2e50`, remote head подтверждён через ls-remote, рабочее дерево чистое. Старое упоминание c485788 в чужой сводке отражает её время проверки, а не отсутствие опубликованного D3.
