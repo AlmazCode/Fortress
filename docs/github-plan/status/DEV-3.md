@@ -13,9 +13,9 @@
 | D5 | review | codex/fortress-no3-ml | 4ad53e30fe844fba794368e15fa53b91588e007f | 40 targeted tests; K/ML 190 passed; task CLI + JSONL/CSV/COCO/QA smoke passed |
 | D | review | codex/fortress-no3-ml | 97bb8cdc6f507990edd5fbd469708a3f4aeb806d | 196 tests passed; 15 data CLI --help и реальный pipeline; data/training false |
 | M1 | review | codex/fortress-no3-ml | 145e33e3b80f0001b4eb0eb695ee7b3916c00ce5 | 28 targeted passed; real CPU MobileNet [32,576] cache smoke passed; test-only |
-| M2 | review | codex/fortress-no3-ml | e30bfb642df2a3b86ea0d0da42652623b1492444 | 15 targeted passed; actual CPU optimizer/resume exact; production false |
-| M3 | working | codex/fortress-no3-ml | База M2 e30bfb6 | Evaluator/dev-only thresholds/immutable export; только synthetic CPU |
-| M4 | blocked | codex/fortress-no3-ml | — | Зависит от M3 |
+| M2 | review | codex/fortress-no3-ml | e30bfb6 + 6c9f4c27b3e5d90d37edb15054bc62d178ac9049 | 15 targeted passed; actual CPU resume exact; signature включает training CacheSpec |
+| M3 | review | codex/fortress-no3-ml | a23f94648bf6a36b375d52babf19cbb31eaa69bf | K/ML250 passed; targeted11 passed; dev calibration/evaluate/export CLI exit0; test-only |
+| M4 | working | codex/fortress-no3-ml | База M3 a23f946 | Strict loader/atomic switch/PTS timeline; production not ready |
 | M | blocked | codex/fortress-no3-ml | — | Зависит от M4 |
 | E | blocked | codex/fortress-no3-ml | — | Зависит от I |
 
@@ -184,3 +184,14 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - Короткий реальный CLI train/resume запущен тестом, exit0. Future full-training branch закрыт без explicit allow-real-training, real non-test cache и matching data_ready revision; CUDA/real training не выполнялись. `git diff --check` → exit0, staged scope проверен; lock/contracts/чужой dataset не менялись.
 
 Следующий этап M3 — вычисления метрик, dev-only calibration и полный измеряемый export; отсутствие настоящего trained release сохраняет model_not_ready.
+
+## M3 — evaluation, dev-only thresholds, измеряемый export
+
+- M2 follow-up `6c9f4c27b3e5d90d37edb15054bc62d178ac9049` добавляет полную training_spec в signature: одного cache key недостаточно для сверки общей lineage с отдельным dev/final cache. После изменения M2 targeted → **15 passed in14.44s**, exit0. Старые smoke checkpoints до этого поля нужно пересоздать; production checkpoints ещё нет.
+- M3 candidate `a23f94648bf6a36b375d52babf19cbb31eaa69bf`: ровно семь разрешённых M3 путей, 888 строк. `python -m pytest tests/contracts/test_schemas.py tests/ml -q` → **250 passed in51.33s**, exit0, no skips. После добавления subprocess CLI checks (исходники не менялись) targeted M3 → **11 passed in18.79s**, exit0. Threshold/evaluate/export CLI реально выполнены и JSON outputs сверены.
+- Binary verdict metrics считают accuracy/balanced accuracy/macro-F1, support/TP/TN/FP/FN/число ошибок, coverage/unknown и accuracy_over_all_known. Unknown не negative; условная covered accuracy отделена от всей known совокупности. Action-sample diagnostics отдельны, без supplied reviewed verdicts verdict_metrics=null. Никакого автоматического юридического вывода из action scores.
+- Event protocol event-boundary-v1 фиксирует tolerance (база0.5с) до оценки; maximum one-to-one matching по обоим endpoints внутри video/scene/class, duplicate prediction не даёт второй TP. Explicit unknown events не scored; known означает явно сравнимый reviewed интервал. Matching/bytes/points bounded. Изменение protocol после calibration отвергается; обнаруженный test alias входного dict исправлен копированием.
+- Calibrate принимает только dev_validation и согласованный grouped manifest, не train/final; чужие groups/hash/class order/model/protocol отвергаются. Нет обеих известных меток класса → threshold=null, prediction unknown. Actual отдельный synthetic dev source → PTS decode/preprocessing/MobileNet cache/scoring прошёл; update weights на dev отвергнут. Final scores не участвуют в calibration.
+- Export пишет immutable полный FP32 encoder+GRU+head state_dict, config/576/preprocessing/taxonomy/thresholds/metrics/model card/versions и hashes, без optimizer. Размеры encoder/head/inference file/training checkpoint раздельны, MB=1000000 и MiB=1048576; encoder из лимита12MB не исключается, all-model limit35MB. Overbudget/FP16/missing encoder/чужая lineage отвергаются, previous package сохранён.
+- K release.schema фиксирует weights=IMAGENET1K_V1 даже при test_only. Поэтому random weights честно экспортируются как внутренний **package.json smoke-package-v1**, actual_weights=None, untrained/not_validated; release.json отсутствует. Это не production K release и production loader обязан его отвергать. Future production branch создаёт K-valid release.json только с подлинным локальным encoder, final human-reviewed taxonomy, matching independent real metrics и зафиксированной проверкой release. Сейчас эта положительная ветка не проверена и не активирована.
+- Export показывает software test package, не real >=0.80 quality/performance. Dataset другого чата, official taxonomy IDs, trained model/validated release, CUDA/полное обучение отсутствуют в этой проверке. Shared files не менялись; `git diff --check` → exit0. Копия реально измеренного smoke export и M3-smoke-location.txt сохранены вне Git; следующая задача M4.
