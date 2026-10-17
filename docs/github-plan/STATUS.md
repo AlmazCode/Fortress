@@ -11,13 +11,13 @@
 - [x] A3 — Авторизация и медиа · №1 · accepted
 - [x] A4 — Outbox и один worker · №1 · accepted
 - [x] A5 — Дедлайны и сбои backend · №1 · accepted
-- [ ] A — API и надёжная очередь · №1 · working
-- [ ] F1 — Клиент API и ключ · №2 · ready (K опубликован; реализация не проверена)
+- [x] A — API и надёжная очередь · №1 · accepted
+- [ ] F1 — Клиент API и ключ · №2 · review (bab9998)
 - [ ] F2 — Загрузка и статусы · №2 · unverified
 - [ ] F3 — Видео и доказательства · №2 · unverified
 - [ ] F4 — Ошибки и доступность UI · №2 · unverified
 - [ ] F — Интерфейс анализа · №2 · unverified
-- [ ] D1 — Аудит данных и среды · №3 · unverified
+- [ ] D1 — Аудит данных и среды · №3 · review (536fe7a)
 - [ ] D2 — Классы и инструкция разметки · №3 · unverified
 - [ ] D3 — Импорт и split без утечки · №3 · unverified
 - [ ] D4 — Кадры и клипы по PTS · №3 · unverified
@@ -35,11 +35,11 @@
 - [ ] O2 — Compose и offline worker · №4 · unverified
 - [ ] O3 — TLS и внешний smoke · №4 · unverified
 - [ ] O — Compose и доступ по HTTPS · №4 · unverified
-- [ ] I — Интеграция без весов · №1 · unverified
+- [ ] I — Интеграция без весов · №1 · blocked (F/M/R/O)
 - [ ] U — Браузерная приёмка · №2 · unverified
 - [ ] E — Передача ML-инструментов · №3 · unverified
 - [ ] B — Восстановление и benchmark · №4 · unverified
-- [ ] Z — Финальная сдача · №1 · unverified
+- [ ] Z — Финальная сдача · №1 · blocked (I → U/E/B)
 
 A2 принят и включён в `codex/integration`: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382` (19 проверок).
 
@@ -48,3 +48,5 @@ A3 принят в `codex/integration`: `6f7f5bf689440640bdc205642aefe7bf07a4d28
 A4 принят в `codex/integration`: `61a69ce8edc254b4d62ab0652eb8f89df146e434` (7 проверок).
 
 A5 и исправленный A1 приняты в `codex/integration`: `4e5d9b09b292af03f27991b32cadf9aae2af64d6`. Ветка frontend `551454a` содержит только прежний отчёт о блокировке по K; код frontend отсутствует, K теперь доступен.
+
+A принят в `codex/integration`: `043eeb6d125f3b77d71b74de3b56c6a1cee91e70`. **116 tests passed, no skips**. Общая программная сдача пока blocked по недостающим F/M/R/O и внешней инфраструктуре; обученная модель также отсутствует по плану.

@@ -13,7 +13,7 @@ Checkout: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`.
 | A3 | accepted | 6f7f5bf689440640bdc205642aefe7bf07a4d283 | 8 passed; доступен в integration |
 | A4 | accepted | 61a69ce8edc254b4d62ab0652eb8f89df146e434 | 7 passed; реальный Redis/Celery |
 | A5 | accepted | 4e5d9b09b292af03f27991b32cadf9aae2af64d6 | 8 fault/deadline tests; A1 rechecked |
-| A | working | — | Сборка FastAPI и настоящего worker |
+| A | accepted | 043eeb6d125f3b77d71b74de3b56c6a1cee91e70 | 116 contracts/API tests; настоящий HTTP/Redis/PostgreSQL |
 | I | blocked | — | Требуются A/F/M/R/O |
 | Z | blocked | — | Требуются U/E/B после I |
 
@@ -102,3 +102,15 @@ Base: `e0a1700`; head: `4e5d9b09b292af03f27991b32cadf9aae2af64d6`. A5: `backend/
 Проверки: `python3 .aster/checkpoints/run-tests.py tests/api/test_persistence.py tests/api/test_deadlines.py tests/api/test_capacity_race.py tests/api/test_recovery.py -q` → exit 0, **17 passed in 9.05s** (10 A1 + 7 A5). После добавления отдельного regression для медленной вставки: `python3 .aster/checkpoints/run-tests.py tests/api/test_deadlines.py -q` → exit 0, **5 passed in 3.56s**. Всего A5 покрыт 8 уникальными тестами, A1 повторно принят с исправлением в этом SHA.
 Критерий 1: настоящий prefork Celery worker SIGKILL/restart, lease expiry, PostgreSQL result-trigger rollback/retry, уникальный итог; Redis outage/duplicates также проверены A4. Критерий 2: SIGALRM прерывает игнорирующий бюджет runner; из 240s вычитается upload/queue time; поздний return, row lock и slow insert не становятся done. Критерий 3: 8 настоящих upload/decode конкурируют за один durable slot, после failed слот освобождается. Критерий 4: durable reasons/нет результата при timeout/падении. Критерий 5: это модульные harness checks на настоящих сервисах, не внешний HTTPS/ML SLA.
 Ограничения: runtime Linux, production prefork+жёсткий Celery limit; threaded harness не обеспечивает принудительное прерывание произвольного C/GPU вызова. Настоящие веса/GPU SLA отложены.
+
+## A — собранный backend (17 октября 2026)
+
+Base: `cc6f29a`; head: `043eeb6d125f3b77d71b74de3b56c6a1cee91e70`. Файлы: `backend/README.md`, `backend/app/api.py`, `main.py`, `schemas.py`, `settings.py`, `media.py`, `tasks.py`; `tests/api/conftest.py`, `fixture_runner.py`, `test_contract.py`, `test_idempotency.py`. Все 11 путей входят в files A.
+Итог: `python3 .aster/checkpoints/run-tests.py tests/contracts tests/api -q` → exit 0, **116 passed in 32.34s**, без skipped. К этой проверке относятся фактические PostgreSQL 18.6 restart, Redis 8.0.5, FFmpeg 8.0.1 и localhost HTTP. `uv run --locked --group test python -m backend.app.main --help` → exit 0. `git diff --cached --check` → exit 0. Код после полного набора не менялся.
+Критерий 1: реальный HTTP upload→durable job/outbox→Celery→done, processing/done/failed схемы и отдельные diagnostics. Критерий 2: middleware и все data/media маршруты; ошибочный ключ 401, отсутствующий ID 404; shared-key модель явно описана. Критерий 3: A2 decode/limits и новый HTTP 415. Критерий 4: настоящие миграции/outbox/Redis outage/повторный publish. Критерий 5: concurrent executor, unique result, SIGKILL/restart prefork, stale owner. Критерий 6: атомарный single-slot intake, concurrency/prefetch/CPU limits. Критерий 7: вся матрица 400/401/404/413/415/429/503, durable failed/unknown/deadline. Критерий 8: защищённые original/preview/frame по HTTP; preview PTS/rotation и JPEG source pixels проверены A3; Blob browser seek остаётся F/I/U. Preview входит в общий job budget и переиспользуется между API и worker по SHA. Критерий 9: locked окружение, README с запуском/остановкой/проверками/ограничениями.
+При сборке выявлен shared-registration дефект Celery: новый app получал factory предыдущего runtime. Минимальный RED воспроизвёл 0 вместо 1 для второго app; app-local eager registration исправила причину. Targeted queue+HTTP набор → 12 passed; затем полный набор 116 passed.
+Production не импортирует tests/fixtures: CLI production-only, явная test injection отвергается production settings. Test model endpoint сохраняет trained=false/validated=false/test_only=true; production без release возвращает model_not_ready. Это авторская проверка главного; ML/внешний HTTPS/browser acceptance не приписаны backend.
+
+## Входящие кандидаты после обновления Git
+
+После завершения A получены F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` (отчёт `7e4279d`), D1 `536fe7af06cadb4ff9513da1bf8dcafb6e6198e6` (отчёт `9aa9dda`) и №4 `5834064` (O1/R и частичные O2/O3). Начинается проверка точных commits; они не приняты по одному отчёту. I ждёт F/M/R/O, O явно blocked по настоящему Docker/offline/external HTTPS.
