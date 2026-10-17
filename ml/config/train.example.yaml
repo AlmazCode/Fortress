@@ -1,0 +1,9 @@
+{
+  "version": "masked-adamw-v1",
+  "seed": 42,
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "grad_clip": 1.0,
+  "device": "cpu",
+  "cpu_threads": 1
+}
