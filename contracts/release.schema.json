@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fortress.invalid/contracts/v1/release.schema.json",
+  "title": "Fortress release v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "release_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intended_use": {
+      "enum": [
+        "production",
+        "test_only"
+      ]
+    },
+    "training_status": {
+      "enum": [
+        "trained",
+        "untrained"
+      ]
+    },
+    "checkpoint": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "backbone": {
+      "const": "mobilenet_v3_small"
+    },
+    "weights": {
+      "const": "IMAGENET1K_V1"
+    },
+    "feature_dim": {
+      "const": 576
+    },
+    "model_config": {
+      "type": "object",
+      "properties": {
+        "gru_hidden_size": {
+          "const": 256
+        },
+        "gru_layers": {
+          "const": 1
+        },
+        "classes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "gru_hidden_size",
+        "gru_layers",
+        "classes"
+      ],
+      "additionalProperties": false
+    },
+    "taxonomy": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "final"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "version",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "preprocessing": {
+      "$ref": "https://fortress.invalid/contracts/v1/events.schema.json#/$defs/Preprocessing"
+    },
+    "thresholds": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "validation_status": {
+          "enum": [
+            "validated",
+            "not_validated"
+          ]
+        },
+        "independent_test": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path",
+        "validation_status",
+        "independent_test"
+      ],
+      "additionalProperties": false
+    },
+    "model_card": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "versions": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split": {
+          "type": "string",
+          "minLength": 1
+        },
+        "annotations": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rules": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "dataset",
+        "split",
+        "annotations",
+        "rules"
+      ],
+      "additionalProperties": false
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "role": {
+            "enum": [
+              "checkpoint",
+              "config",
+              "taxonomy",
+              "preprocessing",
+              "thresholds",
+              "metrics",
+              "model_card",
+              "rules",
+              "split",
+              "annotations"
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "sha256",
+          "size_bytes",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 7,
+      "uniqueItems": true,
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "checkpoint"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "config"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "taxonomy"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "preprocessing"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "thresholds"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "metrics"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "model_card"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "release_version",
+    "intended_use",
+    "training_status",
+    "checkpoint",
+    "backbone",
+    "weights",
+    "feature_dim",
+    "model_config",
+    "taxonomy",
+    "preprocessing",
+    "thresholds",
+    "metrics",
+    "model_card",
+    "versions",
+    "files"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "intended_use": {
+            "const": "production"
+          }
+        },
+        "required": [
+          "intended_use"
+        ]
+      },
+      "then": {
+        "properties": {
+          "training_status": {
+            "const": "trained"
+          },
+          "taxonomy": {
+            "properties": {
+              "status": {
+                "const": "final"
+              }
+            }
+          },
+          "metrics": {
+            "properties": {
+              "validation_status": {
+                "const": "validated"
+              },
+              "independent_test": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
