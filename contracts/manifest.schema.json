@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fortress.invalid/contracts/v1/manifest.schema.json",
+  "title": "Fortress manifest v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "dataset_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "videos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "canonical_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "group_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scene_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "split": {
+            "enum": [
+              "train",
+              "dev_validation",
+              "independent_test",
+              "excluded"
+            ]
+          },
+          "duration_sec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source_start_pts": {
+            "type": "integer"
+          },
+          "time_base": {
+            "type": "object",
+            "properties": {
+              "num": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "den": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "num",
+              "den"
+            ],
+            "additionalProperties": false
+          },
+          "rotation": {
+            "enum": [
+              0,
+              90,
+              180,
+              270
+            ]
+          },
+          "vfr": {
+            "type": "boolean"
+          },
+          "official_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provenance": {
+            "$ref": "https://fortress.invalid/contracts/v1/events.schema.json#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "video_id",
+          "canonical_id",
+          "group_id",
+          "scene_id",
+          "path",
+          "sha256",
+          "split",
+          "duration_sec",
+          "width",
+          "height",
+          "source_start_pts",
+          "time_base",
+          "rotation",
+          "vfr",
+          "official_label",
+          "provenance"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "dataset_version",
+    "split_version",
+    "videos"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "VideoRecord": {
+      "type": "object",
+      "properties": {
+        "video_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonical_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scene_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\\\)(?!.*:)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "split": {
+          "enum": [
+            "train",
+            "dev_validation",
+            "independent_test",
+            "excluded"
+          ]
+        },
+        "duration_sec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source_start_pts": {
+          "type": "integer"
+        },
+        "time_base": {
+          "type": "object",
+          "properties": {
+            "num": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "den": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "num",
+            "den"
+          ],
+          "additionalProperties": false
+        },
+        "rotation": {
+          "enum": [
+            0,
+            90,
+            180,
+            270
+          ]
+        },
+        "vfr": {
+          "type": "boolean"
+        },
+        "official_label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "https://fortress.invalid/contracts/v1/events.schema.json#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "video_id",
+        "canonical_id",
+        "group_id",
+        "scene_id",
+        "path",
+        "sha256",
+        "split",
+        "duration_sec",
+        "width",
+        "height",
+        "source_start_pts",
+        "time_base",
+        "rotation",
+        "vfr",
+        "official_label",
+        "provenance"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
