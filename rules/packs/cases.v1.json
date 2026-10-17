@@ -1,0 +1,800 @@
+{
+  "version": "cases.v1-draft",
+  "contract_version": "1.0",
+  "case_original_available": false,
+  "jurisdiction": null,
+  "cases": [
+    {
+      "id": "C01",
+      "title": "Изменение пачки",
+      "template": "prerequisite",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Идентичность одной пачки",
+        "Наблюдаемое изменение содержимого",
+        "Проверяемая предшествующая процедура"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Идентичность одной пачки",
+          "Наблюдаемое изменение содержимого",
+          "Проверяемая предшествующая процедура"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Подтверждённая предусмотренная процедура изменения"
+      ],
+      "limitations": [
+        "Пачка закрыта или частично вне кадра",
+        "Сумма по изображению не устанавливается",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C02",
+      "title": "Работа с документом",
+      "template": "prerequisite",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Документ различим",
+        "Действие и его существенный этап видны",
+        "Применимая обязательная процедура известна"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Документ различим",
+          "Действие и его существенный этап видны",
+          "Применимая обязательная процедура известна"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Действие не требует документа по применимой норме"
+      ],
+      "limitations": [
+        "Текст и подлинность документа могут быть неразличимы",
+        "Касание ПК не доказывает проводку",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C03",
+      "title": "Смешение или остаток партий",
+      "template": "cross-session",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Проверенная связь предметов с двумя партиями",
+        "Границы обслуживания",
+        "Факт переноса или остатка"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Проверенная связь предметов с двумя партиями",
+          "Границы обслуживания",
+          "Факт переноса или остатка"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Разрешённое объединение партий подтверждено"
+      ],
+      "limitations": [
+        "Неизвестные party/actor links не подменяются score",
+        "Остаток вне кадра неизвестен",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C04",
+      "title": "Оставленные ценности",
+      "template": "unresolved-state",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Ценности и их состояние наблюдаются",
+        "Ответственный actor известен",
+        "Полный существенный интервал до завершения этапа"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Ценности и их состояние наблюдаются",
+          "Ответственный actor известен",
+          "Полный существенный интервал до завершения этапа"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Подтверждённая передача хранения ответственному лицу"
+      ],
+      "limitations": [
+        "Уход сам по себе не доказывает нарушение",
+        "Невидимость не закрывает unresolved state",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C05",
+      "title": "Открытое хранилище",
+      "template": "unresolved-state",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Хранилище различимо",
+        "Открытое состояние наблюдается",
+        "Определён конец защищаемого этапа"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Хранилище различимо",
+          "Открытое состояние наблюдается",
+          "Определён конец защищаемого этапа"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Применимое разрешённое обслуживание хранилища"
+      ],
+      "limitations": [
+        "Непрозрачность и окклюзия дают unknown",
+        "Полномочия по внешнему виду не устанавливаются",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C06",
+      "title": "Ключ",
+      "template": "presence",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Предмет надёжно распознан как ключ",
+        "Зона и actor/ownership links проверены"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Предмет надёжно распознан как ключ",
+          "Зона и actor/ownership links проверены"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Разрешённое хранение или передача подтверждены"
+      ],
+      "limitations": [
+        "Мелкий предмет не объявляется ключом без recognizer",
+        "Право доступа не выводится по роли в кадре",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C07",
+      "title": "Документы или печати",
+      "template": "presence",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Тип предмета различим",
+        "Зона хранения определена",
+        "Состояние защиты наблюдаемо"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Тип предмета различим",
+          "Зона хранения определена",
+          "Состояние защиты наблюдаемо"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Применимое временное размещение подтверждено"
+      ],
+      "limitations": [
+        "Текст/подлинность/содержимое скрытого предмета не устанавливаются",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C08",
+      "title": "Экран после ухода",
+      "template": "response",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Экран и уход связаны с одним actor",
+        "Состояние экрана достоверно распознаётся",
+        "Полный интервал реакции"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Экран и уход связаны с одним actor",
+          "Состояние экрана достоверно распознаётся",
+          "Полный интервал реакции"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Подтверждённая разрешённая работа другого actor"
+      ],
+      "limitations": [
+        "Светлый кадр не доказывает OS unlock",
+        "Касание компьютера не доказывает блокировку",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C09",
+      "title": "Дверь или вход",
+      "template": "response",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Состояние двери наблюдается",
+        "Полный интервал реакции",
+        "Проверенные actors/roles"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Состояние двери наблюдается",
+          "Полный интервал реакции",
+          "Проверенные actors/roles"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Разрешённый вход или открытый режим подтверждены"
+      ],
+      "limitations": [
+        "Полномочия не выводятся из одежды или внешнего вида",
+        "Окклюзия двери даёт unknown",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C10",
+      "title": "Пересчёт до хранения",
+      "template": "prerequisite",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Проверенная партия",
+        "Хранение наблюдается",
+        "Полный предшествующий интервал пересчёта"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Проверенная партия",
+          "Хранение наблюдается",
+          "Полный предшествующий интервал пересчёта"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Применимое исключение из повторного пересчёта подтверждено"
+      ],
+      "limitations": [
+        "Отсутствие recognizer или начала этапа не даёт absence",
+        "Сумма по пачке не определяется",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C11",
+      "title": "Действия без клиента",
+      "template": "cross-session",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Границы обслуживания",
+        "Полная видимость существенной зоны клиента",
+        "Проверенные actor/role links"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Границы обслуживания",
+          "Полная видимость существенной зоны клиента",
+          "Проверенные actor/role links"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Разрешённая служебная операция подтверждена"
+      ],
+      "limitations": [
+        "Клиент вне кадра не считается отсутствующим",
+        "Идентичность и роли не назначаются по score",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C12",
+      "title": "Повторная обработка выделенных купюр",
+      "template": "prerequisite",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Проверенная идентичность выделенной группы",
+        "Достоверная последовательность обработки",
+        "Полный существенный интервал"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Проверенная идентичность выделенной группы",
+          "Достоверная последовательность обработки",
+          "Полный существенный интервал"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Допустимая повторная проверка подтверждена"
+      ],
+      "limitations": [
+        "Подделка и номинал не выводятся по отсутствующим признакам",
+        "Скрытая подмена не предполагается",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C13",
+      "title": "Личные вещи",
+      "template": "presence",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Предмет и зона различимы",
+        "Подтверждённая связь предмета с actor",
+        "Применимая политика зоны"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Предмет и зона различимы",
+          "Подтверждённая связь предмета с actor",
+          "Применимая политика зоны"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Разрешённый предмет или зона подтверждены"
+      ],
+      "limitations": [
+        "Содержимое непрозрачной сумки неизвестно",
+        "Предмет не объявляется личным по догадке",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C14",
+      "title": "Сосуд или питьё",
+      "template": "presence",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Различимый сосуд либо действие питья",
+        "Проверенная зона",
+        "Применимая политика"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Различимый сосуд либо действие питья",
+          "Проверенная зона",
+          "Применимая политика"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Применимое разрешённое размещение или действие"
+      ],
+      "limitations": [
+        "Содержимое сосуда не предполагается",
+        "Одно наличие предмета не доказывает питьё",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    },
+    {
+      "id": "C15",
+      "title": "Приборы после смены",
+      "template": "unresolved-state",
+      "support": "unsupported",
+      "legal_status": "unknown",
+      "source_id": "provided-case-brief",
+      "normative_source_id": null,
+      "action_classes": [],
+      "prerequisites": [
+        "Проверенный конец смены",
+        "Различимое состояние прибора",
+        "Полный интервал выключения/передачи"
+      ],
+      "data_required": {
+        "objects_states": [
+          "Проверенный конец смены",
+          "Различимое состояние прибора",
+          "Полный интервал выключения/передачи"
+        ],
+        "intervals": [
+          "Исходные PTS, границы сцены и существенного этапа"
+        ],
+        "actors_relations": "Только явно проверенные связи; неизвестные nullable"
+      },
+      "exceptions": [
+        "Разрешённая непрерывная работа прибора подтверждена"
+      ],
+      "limitations": [
+        "Светлый экран не доказывает включённость нужного прибора",
+        "Конец ролика не равен концу смены",
+        "Юрисдикция, исходный кейс и применимый нормативный первоисточник отсутствуют"
+      ],
+      "absence_requirements": [
+        "Полный существенный интервал",
+        "Полная видимость",
+        "Проверенный recognizer",
+        "Проверенный конец этапа",
+        "Проверенные альтернативы и исключения",
+        "Проверенные actor/party links"
+      ],
+      "tests": {
+        "unsupported": "tests/rules/test_unknown.py",
+        "mapping": "tests/rules/test_case_mapping.py",
+        "template_scenarios": [
+          "positive",
+          "hard_negative",
+          "truncated",
+          "occlusion",
+          "exception"
+        ]
+      }
+    }
+  ]
+}

@@ -172,7 +172,8 @@ def collect(cwd, timeout=8, external_url=None, probe_external=False, wan_ip=None
             report['hardware']['ram_bytes'] = int(match.group(1)) * 1024
         report['hardware']['cpu'] = checks['cpu']['stdout']
         linux_runtime = platform.system() == 'Linux' and bool(re.search(r'^ID=(?:"?ubuntu"?)$', checks['os']['stdout'], re.M))
-    checks['python311'] = probe(['python3.11','-c','import sys,json; print(json.dumps({"version":list(sys.version_info[:3])}))'])
+    python_candidate = sys.executable if sys.version_info[:2] == (3,11) else 'python3.11'
+    checks['python311'] = probe([python_candidate,'-c','import sys,json; print(json.dumps({"version":list(sys.version_info[:3])}))'])
     # Windows may expose Python 3.11 only through its standard launcher.
     if checks['python311']['status'] == 'missing' and platform.system() == 'Windows':
         installed = probe(['py','--list-paths'])
