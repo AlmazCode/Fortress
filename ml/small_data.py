@@ -6,12 +6,15 @@ Only train/dev enter CV. Existing internal-test families remain reserved.
 from __future__ import annotations
 
 import argparse
+import ast
 import copy
+import hashlib
 import json
 import math
 from pathlib import Path
 import platform
 import time
+import zipfile
 
 import numpy as np
 import sklearn
@@ -46,9 +49,49 @@ GRID = {
 }
 
 
+def training_source(source):
+    """Fingerprint training semantics independently of inference/CLI and newlines."""
+    ignored = {"training_source", "legacy_code_matches", "code_hash", "load_protocol", "infer_video", "main"}
+    tree = ast.parse(source)
+    tree.body = [node for node in tree.body
+                 if not (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in ignored)
+                 and not (isinstance(node, ast.Import) and all(alias.name in ("ast", "hashlib", "zipfile") for alias in node.names))]
+    return ast.dump(tree, include_attributes=False)
+
+
 def code_hash():
-    return stable_hash({name: file_sha256(Path(__file__).parent / name) for name in
-                        ("small_data.py", "video_baseline.py", "models/encoder.py", "preprocessing.py")})
+    base = Path(__file__).parent
+    return stable_hash({name: hashlib.sha256((training_source((base/name).read_text(encoding="utf-8-sig"))
+                       if name == "small_data.py" else (base/name).read_text(encoding="utf-8-sig")).encode()).hexdigest()
+                       for name in ("small_data.py", "video_baseline.py", "models/encoder.py", "preprocessing.py")})
+
+
+def legacy_code_matches(directory, expected):
+    """Verify an old byte-bound snapshot, then allow only inference/CLI fixes.
+
+    The archive is parsed as text, never executed or extracted. Training AST and
+    the three dependencies must match. No protocol, fit identity or metric changes.
+    """
+    archive_path = Path(directory) / "source_snapshot.zip"
+    if not archive_path.is_file():
+        return False
+    names = ("small_data.py", "video_baseline.py", "models/encoder.py", "preprocessing.py")
+    base = Path(__file__).parent
+    try:
+        with zipfile.ZipFile(archive_path) as archive:
+            if set(archive.namelist()) != {"ml/"+name for name in names} or sum(i.file_size for i in archive.infolist()) > 1024**2:
+                return False
+            old = {name: archive.read("ml/"+name) for name in names}
+        if stable_hash({name: hashlib.sha256(data).hexdigest() for name, data in old.items()}) != expected:
+            return False
+        for name in names:
+            previous = old[name].decode("utf-8-sig").replace("\r\n", "\n")
+            current = (base/name).read_text(encoding="utf-8-sig")
+            if (training_source(previous) != training_source(current) if name == "small_data.py" else previous != current):
+                return False
+        return True
+    except (OSError, ValueError, SyntaxError, zipfile.BadZipFile):
+        return False
 
 
 def prefix_views(prefix, batch):
@@ -181,7 +224,8 @@ def prepare(cache, output, *, audit_report, outer=4, inner=3, split_seed=2026101
 def load_protocol(directory):
     plan = read_json(Path(directory) / "protocol.json")
     digest = plan.pop("protocol_sha256")
-    if stable_hash(plan) != digest or plan["version"] != VERSION or plan["code_sha256"] != code_hash():
+    if (stable_hash(plan) != digest or plan["version"] != VERSION
+            or plan["code_sha256"] != code_hash() and not legacy_code_matches(directory, plan["code_sha256"])):
         raise ValueError("protocol/code changed; use a new experiment directory")
     plan["protocol_sha256"] = digest
     document, rows = load_feature_cache(plan["cache"])
@@ -532,10 +576,11 @@ def infer_video(directory, video, *, weights, weights_sha256, device="cuda"):
     if metadata["duration_sec"] > 180:
         raise ValueError("video exceeds duration budget")
     row = {"video_id": "inference-"+digest[:24], "path": source.name, "sha256": digest,
-           "source_sha256": digest, "canonical_id": "sha256:"+digest, "group_id": "sha256:"+digest,
-           "scene_id": "raw-unreviewed", "split": "excluded", "official_label": None, "target": 0,
+           "canonical_id": "sha256:"+digest, "group_id": "sha256:"+digest,
+           "scene_id": "raw-unreviewed", "split": "excluded", "official_label": None,
            "provenance": {"kind": "original", "source_id": digest, "sha256": digest}, **metadata}
     index = build_index(source.parent, row, dataset_version="raw-inference-v1", split_version="not-training")
+    row.update({"source_sha256": digest, "target": 0})
     encoder = FrozenEncoder(weights_path=weights, weights_sha256=weights_sha256).to(device).eval()
     state = safe_torch_load(decision["fit"])
     views = experiment.document["views"]["mode"]
