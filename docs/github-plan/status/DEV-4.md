@@ -4,15 +4,15 @@ Git/GitHub, без Aster. Своя ветка: `codex/dev4-rules-infra`. Баз�
 
 | Task | State | Branch | Commit / PR | Проверки / блокер |
 | --- | --- | --- | --- | --- |
-| O1 | review | codex/dev4-rules-infra | См. Git-историю ветки | CLI и инвентарь проверены; outcome missingTool, service/gpu/external readiness=false |
-| R1 | review | codex/dev4-rules-infra | См. Git-историю | C01–C15 сохранены; original case/jurisdiction/normative sources missing, legal unknown |
-| R2 | review | codex/dev4-rules-infra | См. Git-историю | Память whole-video, late events, scene/job isolation проверены synthetic observations |
-| R3 | review | codex/dev4-rules-infra | См. Git-историю | 5 технических шаблонов проверены; все production cases честно unknown/unsupported |
-| R | review | codex/dev4-rules-infra | См. Git-историю | Код R1–R3 собран; нормативная/ML приёмка не пройдена |
-| O2 | working | codex/dev4-rules-infra | — | K локально проверен; Docker runtime отсутствует, готовится config/harness |
-| O3 | blocked | codex/dev4-rules-infra | — | Требует O1/O2 и разрешённого внешнего hostname/TLS/маршрута |
+| O1 | accepted | codex/dev4-rules-infra | 12acfed / 9569729, merge df1f398 | Принят главным в STATUS 2ba4272; это инвентарь, не готовность среды |
+| R1 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Главный принял software/missingSource; legal gate unknown |
+| R2 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Принят главным, merge df1f398; synthetic observations не ML validation |
+| R3 | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Главный принял software; production cases unsupported |
+| R | accepted | codex/dev4-rules-infra | 95697291a879130a6b3babdedfcd959797ad68f0 | Принят главным в программном объёме; legal/ML gate не пройден |
+| O2 | blocked | codex/dev4-rules-infra | 1137423fc1de54b3d6cc5b77c2c14010e72d2ecf | CLI/env/health/scope/COPY исправлены; config и frontend native build passed; runtime не проверен, VM отложена пользователем |
+| O3 | blocked | codex/dev4-rules-infra | 1137423fc1de54b3d6cc5b77c2c14010e72d2ecf | Harness и actual-API clients проверены local HTTP/TLS; нет trusted внешнего hostname/маршрута |
 | O | blocked | codex/dev4-rules-infra | — | Требует O3 |
-| B | blocked | codex/dev4-rules-infra | — | Требует интеграции I и реальных сервисов |
+| B | blocked | codex/dev4-rules-infra | 1137423fc1de54b3d6cc5b77c2c14010e72d2ecf | По запросу подготовлены native probe/benchmark/resource tools и runbooks; actual acceptance только после I |
 
 ## O1: реально выполнено
 
@@ -39,3 +39,71 @@ K `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f` интегрирован локал
 Session memory хранит историю ролика, дедуплицирует overlapping observations, сортирует поздние события той же сцены, разделяет scenes/jobs и не превращает score в actor ID. Absence требует явных достаточных metadata; источник и exceptions проверяются отдельно. Source frames создаёт pipeline, не rule pack.
 
 Далее: O2 config + synthetic harness и O3 scripts. Docker/GPU runtime, volumes restart, worker egress и trusted внешний HTTPS остаются not_run/blocked до реальной среды и маршрута. Главный подтверждает интеграцию; запись не является independent/human approval.
+
+## O2 / O3: подготовлено и проверено
+
+Созданы Compose nginx/api/worker/redis/postgres, persistent named volumes, отдельная internal backend network, GPU reservation только worker, limits/concurrency/prefetch/threads. DB/Redis не имеют published ports; Nginx по умолчанию только 127.0.0.1:8443. Это static topology, реальная изоляция не доказана без запуска.
+
+Образы закреплены реальными index digests из официального Docker Hub tag API; uv bootstrap — версия/hash Linux x86_64 wheel из PyPI. Python graph — исходный K lock, frontend — отдельный npm lock №2. K содержит CPU Torch wheels, поэтому production CUDA compatibility остаётся отдельным blocker до согласованного исправления №1/№3. Runtime не устанавливает пакеты/веса.
+
+Для O3 подготовлены Nginx TLS proxy, bounded upload/timeouts, защищённые API/media proxy без direct media alias/access log; TLS/смoke scripts и отдельный explicit infra-only harness. Harness не импортирует модель/приложение, принимает только tiny synthetic marker и не выдаёт ML verdict. Local loopback HTTP tests реально проверяют 401 → upload 202 → synthetic status, wrong key, over-limit/неподдержанное тело, bound 128 records и явный запуск. Это не внешний HTTPS, Nginx/container или реальный API.
+
+После последних изменений: `python -m pytest tests/performance tests/rules -q` в Python 3.11.17 — exit 0, **47 passed, 32 subtests passed**. Отдельно ранее 55 tests неизменённого K — exit 0. `bash -n` для shell scripts — exit 0; реальный tls-check без hostname — ожидаемый exit 2. Статические Compose тесты не объявляются `docker compose config`.
+
+Оставшиеся обязательные проверки: Docker Compose config/build/start; настоящие GPU/CUDA/PyTorch checks; worker DB/Redis connectivity + egress; persistent volumes restart; доверенный внешний TLS upload/status; настоящий API/media путь после I; B fault/offline/capacity/deadline/benchmark после I. Сейчас они **not_run/blocked**, итог всего направления не объявлен готовым. Команды/ограничения/первичные источники — SETUP.md, NETWORK.md, PREFLIGHT.md; нормативные пробелы — SOURCES.md/CASE_SUPPORT.md.
+
+Начатый по ошибочно указанному номеру frontend сохранён в отдельном dev2 worktree без дальнейших правок и не включён в результаты №4.
+
+## Продолжение: совместимость с A1–A5, Compose CLI и TLS
+
+17.10.2026: `git fetch origin` и `git pull --ff-only` — exit 0. Проверены опубликованные A1–A5 и журнал №1 на integration `cc6f29a8f6566ede9d648e4324ef91c55cd8cb94`; собственная ветка объединила их обычным merge `aa1c7a6098c4ed6c642644fe0d39b7bc5f037dc4` без конфликтов. Чужие рабочие копии не изменены. A ещё working, I blocked: финальные B проверки не начинались.
+
+Проверенный код O2/O3: base `aa1c7a6098c4ed6c642644fe0d39b7bc5f037dc4`, head `1a1b091f091611ff56ff523daf1aebf137e343ee`. Изменены только `infra/{compose.yaml,compose.test.yaml,api.Dockerfile,worker.Dockerfile,env.example,smoke_server.py}`, `tests/performance/{test_compose_isolation.py,test_network_smoke.py}`, `docs/operations/{SETUP.md,NETWORK.md}`. Отчёт — отдельное изменение этого DEV-4 журнала; общий STATUS/manifest/audit самостоятельно не редактируются.
+
+Исправлены три несовместимости с реальным backend: prefork вместо solo для hard deadline; local PID health вместо неработающего inspect ping при disabled remote control; обязательные явные FORTRESS_API_APP/FORTRESS_WORKER_APP вместо выдуманного Celery export. A1–A5 экспортируют factories, production assembly A/I ещё нужна. Overlay явно заменяет обе команды, поэтому test harness не запускает реальное приложение. TLS loopback больше не помечается как non-local.
+
+Реальные проверки на неизменённом коде указанного head:
+
+- Standalone Compose v5.6.0 `version` — exit 0. Официальный executable/hash и границы установки зафиксированы в SETUP. Только собственный локальный tooling-каталог, без установки engine/служб.
+- Production и test overlay `config --quiet` с dummy env — exit 0 до изменения; после изменения итоговый JSON и ошибки отсутствующих exports проверены CLI tests. Контейнеры не запускаются, private env не читается, конфигурация с реальными secrets не печатается.
+- `FORTRESS_COMPOSE_CLI=<local-compose> FORTRESS_TEST_OPENSSL=<local-openssl> .venv/Scripts/python.exe -m pytest tests/performance/test_compose_isolation.py tests/performance/test_network_smoke.py -q` — exit 0, **20 passed, 2 subtests passed**, без skipped. Python 3.11.17. Включены 3 настоящих config tests и 3 настоящих loopback TLS tests с временным self-signed сертификатом/явным private CA. TLS upload/auth/status проходят, недоверенная цепочка и неверный hostname отвергнуты до upload. Certificate/private key создаются и удаляются во временной папке, в Git их нет.
+- `git diff --check` и staged diff check — exit 0. Проверено, что кандидат не меняет shared locks/contracts/backend/frontend.
+- `python docs/github-plan/validate_plan.py` — **exit 1**: manifest ожидает старый hash `status/DEV-4.md`, saved AUDIT отличается после изменения журнала. Граф 36 задач/48 рёбер ацикличен, ownership overlap отсутствует. Это не application test failure и не pass документационного audit. Следующее действие №1 при приёмке: проверить/обновить общий manifest и audit штатным workflow; №4 не присваивает эти общие файлы.
+
+Ограничения прежние: Docker engine/WSL отсутствуют, runtime/GPU/offline/volumes и публичный HTTPS не проверены; local private-CA TLS не доказывает внешний маршрут. B ожидает принятый I. Нормативные sources и original case/jurisdiction не появились: R остаётся unknown/unsupported. Подготовка и push своей ветки не означают accepted или финальную сдачу.
+
+## Принятый A и исправления по возврату O2/O3
+
+После нового `git fetch origin` проверен STATUS `2ba4272`: главный принял O1 и программный объём R1–R3/R, merge `df1f398d14367fddc5621f613280115f8df19ff3`. Таблица выше отражает эту опубликованную приёмку, не новую собственную. A принят в `043eeb6d125f3b77d71b74de3b56c6a1cee91e70`. Все эти изменения объединены в своей ветке merge `5754d22292a80fb1006c78f59ce8dba237b1075d` без конфликтов и правок чужих checkout.
+
+Base исправлений `5754d22292a80fb1006c78f59ce8dba237b1075d`; проверенный code head `3cee7531746927cd035b4c4e51e522f150990dbd`. Изменены `infra/{compose.yaml,api.Dockerfile,worker.Dockerfile,env.example}`, `tests/performance/test_compose_isolation.py`, `docs/operations/{SETUP.md,NETWORK.md}`. Внеплановый собственный `infra/.gitattributes` удалён по review; shared settings/locks/contracts не менялись.
+
+Замечания review 1–5 исправлены в собственном scope: поддерживаемый `python -m backend.app.main api/worker` вместо guessed exports; prefork/concurrency/limits берутся из принятого backend CLI; local process health вместо disabled remote control; полный Settings env, включая API key у worker; явный порядок DB/Redis → migrate → остальные services. Общий key остаётся private environment, не build argument. Health проверяет PID 1/argv при NOSETPS=1; это только liveness, не модель/queue readiness. Замечание 6 о настоящем runtime/external HTTPS остаётся blocker.
+
+Фактические проверки:
+
+- `FORTRESS_COMPOSE_CLI=<local-compose> .venv/Scripts/python.exe -m pytest tests/performance/test_compose_isolation.py -q` — exit 0, **10 passed, 2 subtests passed** на неизменённом коде указанного head. Настоящий Compose v5.6.0 config, production/test resolved commands/networks/GPU reset, обязательный Settings env, принятые Celery defaults. Контейнерного запуска нет.
+- `preflight.ps1 -OutputPath <local-report> -TimeoutSeconds 5` с собственным Python 3.11 venv первым в process PATH — exit 0, collected, recorder 3.11.17, python311_ready=true; os/docker/compose/ffmpeg/toolchain/service/gpu/external readiness=false. Standalone Compose хранится отдельно и не выдаётся за работающий Docker plugin/engine. Сырые отчёты остаются вне Git.
+- С разрешения пользователя скачан официальный Docker Desktop 4.95.0 build 242831. SHA-256 и Authenticode Valid/Docker Inc проверены до запуска; полные значения/официальные ссылки в SETUP.
+- Реальный per-user installer `install --user --quiet --accept-license --backend=wsl-2 --no-windows-containers` — **exit 1** на prerequisite check: выключен VirtualMachinePlatform, для включения нужны administrator privileges. Текущий процесс не elevated; Docker не установлен. Не пытались обходить Windows permission gate. Пользователю сообщён требуемый шаг admin PowerShell `wsl --install --no-distribution` и последующая перезагрузка. После вопроса «зачем» объяснено, что компонент нужен для Linux containers только на ПК развёртывания; решение о ПК/системном шаге ещё не получено.
+- `git diff --check` / staged check — exit 0. Новые code changes прошли targeted checks; прежние успешные loopback TLS и rules tests не повторялись без изменения их кода.
+
+Оставшиеся O2/O3/O/B не закрыты. Следующее действие: выбранный runtime PC с engine/WSL2 → build/start, worker connectivity/egress и volumes; подтверждённый внешний HTTPS; B только после принятого I. Правила остаются юридически unknown до original case/jurisdiction/normative sources. Локальный поиск предоставленного case в текущем workspace файла не нашёл; чужие материалы/разметка не изменялись. Общий manifest/audit после изменения DEV-4 журнала по-прежнему обновляет №1 при review, не №4.
+
+## Продолжение по указанию «пока без виртуалки, доделывай оставшиеся задачи»
+
+Актуальный user constraint: WSL/VirtualMachinePlatform/виртуализация отложены; системные компоненты и Docker повторно не устанавливались, перезагрузка не выполнялась. По прямому поручению подготовлены оставшиеся переносимые инструменты до приёмки I, без изменения графа/присвоения B accepted. Native Windows выполняет frontend build, client HTTP/TLS и RSS sampler. Полный текущий worker требует native Linux/POSIX; Windows portability не подменяется solo или новым in-memory backend в чужой области.
+
+Получен и просмотрен integration `6b16272fded945668b8997498faa0b2d83a541a0` с принятыми F/D2; объединён в собственной ветке merge `56da971759ddccc8a809a77510b8174723628f18`. I ещё blocked по M/O. Base кандидата — этот merge, проверенный code head `1137423fc1de54b3d6cc5b77c2c14010e72d2ecf`. Изменены только 10 собственных файлов O/B: frontend.Dockerfile, smoke.sh, benchmark.py, test_https.py, test_capacity_deadline.py, test_service_resources.py, SETUP/NETWORK/BENCHMARK/RECOVERY. ACCEPTANCE.json и этот журнал — отдельный итоговый отчёт.
+
+Закрыто ещё одно реальное замечание O2: frontend build stage теперь копирует `/contracts` рядом с `/frontend`. Reproduced COPY layout в отдельной новой tooling-папке, `npm ci --ignore-scripts --no-audit --no-fund` + `npm run build` — exit 0, typecheck и production build успешны, Node 22.22.2, 173 modules. Это не Docker build; frontend source/lock №2 не изменялись.
+
+Добавлен настоящий portable API client: production auth/model gate либо explicit synthetic upload → public/UI status → original SHA/preview/JPEG. Строгий K, тот же job ID/пути, wrong/missing key, отказ redirect, TLS verification, multipart streaming, bounded input/response, absolute deadline и slow-drip защита. Reports create-only до запросов, без keys/private paths/media. Warmup исключается из nearest-rank p95; failed/unknown не clean verdict. Внутренние server-stage timings и model memory остаются null — K не отдаёт такую telemetry.
+
+Отдельный native resource sampler читает только operator-specified PID/children: Windows WorkingSet64 или Linux statm RSS в bytes, worker VRAM из nvidia-smi в MiB. Частичный scope не даёт общей service RAM; N/A/отсутствие PID/query не становятся нулевой VRAM. Observed max не называется гарантированным peak, scope/job correlation не присваиваются автоматически. Тесты действительно измеряют память собственного pytest процесса; это не RAM сервиса.
+
+Итоговая проверка неизменённого кода head `1137423`: `FORTRESS_COMPOSE_CLI=<local-compose> FORTRESS_TEST_OPENSSL=<local-openssl> .venv/Scripts/python.exe -m pytest tests/performance tests/rules -q --tb=short` — **exit 0, 78 passed, 50 subtests passed, 0 skipped**, 45.13s, CPython 3.11.17. Bash syntax и реальный smoke.sh --help — exit 0. `git diff --check` / staged check — exit 0. Дополнительные unchanged checks не повторялись после этого результата.
+
+При разработке HTTP tests сначала воспроизведён дефект нового клиента с Connection: close на Windows (закрытый socket handle), исправлен bounded response-reader socket + read1; затем все проверки прошли. Fixture сначала использовал неверный `not_found`: строгий K выявил это. Сравнение с A показало тот же literal в backend/app/api.py, media.py и main.py. **Передача №1:** заменить на contract job_not_found/media_not_found с проверкой HTTP/body; №4 не меняет backend/contracts и не ослабляет client. Это статически подтверждённое несоответствие и HTTP protocol regression, не live API проверка A на Windows.
+
+Полный machine-readable итог — docs/operations/ACCEPTANCE.json. O2/O3/O/B остаются blocked по настоящему runtime/offline/volumes, внешнему HTTPS, I и server timing trace. Recovery/fault/capacity actual full-stack не выполнялись; новые parser/protocol/sampler tests ими не считаются. Training/independent ML evaluation не запускались, реальные latency/VRAM/RAM модели not measured. Общий manifest/audit изменяет №1 при проверке этого журнала.

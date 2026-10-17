@@ -53,8 +53,11 @@ class RuleEngine:
         # Default source is an unverified summary, never a manufactured regulation.
         index = next((source for source in self.sources['sources'] if source['id'] == case.get('normative_source_id')), None)
         if not index:
+            summary = next((source for source in self.sources['sources'] if source['id'] == case.get('source_id')), None)
+            summary_note = (f"Non-normative case summary={summary['id']}; content_sha256={summary.get('snapshot_sha256')}"
+                            if summary else 'No case-summary provenance is available')
             return {'source_kind':'unverified','url':None,'revision':None,'section':None,'snapshot_sha256':None,'verified':False,
-                    'limitations':['Applicable normative source and original case are not available',f"rules_version={self.pack['version']}"]}
+                    'limitations':['Applicable normative source and original case are not available',summary_note,f"rules_version={self.pack['version']}"]}
         verified = False
         if (index.get('verified') is True and index.get('normative') is True and index.get('source_kind') in ('official','internal_policy')
                 and index.get('applicability') == 'confirmed' and index.get('exceptions_reviewed') is True and index.get('url')
