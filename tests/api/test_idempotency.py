@@ -92,3 +92,21 @@ def test_expired_owner_is_replaced_and_stale_finish_rejected(database, tmp_path)
     assert TaskExecutor(repo, runner, tmp_path / 'gpu.lock').execute(job.job_id) == 'done'
     assert not repo.finish(stale, bundle(job.job_id), now=datetime.now(timezone.utc))
     assert runner.calls == 1
+
+
+def test_separate_celery_apps_keep_their_own_executor_factory():
+    from backend.app.celery_app import create_celery
+    from backend.app.tasks import register_tasks
+    apps = []
+    try:
+        for index in range(5):
+            app = create_celery('redis://127.0.0.1:1/0')
+            apps.append(app)
+            class Executor:
+                def __init__(self, identity): self.identity = identity
+                def execute(self, job_id): return self.identity
+            register_tasks(app, lambda identity=index: Executor(identity))
+            app.finalize()
+            assert app.tasks['fortress.analyze'].run('unused-job') == index
+    finally:
+        for app in apps: app.close()
