@@ -12,8 +12,8 @@
 | D4 | review | codex/fortress-no3-ml | 8b263be898a7f62504cce7a27d82ad8cce89e60b | 14 targeted tests; вместе K/ML 150 passed; четыре настоящих CLI passed; приёмка отдельно |
 | D5 | review | codex/fortress-no3-ml | 4ad53e30fe844fba794368e15fa53b91588e007f | 40 targeted tests; K/ML 190 passed; task CLI + JSONL/CSV/COCO/QA smoke passed |
 | D | review | codex/fortress-no3-ml | 97bb8cdc6f507990edd5fbd469708a3f4aeb806d | 196 tests passed; 15 data CLI --help и реальный pipeline; data/training false |
-| M1 | working | codex/fortress-no3-ml | База D 97bb8cd | Продолжение по поручению человека; единый preprocessing и provenance cache |
-| M2 | blocked | codex/fortress-no3-ml | — | Зависит от M1 |
+| M1 | review | codex/fortress-no3-ml | 145e33e3b80f0001b4eb0eb695ee7b3916c00ce5 | 28 targeted passed; real CPU MobileNet [32,576] cache smoke passed; test-only |
+| M2 | working | codex/fortress-no3-ml | База M1 145e33e | Продолжение по поручению человека; frozen encoder/GRU/CPU train-resume |
 | M3 | blocked | codex/fortress-no3-ml | — | Зависит от M2 |
 | M4 | blocked | codex/fortress-no3-ml | — | Зависит от M3 |
 | M | blocked | codex/fortress-no3-ml | — | Зависит от M4 |
@@ -159,3 +159,16 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - Local DATA_READINESS report SHA-256 `dc5e5be077fd12a7579fb811ddcf590eafcb77e39b32c8f95e2969c4c4d96168`; содержимое сохранено как docs/model/DATA_READINESS.json. В нём actual K dataset_readiness contract=blocked, provenance synthetic. Никаких метрик качества модели/человеческого gold не создано.
 - Acceptance D: материалы/отсутствующие приложения и фактический case отмечены по D1; safe archive/quarantine/dedup/transitive split/final protection/PTS/masks/COCO/review QA собраны; Python3.11 CPU preflight проверен, target RTX5060/RAM16/Ryzen5 и CUDA явно unverified; DATA.md содержит реализованные команды и отдельные gates/reasons. Оригинальный набор другого чата не оценивался/не менялся, full training не запускался.
 - `git diff --cached --name-status` — ровно 10 разрешённых путей; `git diff --cached --check` → exit 0. Candidate D остаётся review; последняя наблюдённая integration всё ещё содержит старую блокировку D3, новый D3 fix не объявляется принятым автором. Следующий собственный этап по прямому поручению — M1.
+
+## M1 — preprocessing/windows/cache
+
+- Base `0ec4d69b7d0babd7293d5a7764032375709befe4`; candidate `145e33e3b80f0001b4eb0eb695ee7b3916c00ce5`. Add ровно шести разрешённых M1 файлов, 762 строки; D/общие файлы не менялись.
+- `python -m pytest tests/ml/test_pts_preprocessing.py tests/ml/test_cache_resume.py -q` → exit 0, **28 passed in5.89s**. Ранее tests нашли tuple/list inconsistency на повторном JSON load (1 failed/26 passed); metadata нормализована. Дополнительная регрессия source bytes mutation сначала дала expected failing test: complete cache тихо возвращался при старом manifest. До публикации build_cache получил обязательный source_root и actual SHA check до reuse/после построения; test теперь passed.
+- Отдельный API CPU smoke с настоящим torchvision MobileNetV3-Small features(weights=None), spatial mean, замороженными параметрами и общим preprocessing → exit 0. Четыре synthetic source frames дали 2 windows [32,576], 4 искусственных known labels; cache load прошёл, production_cache_ready=false, training_ran=false. Labels smoke.action_a/b — искусственные, не bank-event gold. Веса не скачивались.
+- Local summary SHA `07c6bb028dd97debf85e7789abc2869d4def207d2b7b236a5a14456735b79dee`; completion marker `b27749dc454241c8d445ab9341d4af7cf39fc1344c6684a02410df9b73f1851d`; cache.json `af740043bc1486e020f809eda67f757f990626cbb4fd48e4b109946999400a9c`. Paths/полный helper/argv/логи сохранены вне Git.
+- Acceptance: shared RGB/letterbox224/ImageNet FP32 path, pixel padding mask и точный inverse с actual resize ratios; four rotation/odd sizes/channel/double-normalization checks; source PTS labels/nullable actor policy, unknown/image/padding masks; overlap mean/counts/null для unknown и запрет crossing scene/split/source.
+- CacheSpec включает все девять input/window hashes, class order, partition и test provenance. Каждое поле invalidates старый cache. Encoder fingerprint берётся с actual frozen tensor bytes и проверяется до/после; cropped annotation image не принимается как raw global frame. Numeric NPZ без pickle, bounded header/shape/dtype/bytes, finite targets/features и mask checks; actual partial filesystem write откатывается, source originals неизменны; corrupt/foreign cache сохранён и отвергнут, новая generation реконструируется.
+- Real/pretrained feature cache и hardware budgets не заявлены: только synthetic CPU, descriptor weights=None/test_only=true. Cache completeness не dataset/model readiness. Load переносимого immutable cache сверяет spec/bytes, raw-source reuse дополнительно проверяет files. Документация PREPROCESSING.md фиксирует эти границы и ссылки на первичный NumPy API.
+- Scope/name-status и `git diff --cached --check` → exit 0. Код после последнего targeted run и real smoke не менялся; добавлена документация. Предыдущие 196 D/K checks относятся к неизменённым D sources; не выдаются за новый общий запуск с M1.
+
+Далее M2: только короткие synthetic CPU optimization/resume checks; full training, fine-tune и настоящая ML evaluation остаются отложенными. Продолжение выполняется по прямому поручению человека; accepted по D3 и последующим этапам самостоятельно не выставляется.
