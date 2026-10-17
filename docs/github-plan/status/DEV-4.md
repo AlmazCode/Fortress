@@ -142,3 +142,27 @@ python -c 'from backend.app.storage import IntakeError; from contracts.python_po
 3. **O:** закрытые фактические O2/O3, а не только опубликованный кандидат. **B:** отдельно после принятого I с реальным full-stack fault/recovery/capacity/deadline прогоном. R остаётся software accepted / legal unknown/unsupported.
 
 В этом продолжении изменены только ACCEPTANCE.json и собственный DEV-4 журнал; executable code `1137423` сохранён. Общие STATUS/manifest/audit не редактировались. Реальный Docker/worker/volumes/recovery и внешний HTTPS по-прежнему not_run/blocked; WSL/VirtualMachinePlatform не включались, Docker повторно не устанавливался, перезагрузки не было.
+
+## Проверка runtime и инструкция для релиза — 18 октября 2026
+
+После нового поручения подтверждён `origin`, root/base и чистая ветка №4; fetch — exit 0. Актуальные инструкции/ТЗ и review главного прочитаны. Свежая integration `69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5` получена через fast-forward — exit 0. Пришли только уже интегрированные главным изменения; №4 backend/ML/общие документы самостоятельно не правил. Принятые K `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f`, A fix `c46a2c005e2882c0c794bc44cecb7ff3cc393d13`, F `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc` и infra code `1137423fc1de54b3d6cc5b77c2c14010e72d2ecf` подтверждены объектами/ancestry integration и HEAD — каждый exit 0.
+
+404 больше не открытый backend blocker: из свежего AST api/media проверены все шесть literal 404 calls через настоящий IntakeError.payload и строгий K validator — exit 0, только job_not_found/media_not_found. Предыдущий exit-1 repro относится к старому A; клиент/контракт не ослаблены. Восемь наборов infra/rules/tests/frontend/contracts/locks идентичны 1137423; backend изменён принятым c46a2c0, поэтому старое утверждение о девяти идентичных objects не переносится на новый HEAD. Native tests/build сохраняют фактическую дату 17 октября; полный runtime этим не подтверждён.
+
+На текущем Windows реально выполнены:
+
+| Проверка | Exit | Наблюдение |
+| --- | --- | --- |
+| Standalone Compose 5.6.0 version | 0 | Только CLI |
+| Тот же Compose `ls --format json` | 1 | Engine npipe docker_engine отсутствует; соединение не установлено |
+| preflight.ps1 -Strict с собственным Python 3.11 | 2 | service/gpu/docker/compose/toolchain readiness false, Python 3.11 true |
+| nvidia-smi host query | 0 | RTX 4060 Laptop, driver 595.79, 8188 MiB; не target RTX 5060 и не container CUDA |
+| Native test venv `import torch` | 1 | ModuleNotFoundError; ML extra не установлен в этом venv, не GPU/runtime тест |
+
+Docker/Podman CLI, Docker service/pipe, Docker contexts/config/DOCKER_HOST и SSH config в проверенных стандартных местах отсутствуют. Общий K source pyproject/lock остаётся CPU Torch: даже доступный engine не заменяет согласованный CUDA lock. Запись чужого shared lock не выполнялась. Пользователь сообщил о другом компьютере, затем **отложил предоставление доступа** и поручил записать инструкцию запуска для релиза; дальнейших вопросов о доступе сейчас нет.
+
+По этому прямому поручению добавлен `docs/operations/RELEASE.md` (новый документ в собственной operations-области): Linux/Windows роли, engine prerequisites, точный checkout, private env/key generation, local TLS, отдельный harness build/start, worker network/TCP probes, PostgreSQL/Redis/media/models markers и restart, gated application migration/GPU tensor check, внешний trusted TLS/upload/status, остановка/backup и текст будущих release notes. Новый путь добавлен по текущему указанию пользователя, прежний plan.json не менялся. SETUP ссылается на него, использует исправленный A и больше не содержит активных команд включения WSL; BENCHMARK отмечает закрытие старого 404. [Публичная страница GitHub Releases](https://github.com/AlmazCode/Fortress/releases) при проверке не содержит выпусков; tag/Release/deploy не создавались. Инструкция подготовлена для включения главным в будущий релиз.
+
+Проверка новых команд документа: все **11 Bash blocks — bash -n exit 0**, **5 Python snippets — compile exit 0**, фактически исполненный private-env generator — exit 0. С его временным env настоящий Compose `config --quiet` прошёл для production и harness — оба exit 0. Это синтаксис/настройки инструкции, не исполнение её container/SQL/restart/GPU/внешних шагов. Локальные raw JSON/checkpoints находятся вне Git, secrets не публиковались.
+
+Итог: **O2/O3/O blocked**, actual build/start, worker PostgreSQL/Redis/egress, volumes/restart, container GPU/CUDA и trusted external HTTPS not_run. B остаётся после принятого I, R — software accepted/legal unknown. Следующее действие: когда пользователь предоставит доступ к другому разрешённому хосту и внешний маршрут, выполнить RELEASE.md и заменить not_run фактическими exit codes/артефактами. До этого установщики, WSL/VM и перезагрузка не выполняются; main/force-push/новые чаты не затронуты. Общий manifest/audit обновляет №1 при review нового журнала.

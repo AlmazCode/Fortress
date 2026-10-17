@@ -5,7 +5,7 @@
   "owner": "developer-4",
   "branch": "codex/dev4-rules-infra",
   "tested_code_commit": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf",
-  "integration_snapshot": "bfff45447f74a5263b1d728e05ebb41490d91b58",
+  "integration_snapshot": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
   "integration_merge": "8a4cf759095adfa59090536ca7cf83a2932c4726",
   "status": "blocked",
   "scope": "Owned software tooling and native client tests; not full-stack operational acceptance",
@@ -18,7 +18,7 @@
     "R software"
   ],
   "remaining_tasks": {
-    "O2": "blocked: configuration/build-input fixes prepared; actual container/offline/persistent-runtime checks not run",
+    "O2": "blocked: actual engine connection failed; no permitted runtime host/access supplied; build/start/connectivity/egress/volume restart/container CUDA not_run",
     "O3": "blocked: local HTTP/TLS passed; trusted external observer/hostname/route absent",
     "O": "blocked on O2/O3",
     "B": "tooling prepared; operational acceptance blocked on accepted I and real runtime"
@@ -63,15 +63,16 @@
   "runtime_gates": {
     "native_windows_full_worker": "unsupported by accepted POSIX fcntl/signals/prefork implementation",
     "native_linux_runtime": "not_run_on_this_host",
-    "docker_engine_build_start": "not_run_user_deferred_virtualization",
+    "docker_engine_build_start": "not_run: native Windows engine probe exit 1, docker_engine named pipe absent; virtualization/install/reboot deferred",
     "worker_local_db_redis_and_egress": "not_run",
     "persistent_media_models_db_restart": "not_run",
     "full_stack_crash_retry_fencing_capacity": "not_run_requires_I",
-    "target_gpu_cuda_container_compatibility": "not_verified",
+    "target_gpu_cuda_container_compatibility": "not_verified: host NVIDIA query succeeds, no container engine; shared lock selects CPU Torch; local test venv has no torch",
     "trusted_external_https_auth_upload_poll_media": "not_run",
     "external_access_verified": false,
     "independent_external_observer_required": true,
-    "normative_applicability": "unknown: no verified original case/jurisdiction/source in this checkout"
+    "normative_applicability": "unknown: no verified original case/jurisdiction/source in this checkout",
+    "backend_404_contract": "software fix integrated at c46a2c0; six actual serializer cases passed strict K on 2026-10-18; no new live HTTP/runtime claim"
   },
   "measurements": {
     "trained_release_performance": "not_measured",
@@ -110,7 +111,7 @@
   },
   "handoff_to_role_1": [
     {
-      "issue": "Accepted A emits error.code=not_found for 404, absent from K Error enum",
+      "issue": "Historical A 043eeb6 404 code mismatch; resolved by backend owner",
       "source_commit": "043eeb6d125f3b77d71b74de3b56c6a1cee91e70",
       "paths": [
         "backend/app/api.py",
@@ -119,7 +120,9 @@
         "contracts/diagnostics.schema.json"
       ],
       "required_result": "Return contract job_not_found/media_not_found and validate error body plus HTTP status; do not weaken K/client",
-      "role_4_evidence": "2026-10-18 actual IntakeError serializer from AST-derived backend/app/api.py:18 arguments rejected by K; expected/actual exit 1. HTTP regression rejects the same noncontract code. No live Windows backend claim."
+      "role_4_evidence": "Current AST-derived api/media 404 calls use job_not_found/media_not_found; all six actual IntakeError.payload bodies pass strict diagnostics validator, exit 0. Previous exit-1 reproduction remains historical evidence for old A.",
+      "status": "resolved_in_integrated_backend",
+      "resolved_commit": "c46a2c005e2882c0c794bc44cecb7ff3cc393d13"
     },
     {
       "issue": "B needs accepted I, explicit synthetic bootstrap and server stage trace outside jury JSON",
@@ -128,6 +131,15 @@
     {
       "issue": "DEV-4 journal changed",
       "required_result": "Refresh shared GitHub-plan manifest/audit during owner-1 review; role 4 did not edit shared manifests"
+    },
+    {
+      "issue": "Shared K ML dependency source is pytorch-cpu on Linux/Windows",
+      "status": "open_gpu_runtime_prerequisite",
+      "paths": [
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "required_result": "Owner 1 must provide and verify an agreed CUDA-compatible shared lock for the intended GPU host before container GPU/CUDA acceptance; role 4 does not fork shared dependencies."
     }
   ],
   "previous_assessment_date": "2026-10-17",
@@ -288,7 +300,9 @@
     "external_hostname": null,
     "external_route_confirmed": false,
     "external_tls_confirmed": false,
-    "comment": "No operational host, engine credentials/connection or external URL supplied. Technical delegation does not create or authorize an unprovided host/route."
+    "comment": "User confirms another computer exists, then defers providing access and requests release launch instructions. No address/connection supplied, no current access question pending. Existing approved Linux container stack retained; no new infrastructure provisioned.",
+    "user_reported_alternate_computer": true,
+    "access_deferred_by_user": true
   },
   "minimum_completion_conditions": {
     "O2": [
@@ -305,5 +319,246 @@
     ],
     "O": "Actual O2 and O3 criteria pass on exact checked commits; ordinary push/config/native tests do not close them",
     "B": "Accepted I plus explicit synthetic bootstrap and actual full-stack recovery/capacity/deadline evidence; parser/harness success is insufficient"
+  },
+  "previous_report_head": "6d7e6789f70df4445be19e758a209d9b95013ce0",
+  "synchronization_method": "fast-forward to accepted integration; exit 0",
+  "runtime_attempt_2026_10_18": {
+    "checked_integration_sha": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
+    "latest_review_sha": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
+    "fetch_exit_code": 0,
+    "fast_forward_exit_code": 0,
+    "accepted_dependencies": {
+      "K": {
+        "sha": "2e44bf555ad1a824d92e73770a1ee85d1bf20d0f",
+        "object": {
+          "exit_code": 0,
+          "stdout": "commit",
+          "stderr": ""
+        },
+        "head_ancestor_exit_code": 0,
+        "integration_ancestor_exit_code": 0
+      },
+      "A_404_fix": {
+        "sha": "c46a2c005e2882c0c794bc44cecb7ff3cc393d13",
+        "object": {
+          "exit_code": 0,
+          "stdout": "commit",
+          "stderr": ""
+        },
+        "head_ancestor_exit_code": 0,
+        "integration_ancestor_exit_code": 0
+      },
+      "F": {
+        "sha": "c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc",
+        "object": {
+          "exit_code": 0,
+          "stdout": "commit",
+          "stderr": ""
+        },
+        "head_ancestor_exit_code": 0,
+        "integration_ancestor_exit_code": 0
+      },
+      "infra_code": {
+        "sha": "1137423fc1de54b3d6cc5b77c2c14010e72d2ecf",
+        "object": {
+          "exit_code": 0,
+          "stdout": "commit",
+          "stderr": ""
+        },
+        "head_ancestor_exit_code": 0,
+        "integration_ancestor_exit_code": 0
+      }
+    },
+    "native_tooling_identity": [
+      {
+        "path": "infra",
+        "oid": "36c2a90b8be63773bc4cdd20eff1794121a3a8df",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "rules",
+        "oid": "fc0a66aea715b6065da2bb0f2b3d2ef46ce0c030",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "tests/performance",
+        "oid": "7cefd82329b3e8f027f5ea897d72d75291e0d06d",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "tests/rules",
+        "oid": "e5cd679528b33ca34fa5795defea289c86bfaf5a",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "frontend",
+        "oid": "b995aadd25d75aadbd47dd75ff348d7e9eed62ae",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "contracts",
+        "oid": "b7dda28996a41cadff8e6b9613987e5069c17197",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "pyproject.toml",
+        "oid": "ad0c4c82ec254a6a9700a1d82d03abede3d5e583",
+        "identical_to_1137423": true
+      },
+      {
+        "path": "uv.lock",
+        "oid": "a35c1becb0d634b494b795ada5c3e6e757d018c7",
+        "identical_to_1137423": true
+      }
+    ],
+    "prior_test_evidence": "Native role-4 tests/builds retain original 2026-10-17 date on 1137423; eight relevant tooling/contracts/dependency objects unchanged. Backend changed through accepted c46a2c0; no claim all nine old objects remain identical.",
+    "observed_checks": {
+      "compose_version": {
+        "exit_code": 0,
+        "stdout": "Docker Compose version v5.6.0",
+        "stderr": ""
+      },
+      "engine_connection": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "failed to connect to the docker API at npipe:////./pipe/docker_engine; check if the path is correct and if the daemon is running: open //./pipe/docker_engine: The system cannot find the file specified."
+      },
+      "host_gpu": {
+        "exit_code": 0,
+        "stdout": "NVIDIA GeForce RTX 4060 Laptop GPU, 595.79, 8188 MiB",
+        "stderr": ""
+      },
+      "native_torch": {
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'torch'"
+      }
+    },
+    "strict_preflight": {
+      "exit_code": 2,
+      "readiness": {
+        "service_ready": false,
+        "gpu_ready": false,
+        "external_access_verified": false,
+        "os_ready": false,
+        "python311_ready": true,
+        "docker_ready": false,
+        "compose_ready": false,
+        "ffmpeg_ready": false,
+        "toolchain_ready": false
+      },
+      "blockers": [
+        "Run the Linux preflight inside the intended Ubuntu/WSL2 environment",
+        "A working Linux Docker daemon was not verified",
+        "Docker Compose >=2.24.4 with working Docker daemon was not verified",
+        "Working FFmpeg and ffprobe were not verified",
+        "NVIDIA container runtime was not verified with an actual local container",
+        "Application/dependency-lock compatibility and model readiness are not tested by inventory",
+        "Training PC hardware is not verified by inspecting this host",
+        "No independent external synthetic upload/status observation; O3 is still required",
+        "No hostname, trusted certificate or incoming transport has been provided"
+      ],
+      "scope": "Read-only native Windows inventory; no ContainerSmoke, feature enablement, installation or reboot"
+    },
+    "current_404_serializer_checks": [
+      {
+        "source": "backend/app/api.py",
+        "line": 18,
+        "status": 404,
+        "code": "job_not_found",
+        "validation": "passed"
+      },
+      {
+        "source": "backend/app/media.py",
+        "line": 151,
+        "status": 404,
+        "code": "job_not_found",
+        "validation": "passed"
+      },
+      {
+        "source": "backend/app/media.py",
+        "line": 159,
+        "status": 404,
+        "code": "media_not_found",
+        "validation": "passed"
+      },
+      {
+        "source": "backend/app/media.py",
+        "line": 229,
+        "status": 404,
+        "code": "media_not_found",
+        "validation": "passed"
+      },
+      {
+        "source": "backend/app/media.py",
+        "line": 167,
+        "status": 404,
+        "code": "media_not_found",
+        "validation": "passed"
+      },
+      {
+        "source": "backend/app/media.py",
+        "line": 235,
+        "status": 404,
+        "code": "media_not_found",
+        "validation": "passed"
+      }
+    ],
+    "serializer_validation_exit_code": 0,
+    "no_runtime_executions": {
+      "build": "not_run",
+      "start": "not_run",
+      "worker_postgres_redis": "not_run",
+      "worker_egress_denied": "not_run",
+      "volume_restart": "not_run",
+      "container_cuda": "not_run",
+      "recovery": "not_run_requires_accepted_I"
+    },
+    "external_https": {
+      "status": "not_run",
+      "hostname": null,
+      "route_confirmed": false,
+      "trusted_certificate_confirmed": false,
+      "external_upload_status_verified": false
+    },
+    "missing_access": "User reports an alternate computer, but explicitly defers access until later. Address/connection and external endpoint remain unprovided; no dependent runtime actions attempted.",
+    "constraints_observed": [
+      "No WSL/VirtualMachinePlatform enablement",
+      "No Docker reinstall",
+      "No VM setup",
+      "No reboot",
+      "No deployment",
+      "No main/force-push/new chats"
+    ],
+    "user_next_step": "Provide access later; current authorized deliverable is release launch documentation."
+  },
+  "release_instructions": {
+    "path": "docs/operations/RELEASE.md",
+    "requested_by_user": true,
+    "status": "prepared_for_future_release_not_runtime_validated",
+    "public_github_release_observed": false,
+    "release_page": "https://github.com/AlmazCode/Fortress/releases",
+    "published_release_or_tag_created": false,
+    "scope": "New operations document explicitly requested by user; shared plan/manifest not edited",
+    "validation": {
+      "bash_blocks": 11,
+      "bash_syntax_exit_code": 0,
+      "python_snippets": 5,
+      "python_compile_exit_code": 0,
+      "private_env_generation_exit_code": 0,
+      "compose_config_checks": [
+        {
+          "profile": "production",
+          "exit_code": 0
+        },
+        {
+          "profile": "harness",
+          "exit_code": 0
+        }
+      ],
+      "scope": "Documentation syntax, actual private-env generator and actual Compose config only; no container execution"
+    },
+    "runtime_commands_executed": false,
+    "future_release_owner_action": "Include launch instructions and actual acceptance evidence in release for exact accepted I/release SHA"
   }
 }
