@@ -13,8 +13,8 @@ Checkout: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`.
 | A3 | accepted | 6f7f5bf689440640bdc205642aefe7bf07a4d283 | 8 passed; доступен в integration |
 | A4 | accepted | 61a69ce8edc254b4d62ab0652eb8f89df146e434 | 7 passed; реальный Redis/Celery |
 | A5 | accepted | 4e5d9b09b292af03f27991b32cadf9aae2af64d6 | 8 fault/deadline tests; A1 rechecked |
-| A | accepted | 043eeb6d125f3b77d71b74de3b56c6a1cee91e70 | 116 contracts/API tests; настоящий HTTP/Redis/PostgreSQL |
-| I | blocked | — | Требуются A/F/M/R/O |
+| A | accepted | 043eeb6 + c46a2c0 | 118 contracts/API tests; исправлены job/media HTTP404 codes |
+| I | blocked | — | M4/M: .video port regression; O: actual runtime/HTTPS; A/F/R приняты |
 | Z | blocked | — | Требуются U/E/B после I |
 
 ## K — контракт (17 октября 2026)
@@ -184,3 +184,59 @@ Base `c00516e3e5e8bc08c0ba96a4cb24b0048178068f`. Origin/свой checkout/clean 
 Причина в `ml/data/splits.py:66–95` и `:133–142`: old split сбрасывается, existing final не входит в новый final set, отсутствующий CLI flag даёт []. Текущий test_final_never_enters_training_or_threshold_calibration покрывает только selector сразу после первого split, поэтому 129 зелёных tests не опровергают повторный сценарий. [P1] нарушает acceptance D3 №4; точная последовательность и варианты исправления переданы через STATUS.md. Исходники №3 не исправлялись и сообщения другим чатам не отправлялись.
 
 После `git diff --cached --check` → 0 выполнен `git merge --abort` только для собственного review merge; рабочее дерево чистое, все candidate commits сохранены. D3 marked blocked review, D4 не открывается. Evidence `.aster/checkpoints/d3-review-cli.json` локальное, в Git не добавлялось. Требуется новый исправленный D3 SHA; I по-прежнему ждёт M/O, Z — I/U/E/B.
+
+## Свежая проверка №3/№4 и HTTP 404 — 18 октября 2026
+
+Продолжение по прямому поручению человека: Git/GitHub, без Aster; свои codex/fortress-backend и codex/integration, без новых чатов/сабагентов. Checkout `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`; стартовый base/HEAD `bfff45447f74a5263b1d728e05ebb41490d91b58`, clean own tree. Проверены HTTPS origin AlmazCode/Fortress, Git root, исходная база `46b7bc941e64fec5649242b8290607c8f7339819` и ancestry. Прочитаны AGENTS/WORKFLOW/план/ТЗ №1/актуальные критерии и журналы всех ролей. №2 остаётся 45c35eb: принятая F, U ждёт I. Общая dirty main и другие worktrees не менялись.
+
+Первый fetch → exit0: №3 7aab330, №4 8aee9d1. Контрольный fetch перед сдачей → exit0: №3 4513993fd8679d93e39424aa3d63178c84e15fb4 (DEV-3/HANDOFF), №4 6d7e6789f70df4445be19e758a209d9b95013ce0 (DEV-4/ACCEPTANCE и уже имеющаяся история integration). Эти последние журналы прочитаны; исполняемый код остаётся соответственно85e5b21/1137423. Старое отклонение d0b9704 не переносилось на исправленный D3.
+
+### Backend A: подтверждённый HTTP/body дефект и исправление
+
+Новые реальные uvicorn/HTTP tests сначала воспроизвели `not_found` вместо `job_not_found` и `media_not_found`: `.venv/bin/python -m pytest tests/api/test_contract.py -k not_found -q --tb=short` → **exit1, 2 failed, 8 deselected, 1.71s**. После минимального изменения api.py/media.py/main.py весь `.venv/bin/python -m pytest tests/contracts tests/api -q --tb=short` → **exit0, 118 passed, no skips, 35.70s**. Использованы настоящие приватные PostgreSQL18/Redis/Celery/FFmpeg и HTTP, env из локального postgres-runtime.json; secrets в вывод не печатались.
+
+Исправление **c46a2c005e2882c0c794bc44cecb7ff3cc393d13**: 4 файла, 54 insertions/8 deletions. Missing public/UI jobs, malformed/random ID и generic API404 → job_not_found; missing original/preview/invalid evidence существующего job → media_not_found. Проверяется schema тела, private/no-store и отсутствие ключа/пути; job после потери media остаётся processing. K/locks не изменены. Production без release сохраняет503 model_not_ready, не создаёт job/outbox.
+
+### Последовательная приёмка D3–D/M1–M3
+
+Каждый кандидат проверялся обычным merge --no-ff --no-commit поверх уже принятых ancestors; scope и git diff --cached --check →0, затем отдельный merge commit. Список ниже — собственные прогоны, не пересказ авторских результатов. Общий префикс команды: `.venv/bin/python -m pytest`, все перечисленные тесты в `tests/ml/`, окончание `-q --tb=short`; каждый exit0/no skips.
+
+| Этап | Точный код | Merge | Passed / время | Tests |
+| --- | --- | --- | --- | --- |
+| D3 | `54493fcd10b1824356f82df3f6bbbfadc1ea5ffc` | `d74e06ad80a6751d0bf50a0a66a7ae88192b10cc` | 55 / 1.92s | test_splits.py test_manifest.py test_deduplicate.py test_safe_archive.py |
+| D4 | `8b263be898a7f62504cce7a27d82ad8cce89e60b` | `6434cf83ba0e602600063144acf9554efb54581f` | 14 / .47s | test_pts_index.py test_extraction.py |
+| D5 | `4ad53e30fe844fba794368e15fa53b91588e007f` | `1c53619772b05400e64e02279615a68137feece7` | 40 / 1.27s | test_annotations.py test_objects_coco.py test_annotation_quality.py |
+| D | `97bb8cdc6f507990edd5fbd469708a3f4aeb806d` | `f99e5013fc5b061346c6256afd92c2b4adab2556` | 51 / 9.72s | test_data_pipeline.py test_annotations.py test_objects_coco.py test_extraction.py |
+| M1 | `145e33e3b80f0001b4eb0eb695ee7b3916c00ce5` | `6133bd1497bf910709fe406e6b19059fc0c974ad` | 28 / 1.92s | test_pts_preprocessing.py test_cache_resume.py |
+| M2 | `e30bfb642df2a3b86ea0d0da42652623b1492444` | `3537909e7a716096aad476911dfed5b4333452bc` | 15 / 10.04s | test_shapes_masks.py test_training_resume.py |
+| M3 + M2 lineage fix | `e7db22fe270215c1a0cb8404f7db4d384931edaf` | `30c9df6548a31b7d937ae9d23fd6554cb1e809fb` | 38 / 20.48s | test_cache_resume.py test_training_resume.py test_evaluation_export.py test_export_format.py |
+
+D3 собственное дополнительное воспроизведение `.aster/checkpoints/review-resplit.py`: четыре новых synthetic FFV1/MKV32×24/PTS20,21,24,25/time_base1/10; actual import/split CLI. First seed17: train2/dev1/final1. Re-split без final flag (17,.2)/(99,.7)/(321,0): соответственно2/1/1,1/2/1,3/0/1; старый final ни разу не returned training/calibration selectors. Позднее reselection → exit2, output отсутствует; originals SHA/mtime неизменны. Связанные source/exact/near groups и отсутствие sidecar покрыты прочитанными и запущенными regressions. Старый P1 закрыт.
+
+D4 проверяет реальные decode/PTS/VFR/nonzero origin/rotation, masks, scene boundaries, PNG/FFV1 export, re-run/byte/free-disk failures. D5: canonical actions/objects/COCO/QA, edited labels reset review, invalid provenance/unknown/pseudo не gold. D: actual subprocess data CLI и readiness, real data_ready=false. M1: letterbox224/ImageNet normalization, source hashes/cache masks/invalidation. M2: actual frozen MobileNet576 + GRU1×256, masked loss, deterministic CPU train/resume; all-unknown не negative. M3: dev-only calibration, final metrics, checkpoint/data lineage и полный FP32 export с encoder без optimizer. M2 follow-up6c9f4c2 и M3 a23f946/e7db22f включены в merge30c9df6. Реальные данные/полное обучение/предметное качество не проверялись.
+
+### M4/M: новый воспроизводимый возврат, не старый holdout
+
+Временный merge M4 67ec1deb592fbfd8b80437ae5ffeda465aba6adf: `.venv/bin/python -m pytest tests/ml/test_release_loader.py tests/ml/test_inference_timeline.py -q --tb=short` → **exit0,16 passed,6.13s**. Loader/atomic switch/rollback/unknown timeline проверки проходят. Собственный `.aster/checkpoints/review-inference-storage.py` с actual LocalStorage.promote + VideoValidator и tiny test package воспроизвёл несовместимость K TimelineProvider с именем сохранённого upload: .mp4 проходит, byte-identical .video → decode_unsupported_or_corrupt.
+
+После отмены только своего временного M4 merge проверен полный head7aab330 (M85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d). `.venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q --tb=short` → **exit0,269 passed,no skips,83.43s**. Список includes real13 CLI help и cache/train/resume/evaluate/thresholds/export/import/activation/rollback/infer tiny tests. Материалы E8d8a476 рассмотрены, E blocked до I. Поздний4513993 только уточняет прежние D3/M evidence, повторный suite без изменения кода не нужен.
+
+Дополнительный `.aster/checkpoints/review-final-ml.py` использует настоящие CLI на новой temporary directory вне Git: `ml.cli smoke` →0,3 tiny synthetic videos,2 optimizer steps/resume; model.pt6,385,243 bytes (encoder3,756,752 tensor bytes + GRU/head2,564,104), checkpoint11,543,771; data/trained/validated/production=false, verdict_metrics=null, coverage=none. CLI train на final →1 `only train partition may update weights`; thresholds на final →1 `only on dev_validation`, обе output отсутствуют. Затем настоящий H.264 MP4 64×48/10fps/1s → infer0; тот же файл после LocalStorage.promote (backend validator pass, SHA/bytes equal) → CLI infer1 `decode_unsupported_or_corrupt`, output отсутствует.
+
+Причина: ml/inference.py51–55 передаёт backend-owned `.video` data importer; ml/data/manifest.py87–91 whitelist берёт формат из suffix, а pts_index.py55/95 также использует suffix lookup. Исправить весь probe/index/decode путь в №3, сохранить local-only protocol/decode/hash limits, добавить реальный storage-path regression и новый SHA. Это P1: обычный admitted upload после wiring не даст timeline. **M4/M не приняты/не интегрированы**; оба временных merge отменены, все commits автора сохранены. Полное повторение и expected/actual в STATUS.md; ML исходники не присваивались/не правились №1.
+
+### №4: подтверждены исправления кода, runtime отдельно
+
+Code1137423fc1de54b3d6cc5b77c2c14010e72d2ecf/report8aee9d1 проверены и включены merge3e19b04256d193321c243f8d3fafaf70efd7a88c;27 incoming paths в объединённом scope№4, внеплановых нет. Ранее исправленные CLI/env/migration/PID config сохранены. Свежие DEV-4/ACCEPTANCE6d7e678 прочитаны и объединены documentation-only merge f950594e7b1b4cdcf77eb19817289b30103a4e81; только2 пути, code bytes не менялись. Это принятие кода/tooling, **не O2/O3/O/B acceptance**.
+
+- `FORTRESS_COMPOSE_CLI=/usr/libexec/docker/cli-plugins/docker-compose FORTRESS_TEST_OPENSSL=/usr/bin/openssl .venv/bin/python -m pytest tests/performance tests/rules -q --tb=short` → **exit0,77 passed,1 skipped,50 subtests,12.36s**. Skip — PowerShell7, отсутствует на Linux. Actual Compose5.5.1 config/loopback HTTP/TLS/private CA/RSS своего процесса, не контейнерный runtime.
+- Новый temporary COPY layout /frontend + sibling /contracts, копия файлов из финального Dockerfile и symlink на существующие locked node_modules, `npm run build` → **exit0**, typecheck/Vite173modules; Node24.21.0. Старый TS2307 закрыт; это не image build.
+- `.aster/checkpoints/test_infra_real_api.py` с настоящими uvicorn/PostgreSQL/Redis, actual client tests/performance/benchmark.py → **exit0,2 passed,4.97s**. Production401/404/503 и synthetic FixtureRunner upload→outbox→Celery solo test worker→public/UI→original SHA/preview/JPEG. Не ML/Compose/prefork acceptance, server stage metrics остаются null.
+- `bash -n infra/scripts/smoke.sh` и smoke.sh --help с .venv Python →exit0; git diff checks→0.
+- `timeout 8s docker version --format '{{json .Server.Version}}'` → **exit1, permission denied /var/run/docker.sock**. Engine permissions/системные установки/WSL/VM не менялись.
+
+Открыты runtime image build/start/migrate, worker local DB/Redis при запрещённом egress, persistent media/models/DB restart, actual target GPU/CUDA. Нет подтверждённых external hostname/certificate/route и независимого внешнего клиента для HTTPS upload/status. Native client smoke этих gates не закрывает. Нужны evidence №4 на доступном разрешённом runtime; текущий CPU lock не доказывает CUDA.
+
+**I не начиналась и не объявляется готовой:** M4/M ждёт нового SHA с .video regression, O ждёт runtime/external HTTPS. После их проверки и принятия — I, затем U/E/B, затем Z. Full training остаётся отложенным; production503 без trained release ожидаем. Aster/main/force-push/deploy/чаты/сабагенты/сообщения другим чатам не использовались. Собственные backend/integration публикуются обычным push по действующему разрешению; итоговый точный head доступен через Git.
+
+Документационный validator сначала дал exit1: он ошибочно считал ID из таблиц review/dependencies назначенными задачами автора (DEV-1/DEV-4 task scope mismatch). Исправлен общий `validate_plan.py`: ownership читается только из основной таблицы Task/State, missing/extra/duplicate tasks продолжают отвергаться; чужие журналы ради parser не менялись. После refresh и проверки ownership negatives в памяти — exit0; граф36/48 и продуктовые criteria сохранены. Это документационная проверка, не application acceptance.

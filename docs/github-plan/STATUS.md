@@ -1,6 +1,6 @@
 # Сводка проекта — ведёт только главный
 
-Интеграционная ветка: `codex/integration`. Последние проверенные интеграции: A `043eeb6`, F merge `c6d15d5`, D1 merge `8dd2da1`, D2 merge `47787cb`, O1/R merge `df1f398` (K, все A1–A5 и F1–F4 входят по ancestry). Общая main не изменяется. Приёмка ниже — фактическая проверка главным №1, не независимая человеческая приёмка. Приёмка этапов относится только к указанному объёму; legal/ML/GPU/external HTTPS gates описаны отдельно ниже.
+Интеграционная ветка: `codex/integration`. Последние проверенные интеграции: исправление A `c46a2c0`, F merge `c6d15d5`, D1/D2, D3–D/M1–M3 до merge `30c9df6`; код инфраструктуры №4 `1137423` + отчёт `8aee9d1` включены merge `3e19b04`, но O2/O3/O остаются blocked по runtime/HTTPS (K, все A1–A5 и F1–F4 входят по ancestry). Общая main не изменяется. Приёмка ниже — фактическая проверка главным №1, не независимая человеческая приёмка. Приёмка этапов относится только к указанному объёму; legal/ML/GPU/external HTTPS gates описаны отдельно ниже.
 
 Принятые commits: K — `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f`; A1 — `a84cce5e19c8b5a96286473aa9283c2c6b3a1194`. Команды, покрытие и ограничения — [журнал №1](status/DEV-1.md).
 
@@ -19,27 +19,76 @@
 - [x] F — Интерфейс анализа · №2 · accepted software (c931791, merge c6d15d5); настоящий API/browser journey — I/U
 - [x] D1 — Аудит данных и среды · №3 · accepted (536fe7a, merge 8dd2da1)
 - [x] D2 — Классы и инструкция разметки · №3 · accepted draft (b496127, merge 47787cb); human review/final taxonomy не заявлены
-- [ ] D3 — Импорт и split без утечки · №3 · blocked review (d0b9704; повторный split переносит final в train)
-- [ ] D4 — Кадры и клипы по PTS · №3 · blocked (D3 не принят)
-- [ ] D5 — Разметка объектов и событий · №3 · unverified
-- [ ] D — Данные и preflight · №3 · unverified
-- [ ] M1 — Preprocessing и кэш · №3 · unverified
-- [ ] M2 — GRU и CPU train/resume · №3 · unverified
-- [ ] M3 — Оценка и экспорт пакета · №3 · unverified
-- [ ] M4 — Loader и inference adapter · №3 · unverified
-- [ ] M — ML CLI и загрузка release · №3 · unverified
+- [x] D3 — Импорт и split без утечки · №3 · accepted (54493fc, merge d74e06a); прежний holdout defect закрыт
+- [x] D4 — Кадры и клипы по PTS · №3 · accepted software (8b263be, merge 6434cf8)
+- [x] D5 — Разметка объектов и событий · №3 · accepted software (4ad53e3, merge 1c53619)
+- [x] D — Данные и preflight · №3 · accepted tools (97bb8cd, merge f99e501); real data_ready=false
+- [x] M1 — Preprocessing и кэш · №3 · accepted software (145e33e, merge 6133bd1)
+- [x] M2 — GRU и CPU train/resume · №3 · accepted software (e30bfb6 + follow-up 6c9f4c2, merges 3537909/30c9df6)
+- [x] M3 — Оценка и экспорт пакета · №3 · accepted software (a23f946 + e7db22f, merge 30c9df6)
+- [ ] M4 — Loader и inference adapter · №3 · blocked review (67ec1de): штатный backend .video отвергается
+- [ ] M — ML CLI и загрузка release · №3 · blocked review (85e5b21, report 7aab330): дефект M4 сохраняется
 - [x] R1 — Кейсы и нормативные источники · №4 · accepted software / missingSource; legal gate unknown
 - [x] R2 — Память ролика и связей · №4 · accepted
 - [x] R3 — Правила и сложные примеры · №4 · accepted software; все production cases unsupported
 - [x] R — Правила и источники · №4 · accepted software (9569729); legal gate unknown
-- [ ] O2 — Compose и offline worker · №4 · blocked (frontend build/runtime; 3cee753, отчёт b679dc7)
+- [ ] O2 — Compose и offline worker · №4 · code integrated (1137423, merge 3e19b04); blocked runtime/offline/volumes/GPU, COPY contracts исправлен
 - [ ] O3 — TLS и внешний smoke · №4 · blocked (нет подтверждённого внешнего HTTPS)
 - [ ] O — Compose и доступ по HTTPS · №4 · blocked (O2/O3)
 - [ ] I — Интеграция без весов · №1 · blocked (M/O; A/F/R software приняты)
 - [ ] U — Браузерная приёмка · №2 · unverified
-- [ ] E — Передача ML-инструментов · №3 · unverified
-- [ ] B — Восстановление и benchmark · №4 · unverified
+- [ ] E — Передача ML-инструментов · №3 · материалы 8d8a476 рассмотрены; blocked до принятого I
+- [ ] B — Восстановление и benchmark · №4 · tooling integrated (1137423); actual full-stack acceptance blocked до I
 - [ ] Z — Финальная сдача · №1 · blocked (I → U/E/B)
+
+## Актуальное review 18 октября 2026: новые SHA №3/№4
+
+Результаты ниже заменяют старые возвраты D3/COPY contracts. История дальше относится к прежним SHA. Проверки выполнены главным в собственном checkout; это не человеческая/ML/production приёмка.
+
+### Принятые D3–D и M1–M3
+
+D3 **54493fcd10b1824356f82df3f6bbbfadc1ea5ffc**: 55 targeted tests passed. Собственный CLI import четырёх новых FFV1/MKV → split seed17 с final → re-split без final flag при (seed,dev_fraction)=(17,.2),(99,.7),(321,0) сохранил один final во всех трёх случаях. Training/calibration selectors его не возвращают; попытка выбрать другой final → exit2, output отсутствует, originals/hash/mtime сохранены. Старый P1 d0b9704 **закрыт**.
+
+Далее последовательно проверены и объединены D4 (14 tests), D5 (40), D/data CLI с затронутыми regressions (51), M1 (28), M2 (15), M3 вместе с M2 lineage fix (38). Точные SHA и commands — DEV-1. Это tools ready и tiny CPU software evidence; реальные labels/weights/ML validation не заявляются.
+
+### Новый возврат №3: [P1] M4 не принимает файл, сохранённый backend
+
+Проверены M4 **67ec1deb592fbfd8b80437ae5ffeda465aba6adf** и итоговый M **85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d** на опубликованном head **7aab330**. Повторный fetch получил **4513993fd8679d93e39424aa3d63178c84e15fb4**: только DEV-3/HANDOFF, код M и holdout не изменён; свежая передача прочитана. Все **269 tests passed, no skips, 83.43s** воспроизведены главным. Отдельный `ml.cli smoke` → exit0: три synthetic источника, 2 optimizer steps с resume, dev calibration/final evaluation, FP32 model.pt=6,385,243 bytes, data/trained/validated/production=false. Actual CLI train на final и thresholds на final → exit1 без output. Holdout исправлен также на границах trainer/calibration.
+
+**Новый обязательный дефект:** `backend/app/storage.py:87` штатно сохраняет upload как `<32hex>.video`. `TimelineAdapter.infer` (`ml/inference.py:51–55`) передаёт этот путь data importer; `ml/data/manifest.py:87–91` определяет контейнер только по suffix и отвергает `.video` до decode. В `ml/data/pts_index.py` также есть suffix→format lookup; исправить только первый whitelist недостаточно.
+
+Главный создал настоящий H.264 MP4 64×48/10fps/1s, сохранил через **LocalStorage.promote**, проверил **VideoValidator** и неизменность байтов/SHA. Inference того же файла под `.mp4` → exit0/coverage=none; под штатным `.video` → `InferenceFailed: decode_unsupported_or_corrupt`. На финальном M это повторено именно через CLI → exit1, timeline output не создан. Проблема затронет обычные accepted uploads при подключении K TimelineProvider; это не плохое видео и не отсутствие trained release.
+
+Минимальный повтор на ветке №3 (новая временная папка, только synthetic):
+
+```sh
+review_dir=$(mktemp -d)
+python -m ml.cli smoke --output-dir "$review_dir/smoke"
+ffmpeg -v error -nostdin -f lavfi -i testsrc2=size=64x48:rate=10:duration=1 -c:v libx264 -threads 1 -pix_fmt yuv420p "$review_dir/synthetic.mp4"
+cp "$review_dir/synthetic.mp4" "$review_dir/0123456789abcdef0123456789abcdef.video"
+python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --video "$review_dir/synthetic.mp4" --output "$review_dir/normal.json"
+python -m ml.cli infer --package "$review_dir/smoke/imported" --allow-test --video "$review_dir/0123456789abcdef0123456789abcdef.video" --output "$review_dir/stored.json"
+```
+
+Последние exit codes: **0 и 1**. Ожидается успешный decode обоих одинаковых файлов с сохранением исходных PTS/hash и unknown coverage. №3: согласовать безопасное определение фактического контейнера для backend-owned paths на всём probe/index/decode пути; сохранить local-only protocols/limits/hash checks, добавить regression с настоящим LocalStorage/VideoValidator и новым SHA. Backend storage/контракты для обхода не ослаблять. M4/M **не приняты и не интегрированы**: временные review merges отменены, все авторские commits сохранены. Материалы E `8d8a476` рассмотрены как подготовка; E ждёт I.
+
+### №4: код исправлен и интегрирован, runtime ещё blocked
+
+Код **1137423fc1de54b3d6cc5b77c2c14010e72d2ecf**, отчёт **8aee9d1**, merge **3e19b04256d193321c243f8d3fafaf70efd7a88c**. Свежий report **6d7e6789f70df4445be19e758a209d9b95013ce0** рассмотрен и объединён отдельным documentation merge **f950594e7b1b4cdcf77eb19817289b30103a4e81**: только DEV-4/ACCEPTANCE, исполняемый код идентичен 1137423. Повторять неизменённые tests не требовалось. Проверена дельта 27 путей: вся в объединённой области №4. CLI/env/migration/PID config и COPY contracts замечания закрыты. Воспроизведён точный frontend COPY layout с sibling contracts и существующим locked node_modules: `npm run build` → exit0, typecheck + 173 modules. Это build inputs, не Docker image build.
+
+`FORTRESS_COMPOSE_CLI=/usr/libexec/docker/cli-plugins/docker-compose FORTRESS_TEST_OPENSSL=/usr/bin/openssl .venv/bin/python -m pytest tests/performance tests/rules -q --tb=short` → **77 passed, 1 skipped, 50 subtests passed, 12.36s**. Skip — PowerShell7 на Linux. Настоящий Compose config/loopback TLS/RSS process checks пройдены; это не runtime acceptance. Shell syntax и smoke.sh --help → exit0.
+
+Дополнительно новый client №4 проверен против настоящих uvicorn/FastAPI + временных PostgreSQL/Redis: production auth401/unknown-job404/model503; explicit synthetic upload→outbox→Celery test worker→done→original SHA/preview/JPEG. **2 passed, 4.97s**. Это native local A/software checks с FixtureRunner, не integrated ML или Compose/внешний HTTPS.
+
+**Оставшиеся O gates:** `docker version` → exit1 `permission denied /var/run/docker.sock`; image build/start, worker DB/Redis connectivity при запрещённом egress, persistence media/models/DB после restart ещё not_run. GPU/CUDA на target hardware не проверены, текущий lock CPU-only. Не заданы/не подтверждены доверенные external hostname/cert chain/route и независимый внешний upload/status observer. Требуется фактическое evidence этих проверок №4; WSL/VM setup, permissions и deploy этим review не изменялись. Код O/B включён для проверки, но **O2/O3/O/B не accepted** и prerequisites I не открыты.
+
+### Исправление A/K 404 и оставшийся I
+
+Собственный commit **c46a2c0** заменяет `not_found` на `job_not_found` для отсутствующего задания и generic API404, на `media_not_found` для отсутствующего original/evidence существующего задания. Новые regressions сначала дали **2 failed** по реальному HTTP/body, после исправления весь contracts/API набор → **118 passed, no skips, 35.70s**. Проверены random/malformed ID, public/UI/media/preview/frame, удалённый original, body schema, cache/private headers и отсутствие утечки key/path. Production без release по-прежнему **503 model_not_ready**, без создания job/outbox.
+
+**I остаётся blocked:** нужен новый исправленный и проверенный M4/M SHA, плюс фактически принятый O runtime/external HTTPS. Отсутствие будущего trained release само по себе I не блокирует; full training отложено. После закрытия M/O №1 выполняет I, затем №2/№3/№4 U/E/B и №1 Z. Общая main не изменяется, force-push/deploy/новые чаты/сабагенты/Aster не используются.
+
+## Исторические результаты (актуальные статусы выше)
 
 A2 принят и включён в `codex/integration`: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382` (19 проверок).
 
@@ -85,7 +134,7 @@ F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` принят главным пос
 4. `infra/.gitattributes` всё ещё вне files задач №4. Убрать этот внеплановый путь либо получить актуальное указание человека об области.
 5. Docker build/start, worker DB/Redis + egress, persistence restart, GPU/CUDA и доверенный внешний HTTPS всё ещё не подтверждены. Закрывать O2/O3/O по config или synthetic harness нельзя.
 
-### Актуальная проверка O2/O3: 3cee753 / b679dc7
+### История проверки O2/O3: 3cee753 / b679dc7 (заменена review 18 октября выше)
 
 Код `3cee7531746927cd035b4c4e51e522f150990dbd`, отчёт `b679dc7` проверены главным поверх принятой integration через временный merge без commit. Вся дельта 19 файлов входит в область №4. Кандидат **пока не интегрирован и не принят**: после проверки временный merge отменён, исходный candidate сохранён в Git.
 
@@ -97,7 +146,7 @@ F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` принят главным пос
 
 Frontend `45c35eb` содержит только синхронизацию журнала с уже принятой F; объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`. Исходники не меняются. На момент этой проверки ML-ветка оставалась `c485788`; более новый D3 рассмотрен ниже.
 
-### Проверка D3: d0b9704 / отчёт 0e9bebc
+### История проверки D3: d0b9704 / отчёт 0e9bebc (дефект закрыт в 54493fc)
 
 Получен точный код `d0b9704b005e85675191baf0c0737b5d6da8cc49`, опубликованный head `0e9bebc`. D1 и D2 уже приняты; D3 **пока не принят и не интегрирован**. Главный прочитал 10 файлов реализации/тестов и журнал №3, проверил scope через временный merge (11 разрешённых путей), выполнил `.venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q` → **0, 129 passed in 3.95s, no skips**. Это 55 K + 9 D1 + 17 D2 + 48 D3. Tests проверяют реальные tiny decode/PTS/rotation, ZIP rejection/rollback, dedup и grouped splits; реальные пользовательские данные не обрабатывались.
 
