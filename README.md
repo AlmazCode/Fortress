@@ -8,6 +8,10 @@ ImageNet-веса, импортирует annotation package и считает f
 запускает MobileNetV3-Small + GRU с checkpoint/resume, dev early stopping и отдельной holdout-оценкой.
 Цель 80% проверяется по accuracy, balanced accuracy и macro-F1; заранее она не гарантируется.
 
+Следующий этап с целью 95%+: [эксперименты на имеющихся видео](docs/model/SMALL_DATA.md).
+Grouped nested CV сравнивает linear/GRU/MIL и ограниченный fine-tuning на исходных train/dev;
+тестовые семьи остаются вне обучения. Независимые 95% на новых ракурсах пока не подтверждены.
+
 **С 17 октября 2026 года работаем через обычный Git/GitHub. Aster больше не используется для координации.**
 
 - [Инструкция всем агентам](AGENTS.md)
