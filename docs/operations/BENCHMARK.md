@@ -10,7 +10,7 @@
 
 HOSTNAME и `/PRIVATE/...` — заменяемые placeholders. Ключ читается из bounded файла, не передаётся аргументом/URL и не попадает в отчёт. Требуются 401 без ключа на model/job/media, защищённый unknown job 404, production model `not_ready`, upload `503 model_not_ready` без job ID. Этот probe намеренно не является декодируемым видео: проверяется ранний readiness gate, а не FFmpeg/очередь/анализ. При неожиданном ready upload не выполняется. Exit 0 означает, что ожидаемый запрет сработал, не готовность модели.
 
-Замечено статическое несоответствие A `043eeb6`: `backend/app/api.py`, `media.py` и main error mapping используют error code `not_found`, которого нет в K diagnostics Error enum. K требует `job_not_found`/`media_not_found`. Новому production probe нужен исправленный A/проверенный I: на таком ответе он честно завершится contract failure. №4 не меняет чужие backend/contracts. Regression клиентского отказа на `not_found` покрыт `test_https.py`; protocol fixture с корректным K проходит. Это не запуск настоящего backend на Windows.
+Историческое несоответствие A `043eeb6` (`not_found` вместо K `job_not_found`/`media_not_found`) исправлено владельцем backend в принятом `c46a2c005e2882c0c794bc44cecb7ff3cc393d13` и входит в integration `69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5`. №4 на свежем коде проверил шесть настоящих serializer bodies — exit 0. Клиент/K не ослаблены: regression отказа на старый `not_found` сохраняется. Это не новый запуск настоящего backend на Windows и не приёмка I; внешний production probe выполняется на фактически запущенном исправленном сервисе.
 
 ## Synthetic pipeline после I
 

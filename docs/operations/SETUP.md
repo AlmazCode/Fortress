@@ -1,15 +1,17 @@
 # Локальная инфраструктура: подготовка и границы проверки
 
+Инструкция для будущего релиза с подготовкой private env, build/start, offline/volumes/GPU/HTTPS проверками и остановкой: [RELEASE.md](RELEASE.md). По поручению пользователя доступ к другому компьютеру будет предоставлен позже; команды runtime пока не выполнены. Сервер — Linux, интерфейс — браузер на Windows.
+
 Ветка №4 содержит конфигурацию и проверенные инструменты, а не выполненное развёртывание. На текущем Windows-хосте отдельно запущен официальный standalone Compose v5.6.0: production и test overlay проходят настоящий `config`, включая merge/reset. Docker engine/WSL отсутствуют; build, start, volumes restart, GPU и offline runtime checks **not_run**. Полное приложение строится и запускается после интеграции I. Проверка config и loopback HTTP/TLS не заменяют эти критерии.
 
 Актуальное указание пользователя: **пока без виртуализации/WSL**. Установка системных компонентов отложена. Рабочие native Windows инструменты: frontend build, реальный HTTP/TLS client и process-resource sampler; [BENCHMARK.md](BENCHMARK.md). Native Linux путь без контейнеров — [RECOVERY.md](RECOVERY.md). Принятый POSIX worker не объявляется рабочим native Windows сервисом.
 
 ## Подготовка
 
-1. На целевом Ubuntu/WSL2 ПК выполнить [preflight](PREFLIGHT.md). Нужны Docker/Compose ≥2.24.4, NVIDIA runtime, FFmpeg/ffprobe и совместимость Python/locks/GPU. Наличие nvidia-smi на Windows этого не доказывает.
+1. На целевом Linux Ubuntu x86_64 ПК выполнить [preflight](PREFLIGHT.md). Нужны Docker/Compose ≥2.24.4, NVIDIA runtime, FFmpeg/ffprobe и совместимость Python/locks/GPU. Наличие nvidia-smi на Windows этого не доказывает. WSL/виртуализация на текущем ПК отложены пользователем.
 2. Подготовить вне Git private env-файл по `infra/env.example`: новый сильный API-ключ, пароль PostgreSQL, URL-encoded PostgreSQL DSN с hostname `postgres`, абсолютный каталог TLS с `fullchain.pem` и `privkey.pem`. Не копировать секреты в frontend/VITE_*.
 3. Для текущей программной проверки обученные веса не требуются: production без usable trained release должен отвечать `503 model_not_ready`. Подготовка локальных весов/совместимого release остаётся отдельным будущим этапом. Runtime ничего не скачивает. Текущий K `uv.lock` использует CPU Torch wheels; CUDA-worker **не считается готовым**, пока №1/№3 не согласуют и не проверят совместимый GPU lock. №4 этот общий lock сам не меняет.
-4. Использовать принятый A `043eeb6d125f3b77d71b74de3b56c6a1cee91e70`: API — `python -m backend.app.main api --host 0.0.0.0 --port 8000`, worker — `python -m backend.app.main worker`, миграции — `python -m backend.app.main migrate`. Нет предположения об экспортах `:app`/`:celery_app`, переменные FORTRESS_API_APP/FORTRESS_WORKER_APP больше не нужны. Общая Settings из A требует FORTRESS_API_KEY, DATABASE_URL, REDIS_URL и абсолютный runtime root для каждого CLI mode: worker получает тот же private key через environment. Он не попадает в build args или логи. Release paths сами по себе не открывают readiness.
+4. Использовать принятый A с исправлением 404 `c46a2c005e2882c0c794bc44cecb7ff3cc393d13`: API — `python -m backend.app.main api --host 0.0.0.0 --port 8000`, worker — `python -m backend.app.main worker`, миграции — `python -m backend.app.main migrate`. Нет предположения об экспортах `:app`/`:celery_app`, переменные FORTRESS_API_APP/FORTRESS_WORKER_APP больше не нужны. Общая Settings из A требует FORTRESS_API_KEY, DATABASE_URL, REDIS_URL и абсолютный runtime root для каждого CLI mode: worker получает тот же private key через environment. Он не попадает в build args или логи. Release paths сами по себе не открывают readiness.
 
 Примеры ниже используют путь `/PRIVATE/fortress.env` как placeholder. Заменить реальным абсолютным private env-файлом; не публиковать его. `config --quiet` не печатает подставленные secrets.
 
@@ -71,13 +73,7 @@ API healthcheck подтверждает TCP listener, не готовность
 
 Реальный запуск `install --user --quiet --accept-license --backend=wsl-2 --no-windows-containers` завершился **exit 1**, Docker не установлен. Его prerequisite check сообщил: `VirtualMachinePlatform` выключен; per-user installer не может включить системный компонент без administrator privileges. Сам Codex запущен без этих прав. `wsl --status` вернул exit 50.
 
-Следующий системный шаг выполняет пользователь в PowerShell **от администратора**:
-
-```powershell
-wsl --install --no-distribution
-```
-
-Этот системный шаг **отложен пользователем**, сейчас не выполняется. Если позднее будет выбран WSL-хост: после требуемой Windows перезагрузки повторить проверенный per-user installer, запустить Docker Desktop и проверить `wsl --version`, `docker version`, `docker compose version`, затем preflight. Готовность engine/GPU остаётся false до реального успешного запуска. Официальные основания: [Docker Windows install / per-user prerequisites](https://docs.docker.com/desktop/setup/install/windows-install/), [Microsoft WSL install](https://learn.microsoft.com/en-us/windows/wsl/install).
+Системная настройка **отложена пользователем**: WSL/VirtualMachinePlatform не включать, Docker installer не повторять, Windows не перезагружать. Текущий путь проверки — другой разрешённый Linux-компьютер; доступ пользователь предоставит позже. Исторический результат установки не является инструкцией повторить её. Готовность engine/GPU остаётся false до реального успешного запуска.
 
 Для Linux checkout сохранять LF shell scripts; при новом Windows clone использовать repository-local настройку line endings. Внеплановый `infra/.gitattributes` удалён по замечанию review; общие Git settings и чужие checkout не менялись.
 
