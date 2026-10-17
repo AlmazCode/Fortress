@@ -247,7 +247,9 @@ class ReleaseManager:
 
 
 def import_package(source, destination, **options):
-    loaded = load_package(source, **options)
+    options = dict(options)
+    expected_manifest = options.pop("expected_manifest_sha256", None)
+    loaded = load_package(source, expected_manifest_sha256=expected_manifest, **options)
     names = list(FILES) + [loaded.manifest_name]
     def build(staging, register):
         for name in names:

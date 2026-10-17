@@ -62,7 +62,7 @@ def validate_packet(packet):
     if packet["manifest_sha256"] != stable_hash(packet["manifest"]):
         raise ValueError("evaluation manifest fingerprint mismatch")
     videos = {row["video_id"]: row for row in packet["manifest"]["videos"]}
-    if not packet["test_only"] and any(v["provenance"]["kind"] == "synthetic" for v in videos.values()):
+    if not packet["test_only"] and any(v["provenance"]["kind"] == "synthetic" for v in videos.values() if v["split"] != "excluded"):
         raise ValueError("synthetic manifest cannot claim real evaluation")
     seen, points = set(), set()
     for row in packet["samples"]:
