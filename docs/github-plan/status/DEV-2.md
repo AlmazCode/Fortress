@@ -5,13 +5,13 @@
 | Task | State | Точный результат |
 | --- | --- | --- |
 | F1 | accepted главным | `bab9998bb094605ceadbfb42412080fa1e0f3b3f`, merge `f4ae1b5` в codex/integration |
-| F2 | review | `4b2e99c6dc97f1711c87b14083d5064346174b04`, включён в финальный кандидат F |
-| F3 | review | `f320802d13f5bd134ed679c18b9c15b97543f0b8`, уточнения/дополнительный тест в F |
-| F4 | review | `e61ce4581900af711395befddf7ad378a5f1fadd`, wiring readiness в F |
-| F | review | `6d9075878cc6b0375ea3e338f93d3ac5ea88dd5e` + финальный код `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc` |
+| F2 | accepted главным | `4b2e99c6dc97f1711c87b14083d5064346174b04`, включён в финальный кандидат F |
+| F3 | accepted главным | `f320802d13f5bd134ed679c18b9c15b97543f0b8`, уточнения/дополнительный тест в F |
+| F4 | accepted главным | `e61ce4581900af711395befddf7ad378a5f1fadd`, wiring readiness в F |
+| F | accepted software главным | `6d9075878cc6b0375ea3e338f93d3ac5ea88dd5e` + финальный код `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc` |
 | U | blocked | Прямой depends I ещё blocked в опубликованном STATUS.md; настоящий test-profile API и browser journey после I не запускались |
 
-Приёмка F2/F3/F4/F этим журналом не присваивается: это авторские проверенные кандидаты. SHA отчёта определяется Git-историей после финального кода.
+F2/F3/F4/F приняты главным после его собственных 110 tests, typecheck и production build; подтверждение — STATUS.md на integration 6b16272 и merge c6d15d5. Независимая человеческая приёмка не заявляется. SHA отчёта определяется Git-историей после финального кода.
 
 ## Проверенный checkout и зависимости
 
@@ -75,8 +75,14 @@ App-тесты: one POST→202→processing→done, failed/insufficient_evidence
 
 ## Передача и запуск
 
-Проверяемый финальный код — `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc`, ветка codex/dev2-frontend. Главному: проверить F2/F3/F4/F, интегрировать точные commits и записать принятые SHA. После I №2 выполняет U по реальному API, не по frontend fixtures.
+Проверяемый финальный код — `c9317918fad3e3cb8bfccf0d76b6dc4de695ccfc`, ветка codex/dev2-frontend. Главный уже проверил F2/F3/F4/F и интегрировал merge c6d15d5; ожидается принятие I после M/O. После I №2 выполняет U по реальному API, не по frontend fixtures.
 
 Команды подготовки, dev, fixture mode, API test mode, build/preview и остановки находятся в frontend/README.md. Для dev API proxy ожидает локальный backend :8000; секреты вводятся вручную и не публикуются. Остановка собственного Vite — Ctrl+C в терминале запуска. Общая main, deploy, полное обучение и реальные данные не запускались. До U полное ТЗ №2 не объявляется завершённым.
 
 Техническая заметка завершения: после автоматического restart Vite встроенная вкладка потеряла соединение (ERR_CONNECTION_RESET); Browser Use URL policy заблокировала встроенную data: error page и последующее управление вкладкой. Локальный HTTP endpoint отдельно вернул 200. Предыдущие реальные screenshot/viewport/keyboard observations сохранены и не заменены ошибочной страницей. Последний API-test режим подтверждён компонентными тестами, а не новым browser run. Собственный временный Vite остановлен после проверки; live preview в сдаче не обещается. Команды повторного запуска — frontend/README.md.
+
+## Свежая сверка готовности U
+
+По указанию пользователя выполнен новый fetch. Проверена integration `6b16272fded945668b8997498faa0b2d83a541a0`: F1–F4/F уже приняты главным; I остаётся blocked по M/O, U не открыта. Все принятые результаты объединены в свою ветку merge `2d58265b0af7df9a73ff4b1307d0b58bfdd82b22`. Сравнение frontend/ и contracts/ до/после merge — пустое, исходники клиента и схемы не менялись; повторный запуск тех же frontend tests без изменения кода не выполнялся.
+
+U не запускалась и не объявляется принятой. Следующая последовательность: закрыть M и O → главный завершает I → №2 проверяет точный SHA I и выполняет U на настоящем API. Чужие задачи, общая main и глобальный STATUS.md №2 не изменялись. Локальный frontend/.gitignore сохранён без добавления в commit.
