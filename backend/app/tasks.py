@@ -113,7 +113,9 @@ class TaskExecutor:
 
 
 def register_tasks(app, executor_factory):
-    @app.task(name='fortress.analyze', bind=True, ignore_result=True, max_retries=120)
+    # This factory closes over one runtime/profile. Celery's default shared
+    # registration would install it into future apps with another runtime.
+    @app.task(name='fortress.analyze', bind=True, ignore_result=True, max_retries=120, shared=False, lazy=False)
     def analyze(self, job_id):
         # Set before loading any ML adapter in the factory.
         for name in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):

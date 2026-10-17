@@ -167,18 +167,22 @@ class MediaService:
             raise IntakeError(404, 'not_found', 'Job or media is unavailable.') from None
         return path
 
-    def preview(self, job_id):
+    def preview(self, job_id, *, deadline_monotonic=None):
         path = self.original(job_id)
         job = self.job(job_id)
-        deadline = time.monotonic()+120
-        if not self._lock.acquire(timeout=120):
+        deadline = min(time.monotonic()+120, deadline_monotonic or float('inf'))
+        if not self._lock.acquire(timeout=max(0, deadline-time.monotonic())):
             raise IntakeError(503, 'service_unavailable', 'Preview generation is busy.')
         temporary = None
         try:
             target = self.cache / (job.upload.sha256 + '.mp4')
-            if not target.is_symlink() and target.is_file() and target in self._digests:
+            checksum = target.with_suffix('.sha256')
+            expected = self._digests.get(target)
+            if expected is None and not checksum.is_symlink() and checksum.is_file() and checksum.stat().st_size == 64:
+                expected = checksum.read_text()
+            if not target.is_symlink() and target.is_file() and expected:
                 with target.open('rb') as source:
-                    if hashlib.file_digest(source, 'sha256').hexdigest() == self._digests[target]:
+                    if hashlib.file_digest(source, 'sha256').hexdigest() == expected:
                         return target
             descriptor, name = tempfile.mkstemp(dir=self.cache, suffix='.mp4')
             os.close(descriptor)
@@ -200,6 +204,15 @@ class MediaService:
                 digest = hashlib.file_digest(source, 'sha256').hexdigest()
                 os.fsync(source.fileno())
             os.replace(temporary, target)
+            descriptor, checksum_name = tempfile.mkstemp(dir=self.cache, suffix='.sha256')
+            try:
+                with os.fdopen(descriptor, 'w') as marker:
+                    marker.write(digest)
+                    marker.flush()
+                    os.fsync(marker.fileno())
+                os.replace(checksum_name, checksum)
+            finally:
+                Path(checksum_name).unlink(missing_ok=True)
             self._digests[target] = digest
             return target
         except OSError:
