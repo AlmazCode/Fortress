@@ -32,9 +32,8 @@ services:
       context: ..
       dockerfile: infra/api.Dockerfile
       target: production
-    command: [uvicorn, "${FORTRESS_API_APP:?Set verified API module:attribute from accepted A/I}", --host, 0.0.0.0, --port, "8000", --no-access-log]
+    command: [python, -m, backend.app.main, api, --host, 0.0.0.0, --port, "8000"]
     environment:
-      FORTRESS_API_APP: ${FORTRESS_API_APP:?Set verified API module:attribute from accepted A/I}
       FORTRESS_API_KEY: ${FORTRESS_API_KEY:?Set API key outside Git}
       DATABASE_URL: ${DATABASE_URL:?Set private PostgreSQL DSN using postgres hostname}
       REDIS_URL: redis://redis:6379/0
@@ -66,9 +65,10 @@ services:
       context: ..
       dockerfile: infra/worker.Dockerfile
       target: production
-    command: [celery, -A, "${FORTRESS_WORKER_APP:?Set verified Celery module:attribute from accepted A/I}", worker, --concurrency=1, --prefetch-multiplier=1, --pool=prefork, --soft-time-limit=239, --time-limit=240, --pidfile=/tmp/fortress-worker.pid, "--hostname=fortress-worker@%h", --loglevel=WARNING]
+    command: [python, -m, backend.app.main, worker]
     environment:
-      FORTRESS_WORKER_APP: ${FORTRESS_WORKER_APP:?Set verified Celery module:attribute from accepted A/I}
+      # Accepted A uses one Settings contract for all CLI modes, including worker.
+      FORTRESS_API_KEY: ${FORTRESS_API_KEY:?Set API key outside Git}
       DATABASE_URL: ${DATABASE_URL:?Set private PostgreSQL DSN}
       REDIS_URL: redis://redis:6379/0
       FORTRESS_RUNTIME_ROOT: /var/lib/fortress/media
@@ -80,6 +80,7 @@ services:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
       PIP_NO_INDEX: "1"
+      NOSETPS: "1"
     volumes:
       - media:/var/lib/fortress/media
       - models:/var/lib/fortress/models:ro
@@ -99,9 +100,9 @@ services:
     mem_limit: 3g
     cpus: 2
     healthcheck:
-      # A4 deliberately disables remote control. Check the local main process;
+      # A4 deliberately disables remote control. Check the exec-form PID 1 command;
       # DB/broker/model readiness is a separate application acceptance check.
-      test: [CMD, python, -c, "import os,pathlib; p=int(pathlib.Path('/tmp/fortress-worker.pid').read_text()); assert p>0; os.kill(p,0)"]
+      test: [CMD, python, -c, "import os,pathlib; a=pathlib.Path('/proc/1/cmdline').read_bytes().split(bytes([0])); assert b'backend.app.main' in a and b'worker' in a; os.kill(1,0)"]
       interval: 30s
       timeout: 8s
       retries: 3

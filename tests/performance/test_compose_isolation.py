@@ -1,4 +1,4 @@
-"""Static configuration checks. A pass is not a Docker/network/volume test."""
+"""Static and optional actual CLI config checks; no container runtime claim."""
 from pathlib import Path
 import json
 import os
@@ -32,8 +32,7 @@ class ComposeStaticTests(unittest.TestCase):
     def test_volumes_limits_and_thread_constraints_are_explicit(self):
         self.assertEqual(set(self.compose['volumes']),{'media','models','postgres','redis'})
         worker=self.compose['services']['worker']
-        self.assertIn('--concurrency=1',worker['command'])
-        self.assertIn('--prefetch-multiplier=1',worker['command'])
+        self.assertEqual(worker['command'],['python','-m','backend.app.main','worker'])
         self.assertEqual(worker['environment']['OMP_NUM_THREADS'],'2')
         self.assertTrue(worker['read_only'])
         self.assertIn('models:/var/lib/fortress/models:ro',worker['volumes'])
@@ -52,7 +51,8 @@ class ComposeStaticTests(unittest.TestCase):
         worker=self.compose['services']['worker']
         self.assertNotIn('pip', ' '.join(worker['command']))
         self.assertEqual(worker['environment']['PIP_NO_INDEX'],'1')
-        self.assertNotIn('FORTRESS_API_KEY',worker['environment'])
+        # A's CLI Settings requires the shared operator key for worker as well.
+        self.assertEqual(worker['environment']['FORTRESS_API_KEY'],self.compose['services']['api']['environment']['FORTRESS_API_KEY'])
 
     def test_test_overlay_is_explicit_and_removes_gpu_without_changing_production(self):
         class Loader(yaml.SafeLoader): pass
@@ -78,9 +78,11 @@ class ComposeStaticTests(unittest.TestCase):
         worker=self.compose['services']['worker']
         self.assertFalse(app.conf.worker_enable_remote_control)
         self.assertEqual(app.conf.worker_pool,'prefork')
-        self.assertIn('--pool='+app.conf.worker_pool,worker['command'])
         self.assertNotIn('inspect',' '.join(worker['healthcheck']['test']))
-        self.assertIn('--time-limit='+str(app.conf.task_time_limit),worker['command'])
+        self.assertEqual((app.conf.worker_concurrency,app.conf.worker_prefetch_multiplier),(1,1))
+        self.assertEqual((app.conf.task_soft_time_limit,app.conf.task_time_limit),(239,240))
+        self.assertEqual(worker['command'],['python','-m','backend.app.main','worker'])
+        self.assertIn('/proc/1/cmdline',' '.join(worker['healthcheck']['test']))
 
 
 class ComposeCliTests(unittest.TestCase):
@@ -95,24 +97,23 @@ class ComposeCliTests(unittest.TestCase):
         env={key:value for key,value in os.environ.items() if not key.startswith('FORTRESS_')}
         env.update(FORTRESS_API_KEY='synthetic-config-only',POSTGRES_PASSWORD='synthetic-config-only',
                    DATABASE_URL='postgresql+psycopg://fortress:synthetic-config-only@postgres/fortress',
-                   FORTRESS_TLS_DIR=str(ROOT/'infra'),FORTRESS_BIND_IP='127.0.0.1',FORTRESS_HTTPS_PORT='8443',
-                   FORTRESS_API_APP='test_only.api:app',FORTRESS_WORKER_APP='test_only.worker:app')
+                   FORTRESS_TLS_DIR=str(ROOT/'infra'),FORTRESS_BIND_IP='127.0.0.1',FORTRESS_HTTPS_PORT='8443')
         if missing: env.pop(missing)
         command=[self.executable,'--env-file',os.devnull,'-f',str(ROOT/'infra/compose.yaml')]
         if overlay: command+=['-f',str(ROOT/'infra/compose.test.yaml')]
         return subprocess.run(command+['config','--format','json'],cwd=ROOT,env=env,
                               capture_output=True,text=True,timeout=20)
 
-    def test_resolved_production_keeps_worker_isolated_and_real_entrypoints_explicit(self):
+    def test_resolved_production_keeps_worker_isolated_and_matches_accepted_cli(self):
         process=self.resolve()
         self.assertEqual(process.returncode,0,process.stderr)
         value=json.loads(process.stdout)
         services=value['services']
         self.assertEqual(set(services['worker']['networks']),{'backend'})
         self.assertTrue(value['networks']['backend']['internal'])
-        self.assertIn('test_only.api:app',services['api']['command'])
-        self.assertIn('test_only.worker:app',services['worker']['command'])
-        self.assertIn('--pool=prefork',services['worker']['command'])
+        self.assertEqual(services['api']['command'],['python','-m','backend.app.main','api','--host','0.0.0.0','--port','8000'])
+        self.assertEqual(services['worker']['command'],['python','-m','backend.app.main','worker'])
+        self.assertEqual(services['worker']['environment']['FORTRESS_API_KEY'],services['api']['environment']['FORTRESS_API_KEY'])
         self.assertEqual(services['worker']['deploy']['resources']['reservations']['devices'][0]['count'],1)
         self.assertEqual(services['nginx']['ports'][0]['host_ip'],'127.0.0.1')
         self.assertTrue(all(not service.get('ports') for name,service in services.items() if name!='nginx'))
@@ -127,8 +128,8 @@ class ComposeCliTests(unittest.TestCase):
             self.assertEqual(value['services'][name]['command'][:2],['python','/opt/fortress-smoke.py'])
         self.assertFalse(value['services']['worker']['deploy']['resources'].get('reservations',{}).get('devices'))
 
-    def test_missing_production_exports_fail_before_a_container_can_start(self):
-        for name in ('FORTRESS_API_APP','FORTRESS_WORKER_APP'):
+    def test_missing_required_application_settings_fail_before_a_container_can_start(self):
+        for name in ('FORTRESS_API_KEY','DATABASE_URL'):
             with self.subTest(name=name):
                 process=self.resolve(missing=name)
                 self.assertNotEqual(process.returncode,0)

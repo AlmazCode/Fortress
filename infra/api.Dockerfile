@@ -28,4 +28,4 @@ FROM dependencies AS production
 COPY backend ./backend
 COPY contracts ./contracts
 USER 10001:10001
-CMD ["sh", "-c", "exec uvicorn \"${FORTRESS_API_APP:?Set verified API module:attribute from accepted A/I}\" --host 0.0.0.0 --port 8000 --no-access-log"]
+CMD ["python", "-m", "backend.app.main", "api", "--host", "0.0.0.0", "--port", "8000"]

@@ -31,4 +31,4 @@ COPY contracts ./contracts
 COPY rules ./rules
 COPY ml ./ml
 USER 10001:10001
-CMD ["sh", "-c", "exec celery -A \"${FORTRESS_WORKER_APP:?Set verified Celery module:attribute from accepted A/I}\" worker --concurrency=1 --prefetch-multiplier=1 --pool=prefork --soft-time-limit=239 --time-limit=240 --pidfile=/tmp/fortress-worker.pid --loglevel=WARNING"]
+CMD ["python", "-m", "backend.app.main", "worker"]
