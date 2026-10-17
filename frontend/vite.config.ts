@@ -4,12 +4,12 @@ import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 
 export default defineConfig(({ command, mode }) => {
-  if (command === 'build' && mode === 'fixture') {
+  if (command === 'build' && ['fixture', 'api-test'].includes(mode)) {
     throw new Error('Synthetic fixtures are for local dev/test only. Use npm run build for production.');
   }
   return {
     plugins: [react(), tailwindcss()],
-    define: { __FIXTURE_MODE__: JSON.stringify(mode === 'fixture') },
+    define: { __FIXTURE_MODE__: JSON.stringify(mode === 'fixture'), __TEST_API_MODE__: JSON.stringify(mode === 'api-test') },
     server: {
       host: '127.0.0.1',
       fs: { allow: [fileURLToPath(new URL('..', import.meta.url))] },

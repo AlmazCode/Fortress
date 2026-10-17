@@ -21,9 +21,7 @@
     ]
   },
   "include": [
-    "src/api/**/*.ts",
-    "src/components/ApiKeyForm.tsx",
-    "src/fixtures/**/*.ts",
+    "src",
     "vite.config.ts"
   ]
 }
