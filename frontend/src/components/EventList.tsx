@@ -15,7 +15,7 @@ export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { st
         {matching.timeline?.findings.map((finding, index) => <article className="coverage-item" key={index}><h4>{finding.rule_id}</h4><span className="pill neutral">{finding.support === 'unsupported' ? 'Не поддерживается' : finding.status === 'unknown' ? 'Недостаточно данных' : finding.status === 'triggered' ? 'Срабатывание' : 'Не сработало'}</span><p>Интервал: {finding.interval.start_sec}–{finding.interval.end_sec} с · {finding.reason}</p><p>Источник: {finding.source.source_kind} · редакция {finding.source.revision ?? 'не указана'} · раздел {finding.source.section ?? 'не указан'}</p><p>{finding.source.verified ? 'Источник отмечен как проверенный.' : 'Источник не подтверждён.'}</p>{finding.source.url && (/^https?:\/\//i.test(finding.source.url) ? <a href={finding.source.url} target="_blank" rel="noopener noreferrer">Открыть источник</a> : <p>Ссылка на источник имеет неподдерживаемую схему.</p>)}{finding.source.limitations.map((line, i) => <p key={i}>{line}</p>)}</article>)}
         {matching.limitations.map((line, index) => <p key={index}>{line}</p>)}
         <dl className="versions">{Object.entries(matching.versions).map(([name, value]) => <div key={name}><dt>{name}</dt><dd>{value ?? 'не предоставлена'}</dd></div>)}</dl>
-        <p className="muted">K не задаёт идентификатор связи public violation → finding. Источники правил показаны отдельно; порядок не используется для атрибуции.</p>
+        <p className="muted">Источники правил показаны отдельно. Сервис не подтвердил связь конкретного события с правилом.</p>
       </>}
     </section>
   </section>;

@@ -22,7 +22,7 @@ export function UploadPanel({ enabled, uploading, progress, onUpload, onAbort }:
       <span className="dropzone-formats">MP4, MOV <span aria-hidden="true">·</span> до 200 МиБ</span>
     </div>
     <p className="limits">{MEDIA_LIMITS}. Параметры и декодирование проверяет сервер.</p>
-    {!enabled && <p className="muted">Сначала подключите API-ключ. Для нового анализа нужна готовая модель.</p>}
+    {!enabled && <p className="muted">Новая отправка пока недоступна. Проверьте ключ, готовность модели и состояние текущего задания.</p>}
     {error && <p role="alert" className="field-error">{error}</p>}
     {uploading && <div className="upload-progress" role="status"><span>Передача файла {percent === undefined ? '…' : `${percent}%`}</span><progress aria-label="Прогресс загрузки" max={100} value={percent} /><p>Ожидаем подтверждения приёма сервером. Прерывание связи не отменяет уже принятое задание.</p></div>}
     <div className="upload-actions"><span className="privacy-note"><span aria-hidden="true">◇</span> Видео обрабатывается локальным сервисом</span>{uploading ? <button className="secondary-button" onClick={onAbort}>Прервать передачу</button> : <button className="primary-button" onClick={() => file && onUpload(file)} disabled={!enabled || !file}>Начать анализ <span aria-hidden="true">→</span></button>}</div>

@@ -24,7 +24,11 @@ export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClien
   }, [client, path, maxBytes]);
   function applySeek() {
     const element = video.current;
-    if (!seek || !element || !current) return;
+    if (!seek) return;
+    if (!element || !current) {
+      if (!path || error) setSeekError('Переход недоступен: видео не получено.');
+      return;
+    }
     if (!Number.isFinite(seek.sourceTime) || seek.sourceTime < 0 || Number.isFinite(element.duration) && seek.sourceTime > element.duration) {
       setSeekError('Исходный таймкод находится за пределами видео. Переход не выполнен.'); return;
     }
@@ -34,11 +38,11 @@ export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClien
     try { element.currentTime = seek.sourceTime; setSeekError(''); }
     catch { setSeekError('Браузер не смог перейти к исходному таймкоду.'); }
   }
-  useEffect(applySeek, [seek, current?.url]);
+  useEffect(applySeek, [seek, current?.url, path, error]);
   return <section className="video-panel" aria-label="Видео и исходные таймкоды">
     {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={applySeek} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео. Проверка доказательств не выполнена.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><span aria-hidden="true">▷</span><p>{path && !error ? 'Загружаем защищённое видео…' : 'Видео не предоставлено или недоступно'}</p></div>}
     {error && <p role="alert" className="field-error">{error}</p>}
     {seekError && <p role="alert" className="field-error">{seekError}</p>}
-    <p className="muted">Preview сохраняет исходное время: (PTS − начало PTS) × time_base. Таймкоды указаны в секундах исходного ролика.</p>
+    <p className="muted">Таймкоды отсчитываются от начала исходного ролика. Нажмите событие или кадр, чтобы перейти к соответствующему моменту видео.</p>
   </section>;
 }

@@ -33,3 +33,7 @@ test.each([new ApiError('media_too_large', 413), new ApiError('invalid_key', 401
   await screen.findByRole('alert'); expect(screen.queryByLabelText('Видео задания')).toBeNull(); expect(URL.createObjectURL).not.toHaveBeenCalled(); api.dispose();
 });
 test('browser decode failure is visible', async () => { const api = client(); render(<VideoPlayer client={api} path={path} />); fireEvent.error(await screen.findByLabelText('Видео задания')); expect(screen.getByRole('alert').textContent).toContain('не смог воспроизвести'); api.dispose(); });
+test('event click without media explains why seek cannot run', () => {
+  const api = client(); render(<VideoPlayer client={api} seek={{ sourceTime: 2, nonce: 1 }} />);
+  expect(screen.getByRole('alert').textContent).toContain('видео не получено'); api.dispose();
+});

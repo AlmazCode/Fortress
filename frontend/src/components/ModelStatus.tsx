@@ -1,6 +1,6 @@
 import { isModelReady, type ModelStatusData } from '../api/types';
-export function ModelStatus({ model, pending, connected, fixtureMode = false }: { model?: ModelStatusData; pending: boolean; connected: boolean; fixtureMode?: boolean }) {
-  const ready = connected && !pending && isModelReady(model) && !fixtureMode;
+export function ModelStatus({ model, pending, connected, fixtureMode = false, blocked = false }: { model?: ModelStatusData; pending: boolean; connected: boolean; fixtureMode?: boolean; blocked?: boolean }) {
+  const ready = connected && !pending && !blocked && isModelReady(model) && !fixtureMode;
   return <section className="model-panel" aria-labelledby="model-title">
     <div className="model-heading"><div className="section-eyebrow">МОДЕЛЬ И ОКРУЖЕНИЕ</div><span className={`pill ${ready ? 'success' : 'neutral'}`}>{fixtureMode || model?.test_only ? 'Synthetic test / demo' : pending ? 'Проверяем' : ready ? 'Готова' : model ? 'model_not_ready' : 'Не проверена'}</span></div>
     <h2 id="model-title">{ready ? 'Можно начать анализ' : 'Готовность требует проверки'}</h2>
