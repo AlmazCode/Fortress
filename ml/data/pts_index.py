@@ -10,9 +10,8 @@ import time
 
 from contracts.python_ports import validate_contract
 from ml.data.deduplicate import stable_hash
-from ml.data.manifest import ProbeLimits, SourceRejected, local_source, probe_video, source_hash
-
-FORMATS = {".mp4":"mov", ".mov":"mov", ".m4v":"mov", ".mkv":"matroska", ".webm":"matroska", ".avi":"avi"}
+from ml.data.manifest import (ProbeLimits, SourceRejected, local_source, open_local_video,
+                              probe_video, source_hash)
 
 
 def time_mapping(index: dict, point: int) -> dict:
@@ -44,7 +43,6 @@ def validate_index(index: dict) -> None:
 
 def iter_indexed_frames(root: Path, index: dict, *, limits: ProbeLimits | None = None):
     """Fully exhaust this iterator to verify all timing and the post-decode hash."""
-    import av
     validate_index(index)
     limits = limits or ProbeLimits(**index["limits"])
     path = local_source(Path(root).resolve(strict=True),index["path"])
@@ -52,8 +50,7 @@ def iter_indexed_frames(root: Path, index: dict, *, limits: ProbeLimits | None =
         raise SourceRejected("source_hash_changed")
     started, pixels, count = time.monotonic(), 0, 0
     tb = Fraction(index["time_base"]["num"],index["time_base"]["den"])
-    with av.open(str(path),format=FORMATS[path.suffix.lower()],
-                 options={"protocol_whitelist":"file","err_detect":"explode"}) as container:
+    with open_local_video(path) as container:
         if len(container.streams.video)!=1:
             raise SourceRejected("expected_one_video_stream")
         stream=container.streams.video[0]
@@ -77,7 +74,6 @@ def iter_indexed_frames(root: Path, index: dict, *, limits: ProbeLimits | None =
 
 def build_index(root: Path, record: dict, *, dataset_version: str, split_version: str,
                 limits: ProbeLimits=ProbeLimits()) -> dict:
-    import av
     validate_contract("manifest",{"schema_version":"1.0","dataset_version":dataset_version,
                                  "split_version":split_version,"videos":[record]})
     path=local_source(Path(root).resolve(strict=True),record["path"])
@@ -92,8 +88,7 @@ def build_index(root: Path, record: dict, *, dataset_version: str, split_version
     tb=Fraction(record["time_base"]["num"],record["time_base"]["den"])
     rows=[]
     started,pixels=time.monotonic(),0
-    with av.open(str(path),format=FORMATS[path.suffix.lower()],
-                 options={"protocol_whitelist":"file","err_detect":"explode"}) as container:
+    with open_local_video(path) as container:
         stream=container.streams.video[0]
         stream.codec_context.thread_count=1
         for frame in container.decode(stream):

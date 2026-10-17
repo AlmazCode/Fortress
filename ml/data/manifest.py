@@ -73,24 +73,30 @@ def source_hash(path: Path, max_bytes: int) -> str:
     return digest.hexdigest()
 
 
+def open_local_video(path: Path):
+    """Detect container bytes, including backend-owned .part/.video paths.
+
+    Keep demuxers restricted before their header readers run: merely checking the
+    detected format afterwards would allow playlists to open other sources.
+    Callers still validate regular local paths, source hashes and decode budgets.
+    """
+    import av
+
+    return av.open(str(path), mode="r", options={
+        "format_whitelist": "mov,matroska,webm,avi",
+        "protocol_whitelist": "file", "err_detect": "explode"})
+
+
 def probe_video(path: Path, *, limits: ProbeLimits = ProbeLimits()) -> tuple[dict, dict]:
     """Decode the entire video; never infer timing from nominal FPS.
 
     Loop budgets are not an OS sandbox for the native decoder. Inputs must be
     local regular files; protocol whitelist forbids playlist network access.
     """
-    import av
-
     started, pts, durations, fingerprints = time.monotonic(), [], [], []
     shape, rotation, tb = None, None, None
     pixels, next_sample = 0, Fraction(0)
-    formats = {".mp4": "mov", ".mov": "mov", ".m4v": "mov", ".mkv": "matroska",
-               ".webm": "matroska", ".avi": "avi"}
-    format_name = formats.get(path.suffix.lower())
-    if format_name is None:
-        raise SourceRejected("unsupported_container")
-    with av.open(str(path), mode="r", format=format_name,
-                 options={"protocol_whitelist": "file", "err_detect": "explode"}) as container:
+    with open_local_video(path) as container:
         if len(container.streams.video) != 1:
             raise SourceRejected("expected_one_video_stream")
         stream = container.streams.video[0]

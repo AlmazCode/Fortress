@@ -91,4 +91,8 @@ Rollback требует предыдущую activation. `--allow-test` нуже
 python -m ml.cli infer --package D:\installed\tiny-v1 --video D:\samples\tiny.mkv --output D:\eval\timeline.json --allow-test
 ```
 
+Контейнер определяется по содержимому, включая штатные backend originals `<uuid>.video` и upload `.part`. Во всех проходах probe/index/decode разрешены только MOV/MP4, Matroska/WebM и AVI, с `protocol_whitelist=file`; playlists не допускаются. Файлы не переименовываются и не перекодируются для inference. Проверки SHA-256, PTS, rotation, geometry и decode budgets сохраняются.
+
+Регрессия `python -m pytest tests/ml/test_inference_timeline.py -k backend_promoted -q` требует принятого backend A и настоящий `ffprobe` в PATH либо `FORTRESS_TEST_FFPROBE=<absolute executable>`. Она использует LocalStorage.spool/promote, VideoValidator, H.264 MP4/MOV и CLI inference. На Linux backend выполняется без адаптаций; на Windows fixture заменяет только POSIX directory fsync/pipe polling и сохраняет реальный ffprobe/валидацию/atomic rename. Это не проверка Linux durability, HTTP/очереди или production ML quality.
+
 Без отдельного подтверждённого visibility context CLI inference выдаёт unknown, включая высокие scores; actors/relations остаются unknown. Python TimelineAdapter принимает независимый visibility provider и reviewed scenes через infer_indexed. Raw port использует одну unreviewed scene; автоматическое обнаружение монтажных склеек не реализовано. Нет надежной наблюдаемости — coverage=none, не clean verdict. Decode/OOM/hash/deadline/inference ошибки — failed; K findings принадлежат R.

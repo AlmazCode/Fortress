@@ -58,6 +58,20 @@ def test_cfr_uses_observed_pts_not_filename_or_nominal_fps(tmp_path):
     assert details["last_source_pts"] == 300
 
 
+def test_container_detection_keeps_playlist_demuxers_disabled(tmp_path):
+    make_video(tmp_path / "segment.mkv")
+    playlist = tmp_path / "looks-local.video"
+    playlist.write_text("ffconcat version 1.0\nfile segment.mkv\n", encoding="utf-8")
+    # This is a decodable playlist if unrestricted autodetection is enabled.
+    with av.open(str(playlist), options={"protocol_whitelist": "file"}) as container:
+        assert len(list(container.decode(video=0))) == 4
+    before = playlist.read_bytes(), playlist.stat().st_mtime_ns
+    bundle = build_manifest(tmp_path, [spec(playlist.name)], dataset_version="playlist-must-not-decode")
+    assert bundle["manifest"] is None
+    assert bundle["audit"]["sources"][0]["availability"] == "quarantined"
+    assert (playlist.read_bytes(), playlist.stat().st_mtime_ns) == before
+
+
 @pytest.mark.parametrize("flipped", [False, True])
 def test_actual_container_rotation_and_unsupported_reflection(tmp_path, flipped):
     path = tmp_path/"rotated.mp4"
