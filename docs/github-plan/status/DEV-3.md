@@ -9,8 +9,8 @@
 | D1 | accepted | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | Принят главным, merge 8dd2da1; software D1, training gate закрыт |
 | D2 | accepted | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | Принят главным как draft, merge 47787cb; final taxonomy/human review не заявлены |
 | D3 | review | codex/fortress-no3-ml | 54493fcd10b1824356f82df3f6bbbfadc1ea5ffc | Исправлен P1 re-split holdout leak; 136 passed + реальный повторный CLI; нужен повторный review №1 |
-| D4 | blocked | codex/fortress-no3-ml | — | Зависит от D3 |
-| D5 | blocked | codex/fortress-no3-ml | — | Зависит от D2/D4 |
+| D4 | review | codex/fortress-no3-ml | 8b263be898a7f62504cce7a27d82ad8cce89e60b | 14 targeted tests; вместе K/ML 150 passed; четыре настоящих CLI passed; приёмка отдельно |
+| D5 | working | codex/fortress-no3-ml | База D4 8b263be | Человек явно поручил продолжать после проверки статуса; D2 принят, D4 авторски проверен, ждёт N1 |
 | D | blocked | codex/fortress-no3-ml | — | Зависит от D1/D5 |
 | M1 | blocked | codex/fortress-no3-ml | — | Зависит от D |
 | M2 | blocked | codex/fortress-no3-ml | — | Зависит от M1 |
@@ -119,3 +119,17 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - `git diff --cached --check` → exit 0; staged paths — ровно три разрешённых файла D3. Full train/fine-tune/реальная ML evaluation не выполнялись; все regression data synthetic.
 
 Человек после ожидания поручил «делай»; начат локальный черновик D4 поверх проверенного автором D3. После сообщения об утечке работа D4 остановлена, четыре собственных непроверенных файла сохранены вне Git в локальной контрольной папке. Они не входят в исправление D3 и не объявлены готовыми. Следующее действие №1 — повторная проверка точного `54493fc` и интеграция D3; D4 по графу ещё не принята/не открыта. Журнал обновлён до review нового кандидата, а не accepted.
+
+## D4 — кандидат после прямого поручения продолжать
+
+Человек затем явно поручил: «проверь, принял ли N1 исправленный D3, и продолжай D4 и остальные свои задачи». Fetch и STATUS.md проверены: integration пока на `bfff454`, в нём старое замечание к `d0b9704`, новый `54493fc` ещё не принят. Согласно новому прямому поручению человека продолжена реализация кандидатов в своей ветке поверх проверенного исправления; это исключение из административного ожидания, не самостоятельное принятие задач. Общие main/STATUS/contracts не менялись.
+
+- Base: `becebd45969001380ba05b086ead0cda3b66bdd2`; D4 candidate: `8b263be898a7f62504cce7a27d82ad8cce89e60b`. Diff — 7 добавленных разрешённых файлов D4, 960 строк. Старый собственный черновик восстановлен из сохранённой копии, проверен/дополнен tests/docs.
+- `.venv/Scripts/python.exe -m pytest tests/ml/test_pts_index.py tests/ml/test_extraction.py -q` → exit 0, 14 passed; после уточнения byte limit повторная общая проверка `tests/contracts/test_schemas.py tests/ml -q` → exit 0, **150 passed in 13.20s**, no skips (D4 14).
+- Реально воспроизведены все четыре CLI в EXTRACTION.md на отдельном synthetic work root: pts_index → exit 0, 4 source frames; scenes cut1.3 → exit 0, 2 unreviewed scenes с actual boundary2.0; extract_frames rate2/crop[2,4,30,22] → exit 0, 4 PNG / 6392 file bytes; extract_clips rate2,size32,stride16 → exit 0, 2 FFV1/MKV / 9030 file bytes. Counts/bytes исключают marker JSON; общий byte limit marker учитывает. Все четыре --help → exit 0.
+- Настоящий повторный decode клипов подтвердил source bounds [0,2) и [2,3.1), encoded pts 0/1000, последние duration 1000/100 ticks при time_base1/1000. Это не keyframe stream-copy. Original PTS сохраняются отдельно от квантованных encoded PTS.
+- Acceptance: PTS/origin/time_base/source hash и partition сохраняются; actual K TimeMapping проверен; sample cadence configurable, missing image/known/padding раздельны; окно32/2fps имеет coverage16s/span15.5s/stride8s и tail masks; windows/клипы внутри scene/split; affine crop/CCW rotation inverse проверен для четырёх поворотов; byte-reproducible artifacts, rerun/hash/metadata/source/config corruption, disk/byte/decode-work limits и rollback проверены.
+- Unreviewed cuts не заявляют отсутствия других склеек; rate2 не гарантирует быстрые события. Никакие object/action labels не выдуманы, training_ready=false. Native decode loop не OS sandbox; output timing tolerance0.0011s, exact source mapping не теряется. Реальные пользовательские видео/labels не использовались.
+- `git diff --cached --name-status` — ровно 7 D4 paths; `git diff --cached --check` → exit 0. Source code после общей проверки не менялся. Полные local argv, output paths и frozen checkpoint остаются вне Git.
+
+Следующая работа по прямому поручению — D5 поверх этого проверенного кандидата; D3/D4 остаются review для N1. Публикация проверенных собственных commits разрешена человеком ранее.
