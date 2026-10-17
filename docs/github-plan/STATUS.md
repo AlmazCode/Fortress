@@ -9,8 +9,8 @@
 - [x] A1 — БД и состояние заданий · №1 · accepted
 - [x] A2 — Приём и проверка видео · №1 · accepted
 - [x] A3 — Авторизация и медиа · №1 · accepted
-- [ ] A4 — Outbox и один worker · №1 · working
-- [ ] A5 — Дедлайны и сбои backend · №1 · unverified
+- [x] A4 — Outbox и один worker · №1 · accepted
+- [ ] A5 — Дедлайны и сбои backend · №1 · working
 - [ ] A — API и надёжная очередь · №1 · unverified
 - [ ] F1 — Клиент API и ключ · №2 · unverified
 - [ ] F2 — Загрузка и статусы · №2 · unverified
@@ -44,3 +44,5 @@
 A2 принят и включён в `codex/integration`: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382` (19 проверок).
 
 A3 принят в `codex/integration`: `6f7f5bf689440640bdc205642aefe7bf07a4d283` (8 проверок).
+
+A4 принят в `codex/integration`: `61a69ce8edc254b4d62ab0652eb8f89df146e434` (7 проверок).

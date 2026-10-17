@@ -11,8 +11,8 @@ Checkout: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`.
 | A1 | accepted | a84cce5e19c8b5a96286473aa9283c2c6b3a1194 | 10 passed на PostgreSQL 18.6; доступен в integration |
 | A2 | accepted | df5dae07b4683afff88bdd06bfbf5b34bd7cc382 | 19 passed; доступен в integration |
 | A3 | accepted | 6f7f5bf689440640bdc205642aefe7bf07a4d283 | 8 passed; доступен в integration |
-| A4 | working | — | Настоящие PostgreSQL/Redis/Celery |
-| A5 | blocked | — | Требуются A2/A3/A4 |
+| A4 | accepted | 61a69ce8edc254b4d62ab0652eb8f89df146e434 | 7 passed; реальный Redis/Celery |
+| A5 | working | — | Fault injection и дедлайны |
 | A | blocked | — | Требуется A5 |
 | I | blocked | — | Требуются A/F/M/R/O |
 | Z | blocked | — | Требуются U/E/B после I |
@@ -87,3 +87,10 @@ Base: `38672c7`; head: `6f7f5bf689440640bdc205642aefe7bf07a4d283`. Файлы: `
 `python3 .aster/checkpoints/run-tests.py tests/api/test_auth_media.py tests/api/test_media_pts.py -q` → exit 0, **8 passed in 4.40s**. Начальный RED: отсутствующие модули (7 failures); дополнительный тест выявил выдачу cached preview при изменённом оригинале, исправлено проверкой SHA-256 (RED→GREEN).
 Критерий 1: middleware до роутинга/чтения тела, все API пути, missing/wrong/duplicate key, unknown job 404. Критерий 2: явно shared operator key, персональная изоляция не заявляется. Критерий 3: header-only, constant-time compare, no-store, generic errors без путей; приложение не пишет ключи/медиа в лог. Критерий 4: реальное VFR/rotation/nonzero PTS видео, покадровое сравнение времён preview и пикселей JPEG с независимым FFmpeg decode; 1–3 кадра. Критерий 5: missing media/frame, повреждённый original и JSONB JPEG возвращают явные ошибки, job/result сохраняются.
 Ограничения: это модульный ASGI harness с реальным PostgreSQL/FFmpeg; итоговая установка middleware и access-log policy — A, browser Blob/seek — F/I/U. Реальная ML-подлинность не заявляется. Evidence provider работает с исходным видео; production runner будет подключён в I. Принято автором-главным и интегрировано.
+
+## A4 — очередь и worker (17 октября 2026)
+
+Base: `14e322a`; head: `61a69ce8edc254b4d62ab0652eb8f89df146e434`. Файлы: `backend/app/celery_app.py`, `backend/app/outbox.py`, `backend/app/tasks.py`, `tests/api/test_outbox.py`, `tests/api/test_idempotency.py`.
+`python3 .aster/checkpoints/run-tests.py tests/api/test_outbox.py tests/api/test_idempotency.py -q` → exit 0, **7 passed in 4.55s** (первичный RED: 7 отсутствующих модулей). Настоящие PostgreSQL 18.6 и Redis 8.0.5 по закрытым Unix sockets, настоящий consumer Celery; fixture runner только внутри теста.
+Критерий 1: job переживает отсутствие Redis; потеря данных Redis после publish восстанавливается из DB; crash-window publish-before-mark приводит к допустимому дублю. Критерий 2: 8 конкурентных исполнителей дают один вызов/один result, реальная duplicate delivery, stale owner rejected. Критерий 3: concurrency/prefetch=1, CPU env=2, shared host flock держится до конца вычисления даже при потере lease; admission race проверен A1. Критерий 4: heartbeat продлевает lease, expired owner заменяется, исключение становится durable failed, dispatcher завершает просроченный job. Критерий 5: один результат через настоящий транспорт и настоящую DB, production fallback отсутствует.
+Ограничения: поддерживается один локальный GPU-хост и общий runtime-root/lock для всех его workers; распределённый GPU-кластер не заявляется. В тесте транспорта pool=solo; production prefork и принудительный kill проверяются A5/A. Реальный ML/SLA не проверялся.
