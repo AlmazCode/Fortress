@@ -6,9 +6,9 @@
 
 | Task | State | Branch | Commit / PR | Проверки / блокер |
 | --- | --- | --- | --- | --- |
-| D1 | blocked | codex/fortress-no3-ml | Реализации нет | Ожидается проверенный интегрированный K |
-| D2 | blocked | codex/fortress-no3-ml | Реализации нет | Ожидается проверенный интегрированный K |
-| D3 | blocked | codex/fortress-no3-ml | Реализации нет | Ожидается проверенный интегрированный K |
+| D1 | review | codex/fortress-no3-ml | 536fe7af06cadb4ff9513da1bf8dcafb6e6198e6 | 9 targeted tests + реальный inventory/CPU CLI passed; ожидает проверки главного |
+| D2 | ready | codex/fortress-no3-ml | База K 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | K получен, интегрирован и проверен |
+| D3 | ready | codex/fortress-no3-ml | База K 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | K получен, интегрирован и проверен |
 | D4 | blocked | codex/fortress-no3-ml | — | Зависит от D3 |
 | D5 | blocked | codex/fortress-no3-ml | — | Зависит от D2/D4 |
 | D | blocked | codex/fortress-no3-ml | — | Зависит от D1/D5 |
@@ -19,7 +19,7 @@
 | M | blocked | codex/fortress-no3-ml | — | Зависит от M4 |
 | E | blocked | codex/fortress-no3-ml | — | Зависит от I |
 
-## Выполненная подготовка
+## Подготовка до push K
 
 - Прочитаны AGENTS.md, WORKFLOW.md, REQUIREMENTS.md, PLAN.md и полное ТЗ DEV3_ML_DATA.md; сопоставлены все 12 своих задач с plan.json. Исторические MCP-указания не применяются.
 - Origin указывает на тот же AlmazCode/Fortress; сохранённый URL использует HTTP, Git наблюдённо перенаправляет его на HTTPS. URL проекта не менялся.
@@ -31,7 +31,7 @@
 - `.venv/Scripts/python.exe -X utf8 docs/github-plan/validate_plan.py` до изменения журнала — exit 0: 36 задач, 48 связей, 12 задач №3, без циклов и пересечений областей независимых исполнителей. Проверен пакет документов, не приложение или ML.
 - Рабочая папка — корень своего worktree, rootPath пустой. Абсолютный путь и локальные служебные журналы сохранены в неотслеживаемой контрольной точке. Датасет другого чата и исходные видео не изменялись.
 
-## Критерии и ограничения
+## История начальной блокировки
 
 Реализация и проверки критериев D1/D2/D3 ещё не запускались: по WORKFLOW.md перед началом требуется проверенный результат K и точный SHA в согласованной интеграционной ветке. Остальные задачи заблокированы указанной цепочкой. Ни одна карточка не объявляется ready/review/accepted по наличию плана.
 
@@ -39,8 +39,27 @@ Target Python/PyTorch/Torchvision/CUDA, 576 feature shape, preprocessing, annota
 
 Общий manifest пакета фиксирует исходные хэши журналов. Обновление собственного журнала требует штатного обновления manifest/AUDIT главным при интеграции; №3 эти общие файлы не редактирует.
 
-## Следующее действие
+## Снятие блокировки K
 
-Человек сообщил, что главный опубликует K. После push №3 получает точный проверенный SHA, сверяет STATUS.md и фактические схемы/ports/lock, интегрирует необходимые commits в собственную ветку и выполняет D1/D2/D3. Чужая K не захватывается и не реализуется. Переходы по готовым собственным задачам дополнительного разрешения не требуют.
+После сообщения человека о push получен K `2e44bf555ad1a824d92e73770a1ee85d1bf20d0f` из ветки главного `codex/fortress-backend`. Сам K начат от initial commit и не содержит GitHub-пакета документов. Выполнен обычный merge в свою ветку; инструкции/план сохранены. Результат объединения `04058fd48ce01d31bb4231769b9ceeaa739b6b38`; K — его предок. `pytest tests/contracts/test_schemas.py -q` — exit 0, 55 passed. Общие contracts/locks №3 не изменяет. Последующий backend A1 `a84cce5` не меняет K и для D1 не требуется.
 
-Точный commit этой подготовки определяется Git-историей собственной ветки. Изменён только этот журнал; код ML отсутствует, software readiness не заявляется.
+## D1 — готовый кандидат
+
+- Base: `04058fd48ce01d31bb4231769b9ceeaa739b6b38`; candidate: `536fe7af06cadb4ff9513da1bf8dcafb6e6198e6`.
+- Файлы: ml/__init__.py, ml/preflight.py, tests/ml/test_preflight.py, docs/model/DATA_INVENTORY.md, docs/model/MISSING_MATERIALS.md. Diff — только add этих пяти файлов; переименований/удалений нет.
+- `uv sync --locked --group test --extra ml --no-build` — exit 0; lock №1 не менялся. Python 3.11.14, torch 2.14.1+cpu, torchvision 0.29.1+cpu.
+- `.venv/Scripts/python.exe -m pytest tests/ml/test_preflight.py -q` — exit 0, 9 passed. После этой проверки код не менялся; добавлены документы с наблюдёнными фактами.
+- `.venv/Scripts/python.exe -m ml.preflight --project-root . --data-root <local-video-root> --annotation-root <local-annotation-root> --case <local-case> --self-test --output <new-local-report>` — exit 0. Полные локальные аргументы/абсолютный checkout и отчёт сохранены вне отслеживаемого кода.
+- Финальный локальный отчёт SHA-256: `432959c3b6493d9f7a159db29598059fee068448c5205f9dcbcf96e7202bbcda`. Первый обход служебного окружения остановлен, затем добавлено явное исключение hidden/tooling directories и проведена новая проверка; остановленный запуск не считается passed.
+- `git diff --cached --check` перед commit — exit 0. Реальные CLI и тесты проверяют software D1, не качество модели.
+
+Покрытие acceptance D1:
+1. Каждый учтённый материал имеет source/path/type/availability/size/SHA/rights/review unknown. Отсутствующие TECHNICAL_SPEC, DATA_AND_TRAINING, CASE_COVERAGE названы; исходный case действительно доступен локально. Проверены bounds, missing paths и сохранность исходных bytes/mtime.
+2. Видео/изображения/annotation-or-metadata/weights разнесены. Наблюдены 42 видео и 2621 изображение. Templates/metadata не объявлены reviewed labels, photos не объявлены GRU sequence, raw weights не объявлены production release.
+3. CLI наблюдает Python/PyTorch/Torchvision/CUDA/device и RAM/VRAM. Локальная CPU-сборка не подтверждает GPU или другой training PC; hardware_unverified=true.
+4. Реальный CPU weights=None self-test даёт [1,3,224,224]→[1,576], без скачивания весов. Потеря runtime даёт failed. Полный train/fine-tune/GPU search/dataset evaluation не запускались.
+5. tools_ready отделён от наличия/валидности данных; annotation_missing=null при наличии непроверенных файлов, review=unverified; license_unknown=true; training_ready=false. Отдельный regression check не смешивает restricted с unknown.
+
+Ограничения: decode/dedup/group split/annotation QA — следующие этапы; labels, rights и target GPU не подтверждены. Ни software D1, ни синтетические веса не активируют production readiness.
+
+Следующий шаг: D2 и D3 по проверенному K. D1 остаётся review до проверки и интеграции главным; №3 не выставляет себе accepted. Публикация своей ветки следует фактическому разрешению человека.
