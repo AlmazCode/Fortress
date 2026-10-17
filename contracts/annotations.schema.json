@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fortress.invalid/contracts/v1/annotations.schema.json",
+  "title": "Fortress annotations v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "annotation_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "taxonomy_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scene_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "interval": {
+            "type": "object",
+            "properties": {
+              "start_sec": {
+                "type": "number",
+                "minimum": 0
+              },
+              "end_sec": {
+                "type": "number",
+                "minimum": 0
+              },
+              "scene_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "start_sec",
+              "end_sec",
+              "scene_id"
+            ],
+            "additionalProperties": false
+          },
+          "class_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "enum": [
+              "present",
+              "absent_verified",
+              "unknown",
+              "unreviewed"
+            ]
+          },
+          "visibility": {
+            "enum": [
+              "visible",
+              "partial",
+              "occluded",
+              "unknown"
+            ]
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "subject_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "object_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "known": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "subject_id",
+                "object_id",
+                "known"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "review_status": {
+            "enum": [
+              "unreviewed",
+              "reviewed"
+            ]
+          },
+          "reviewer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "video_id",
+          "scene_id",
+          "interval",
+          "class_id",
+          "state",
+          "visibility",
+          "actor_id",
+          "relations",
+          "review_status",
+          "reviewer",
+          "valid"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "review_status": {
+                  "const": "reviewed"
+                }
+              },
+              "required": [
+                "review_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "reviewer": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "provenance": {
+      "$ref": "https://fortress.invalid/contracts/v1/events.schema.json#/$defs/Provenance"
+    }
+  },
+  "required": [
+    "schema_version",
+    "annotation_version",
+    "dataset_version",
+    "taxonomy_version",
+    "records",
+    "provenance"
+  ],
+  "additionalProperties": false
+}
