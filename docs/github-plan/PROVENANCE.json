@@ -1,0 +1,35 @@
+{
+  "sourcePlanCommit": "bc139562beb1d4bdf306669a4cd7bdfd6332a62c",
+  "personalBriefs": [
+    {
+      "developer": 1,
+      "attachmentSha256": "3ab128290b97bcbab3ed958e39382253532634205bb40b9ccb2474e538622c78",
+      "matchingCopies": 2,
+      "matchingTasks": 9,
+      "reviewInstruction": "automatic-all"
+    },
+    {
+      "developer": 2,
+      "attachmentSha256": "5dccb1c5ad101e5a5999465ab0bbed870c85ab3fff0a770f014f52b69e62a4e2",
+      "matchingCopies": 2,
+      "matchingTasks": 6,
+      "reviewInstruction": "automatic-all"
+    },
+    {
+      "developer": 3,
+      "attachmentSha256": "35e3e24e87486419218a5bfcd31f1d37588c71782bfc274fe27e381e040e3cb5",
+      "matchingCopies": 2,
+      "matchingTasks": 12,
+      "reviewInstruction": "automatic-all"
+    },
+    {
+      "developer": 4,
+      "attachmentSha256": "fc2b8a8d120d824dfc26ba5acb2875d1ee020a3bfc6a7645d58ef41dcd0cadb6",
+      "matchingCopies": 2,
+      "matchingTasks": 9,
+      "reviewInstruction": "automatic-all"
+    }
+  ],
+  "archive": "archive/plan.aster.json",
+  "runtimeUsesAster": false
+}
