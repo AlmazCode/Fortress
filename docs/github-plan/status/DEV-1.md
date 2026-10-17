@@ -172,3 +172,15 @@ I теперь ожидает M/O (A/F/R software приняты); Z ожида�
 После checks и `git diff --cached --check` → 0 временный review merge отменён `git merge --abort`; clean tree подтверждён. Это отмена только собственного незакоммиченного merge, candidate и чужие изменения сохранены в Git. O2/O3 не помечены accepted и не включены в integration. Подробный возврат обновлён в STATUS.md.
 
 Журнал №2 `45c35eb` рассмотрен и объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`: только авторское подтверждение опубликованной F acceptance и dependency gate U. Повторный frontend runtime test не нужен: код неизменён. Собственные изменения этого продолжения — общий STATUS/manifest и журнал №1; main/deploy/training/сообщения чатам не выполнялись.
+
+## Review D3 после сообщения человека о D1–D3
+
+Base `c00516e3e5e8bc08c0ba96a4cb24b0048178068f`. Origin/свой checkout/clean tree/base object проверены; fetch → 0, получен `origin/codex/fortress-no3-ml` на `0e9bebc`. Код D3 — `d0b9704b005e85675191baf0c0737b5d6da8cc49`; D1/D2 ранее приняты и заново не объявляются новыми результатами. Прочитаны актуальные D3/D4 criteria, десять файлов D3 и отчёт №3.
+
+`git merge --no-ff --no-commit 0e9bebc` позволил проверить сочетание с принятым кодом без публикации кандидата. Merge-дельта — 11 путей, ровно D3 + DEV-3 journal, вне scope нет. `.venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q` → **0, 129 passed in 3.95s, no skips** (D3 48). Shared lock не менялся; native PyAV/CPU и временные synthetic files настоящие, training не запускался.
+
+Дополнительный review воспроизвёл нарушение holdout separation через реальный CLI. В новой временной папке созданы четыре synthetic FFV1/MKV 32×24, по четыре кадра с PTS 20/21/24/25 при time_base=1/10; пути/группы/источники distinct, kind=synthetic. Импорт → exit 0, videos=4; split seed17 с final ID → exit 0, train2/dev1/final1. Второй split с тем же seed, входом first split bundle и без повторного final flag → exit 0, train3/dev1/final0. Ранее independent_test ID оказался train и возвращён `records_for(..., purpose="training")`. Hash/mtime originals не изменены; audit training_ready=false в обоих случаях, что не устраняет selector leak.
+
+Причина в `ml/data/splits.py:66–95` и `:133–142`: old split сбрасывается, existing final не входит в новый final set, отсутствующий CLI flag даёт []. Текущий test_final_never_enters_training_or_threshold_calibration покрывает только selector сразу после первого split, поэтому 129 зелёных tests не опровергают повторный сценарий. [P1] нарушает acceptance D3 №4; точная последовательность и варианты исправления переданы через STATUS.md. Исходники №3 не исправлялись и сообщения другим чатам не отправлялись.
+
+После `git diff --cached --check` → 0 выполнен `git merge --abort` только для собственного review merge; рабочее дерево чистое, все candidate commits сохранены. D3 marked blocked review, D4 не открывается. Evidence `.aster/checkpoints/d3-review-cli.json` локальное, в Git не добавлялось. Требуется новый исправленный D3 SHA; I по-прежнему ждёт M/O, Z — I/U/E/B.

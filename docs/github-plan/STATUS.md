@@ -19,8 +19,8 @@
 - [x] F — Интерфейс анализа · №2 · accepted software (c931791, merge c6d15d5); настоящий API/browser journey — I/U
 - [x] D1 — Аудит данных и среды · №3 · accepted (536fe7a, merge 8dd2da1)
 - [x] D2 — Классы и инструкция разметки · №3 · accepted draft (b496127, merge 47787cb); human review/final taxonomy не заявлены
-- [ ] D3 — Импорт и split без утечки · №3 · ready (K принят)
-- [ ] D4 — Кадры и клипы по PTS · №3 · unverified
+- [ ] D3 — Импорт и split без утечки · №3 · blocked review (d0b9704; повторный split переносит final в train)
+- [ ] D4 — Кадры и клипы по PTS · №3 · blocked (D3 не принят)
 - [ ] D5 — Разметка объектов и событий · №3 · unverified
 - [ ] D — Данные и preflight · №3 · unverified
 - [ ] M1 — Preprocessing и кэш · №3 · unverified
@@ -95,6 +95,24 @@ F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f` принят главным пос
 - На текущем Linux `docker compose version` → 0, но `docker version --format '{{json .Server.Version}}'` → **1, permission denied /var/run/docker.sock**. Проверки build/start/worker egress/volumes/GPU не выполнены. На Windows №4 installer также остановлен системным prerequisite; это отдельный хост и отдельное ограничение, не Linux-ошибка.
 - Доверенный внешний HTTPS не подтверждён. O2/O3/O и I не закрываются по config/local TLS.
 
-Frontend `45c35eb` содержит только синхронизацию журнала с уже принятой F; объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`. Исходники не меняются. Опубликованная ML-ветка остаётся `c485788` (D2); результатов D3–D/M пока нет.
+Frontend `45c35eb` содержит только синхронизацию журнала с уже принятой F; объединён merge `452800fbdec0bb8821ec6547fe118566c8c0b3de`. Исходники не меняются. На момент этой проверки ML-ветка оставалась `c485788`; более новый D3 рассмотрен ниже.
+
+### Проверка D3: d0b9704 / отчёт 0e9bebc
+
+Получен точный код `d0b9704b005e85675191baf0c0737b5d6da8cc49`, опубликованный head `0e9bebc`. D1 и D2 уже приняты; D3 **пока не принят и не интегрирован**. Главный прочитал 10 файлов реализации/тестов и журнал №3, проверил scope через временный merge (11 разрешённых путей), выполнил `.venv/bin/python -m pytest tests/contracts/test_schemas.py tests/ml -q` → **0, 129 passed in 3.95s, no skips**. Это 55 K + 9 D1 + 17 D2 + 48 D3. Tests проверяют реальные tiny decode/PTS/rotation, ZIP rejection/rollback, dedup и grouped splits; реальные пользовательские данные не обрабатывались.
+
+**[P1] Финальная выборка теряется при повторном split.** `ml/data/splits.py:66–95` берёт final только из нового аргумента, игнорирует предыдущие assignments и заново распределяет все группы. CLI `:133–142` принимает уже разделённый bundle, а пропущенный `--final-video-id` превращается в пустой список. Уже отмеченный `independent_test` после обычного повторного запуска становится train или dev; `records_for(..., purpose="training")` действительно возвращает прежний final. Это нарушает критерий D3 №4, хотя `training_ready=false` остаётся честным: этот флаг не препятствует выдаче записей через selector.
+
+Воспроизведено главным через **реальные CLI** на четырёх новых tiny synthetic FFV1/MKV 32×24, без правок исходников:
+
+```sh
+python -m ml.data.manifest --config synthetic-config.yaml --output import.json
+python -m ml.data.splits --input import.json --output first.json --seed 17 --final-video-id video-bab7f71334d5d9cea2d38557
+python -m ml.data.splits --input first.json --output second.json --seed 17
+```
+
+Все три процесса → exit 0. До повторного split: train=2/dev=1/final=1. После: train=3/dev=1/final=0; указанный video ID перешёл `independent_test → train`, training selector включает его. SHA/mtime всех четырёх originals сохранены. Полный локальный report оставлен вне Git; это только software reproduction, обучение не запускалось.
+
+Следующее действие №3: сохранить ранее зарезервированные final-группы при re-split либо явно отклонять вход с существующим split до записи output. Нельзя молча возвращать прежний final в train/dev; изменение final selection должно быть явно контролируемым. Добавить регрессионные API/CLI проверки повторного split без повторного флага, с другим seed/final selection и связанными duplicate/source groups; доказать, что прежний final не попадает ни в training, ни в threshold calibration. Затем опубликовать новый точный SHA для повторной проверки. Временный merge главного отменён, candidate сохранён в Git. D4 ещё не открыта.
 
 M/O остаются незакрытыми prerequisites I. Z недоступна до I и U/E/B. Прямые сообщения другим чатам не отправлялись; эта сводка — передача замечаний через разрешённый GitHub-процесс.
