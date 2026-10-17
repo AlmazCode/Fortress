@@ -10,8 +10,8 @@ Checkout: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`.
 | K | accepted | 2e44bf555ad1a824d92e73770a1ee85d1bf20d0f | 55 passed; доступен в integration |
 | A1 | accepted | a84cce5e19c8b5a96286473aa9283c2c6b3a1194 | 10 passed на PostgreSQL 18.6; доступен в integration |
 | A2 | accepted | df5dae07b4683afff88bdd06bfbf5b34bd7cc382 | 19 passed; доступен в integration |
-| A3 | working | — | K принят; auth/preview/evidence |
-| A4 | ready | — | A1 принят; после A3 |
+| A3 | accepted | 6f7f5bf689440640bdc205642aefe7bf07a4d283 | 8 passed; доступен в integration |
+| A4 | working | — | Настоящие PostgreSQL/Redis/Celery |
 | A5 | blocked | — | Требуются A2/A3/A4 |
 | A | blocked | — | Требуется A5 |
 | I | blocked | — | Требуются A/F/M/R/O |
@@ -80,3 +80,10 @@ Base: `f90cdcd`; head: `df5dae07b4683afff88bdd06bfbf5b34bd7cc382`. Измене�
 Проверка: `python3 .aster/checkpoints/run-tests.py tests/api/test_upload_decode.py tests/api/test_limits.py -q` → exit 0, **19 passed in 3.18s**, реальные FFmpeg/PostgreSQL. Два новых теста сначала воспроизвели неправильный envelope malformed multipart и незакрытый readiness error (exit 1), затем исправлены и прошли.
 Критерий 1: metadata+full decode, обе ориентации, 61fps/181s/oversize и поддельное расширение. Критерий 2: VFR, display matrix rotation, ненулевой PTS, повреждённые/обрезанные файлы. Критерий 3: случайные имена/traversal, bounded multipart, реальный hanging subprocess, fsync fault. Критерий 4: 400/413/415/503 envelopes, уборка до принятия и сохранность оригинала после client cancellation. Критерий 5: model readiness/busy, настоящий durable job+outbox перед 202.
 Ограничения: model readiness — явный test stub; auth и весь production routing проверяются A3/A. При неоднозначном исходе DB commit оригинал сохраняется для последующей reference-aware уборки. Принят главным после проверки и fast-forward integration; независимая приёмка не заявляется.
+
+## A3 — авторизация и медиа (17 октября 2026)
+
+Base: `38672c7`; head: `6f7f5bf689440640bdc205642aefe7bf07a4d283`. Файлы: `backend/app/auth.py`, `backend/app/media.py`, `tests/api/test_auth_media.py`, `tests/api/test_media_pts.py`.
+`python3 .aster/checkpoints/run-tests.py tests/api/test_auth_media.py tests/api/test_media_pts.py -q` → exit 0, **8 passed in 4.40s**. Начальный RED: отсутствующие модули (7 failures); дополнительный тест выявил выдачу cached preview при изменённом оригинале, исправлено проверкой SHA-256 (RED→GREEN).
+Критерий 1: middleware до роутинга/чтения тела, все API пути, missing/wrong/duplicate key, unknown job 404. Критерий 2: явно shared operator key, персональная изоляция не заявляется. Критерий 3: header-only, constant-time compare, no-store, generic errors без путей; приложение не пишет ключи/медиа в лог. Критерий 4: реальное VFR/rotation/nonzero PTS видео, покадровое сравнение времён preview и пикселей JPEG с независимым FFmpeg decode; 1–3 кадра. Критерий 5: missing media/frame, повреждённый original и JSONB JPEG возвращают явные ошибки, job/result сохраняются.
+Ограничения: это модульный ASGI harness с реальным PostgreSQL/FFmpeg; итоговая установка middleware и access-log policy — A, browser Blob/seek — F/I/U. Реальная ML-подлинность не заявляется. Evidence provider работает с исходным видео; production runner будет подключён в I. Принято автором-главным и интегрировано.
