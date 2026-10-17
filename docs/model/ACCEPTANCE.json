@@ -6,21 +6,21 @@
   "observed_local_date": "2026-10-18",
   "repository": "https://github.com/AlmazCode/Fortress",
   "branch": "codex/fortress-no3-ml",
-  "verified_code_commit": "85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d",
+  "verified_code_commit": "c68ae819d38cd14b97921c9c76ed1a4b92d89cc8",
   "fixed_D3_commit": "54493fcd10b1824356f82df3f6bbbfadc1ea5ffc",
   "dependency": {
     "task": "I",
     "accepted_commit": null,
-    "observed_integration_commit": "bfff45447f74a5263b1d728e05ebb41490d91b58",
-    "fixed_D3_integrated": false
+    "observed_integration_commit": "ecce7c2126e8e99e7dea3baff3af7b15b4391891",
+    "fixed_D3_integrated": true
   },
   "software_checks": {
     "command": "python -m pytest tests/contracts/test_schemas.py tests/ml -q",
     "exit_code": 0,
-    "passed": 269,
+    "passed": 273,
     "skipped": 0,
-    "elapsed_seconds": 137.76,
-    "scope": "Local contract/data/ML software checks; tiny synthetic CPU, no real ML validation."
+    "elapsed_seconds": 137.47,
+    "scope": "Local contract/data/ML software checks including backend promoted .video regression; tiny synthetic CPU, no real ML validation or full application I."
   },
   "tiny_pipeline": {
     "command": "python -m ml.cli smoke --output-dir <new local directory>",
@@ -33,7 +33,8 @@
     "evaluation_partition": "independent_test",
     "summary_sha256": "6ec6d86efe72322748563e604578c70a27341b992850dc698750b5f875f8640b",
     "package_sha256": "b81ffe159a0516fbdebea0c0ff80245ffd115bff97bc7ab4d7fb22e4f2dc4351",
-    "model_sha256": "6b89924cc8a3622d4d47d4f06763a5de3eeb2f200b737371f45cfcca60096c5f"
+    "model_sha256": "6b89924cc8a3622d4d47d4f06763a5de3eeb2f200b737371f45cfcca60096c5f",
+    "code_commit": "85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d"
   },
   "event_protocol": {
     "version": "event-boundary-v1",
@@ -78,9 +79,21 @@
     "runtime_downloads": false
   },
   "remaining": [
-    "N1 review/integration of corrected D3 and D4/D5/D/M candidates",
+    "N1 review/integration of M4/M .video correction c68ae819d38cd14b97921c9c76ed1a4b92d89cc8; D3-D/M1-M3 already accepted in 69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
     "accepted I SHA and final E application handoff verification",
     "real reviewed data/rights/taxonomy/independent final evidence/local pretrained weights",
     "separately instructed real training/evaluation/quality and production budget/performance checks"
-  ]
+  ],
+  "M4_followup": {
+    "state": "review",
+    "code_commit": "c68ae819d38cd14b97921c9c76ed1a4b92d89cc8",
+    "replaces_defect_in_M": "85e5b2162d86e95d831ce9fb7ef2c7578b9ee92d",
+    "accepted_dependency_review": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
+    "defect": "Backend-promoted .video rejected by suffix-based probe/index/decode.",
+    "regression": "Real LocalStorage spool/promote, VideoValidator/ffprobe, MP4 and rotated VFR/nonzeroPTS MOV, adapter and CLI inference.",
+    "red_exit_code": 1,
+    "green_exit_code": 0,
+    "native_backend_linux_runtime_verified": false,
+    "windows_test_io_adaptation": "POSIX directory fsync/pipe polling only; actual rename, validation and ffprobe."
+  }
 }
