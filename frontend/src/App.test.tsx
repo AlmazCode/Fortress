@@ -10,10 +10,10 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const clients: QueryClient[] = [];
 const OriginalURL = URL;
 beforeEach(() => { vi.stubGlobal('URL', class extends OriginalURL { static createObjectURL = vi.fn(() => 'blob:app-test'); static revokeObjectURL = vi.fn(); }); });
-afterEach(() => { cleanup(); clients.forEach(client => client.clear()); clients.length = 0; vi.restoreAllMocks(); vi.unstubAllGlobals(); });
-function mount(transport: ApiTransport, fixtureMode = false) {
+afterEach(() => { cleanup(); clients.forEach(client => client.clear()); clients.length = 0; vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+function mount(transport: ApiTransport, fixtureMode = false, apiTestMode = false) {
   const queries = new QueryClient({ defaultOptions: { queries: { retryDelay: 0 }, mutations: { retry: false } } }); clients.push(queries);
-  return render(<QueryClientProvider client={queries}><App transport={transport} fixtureMode={fixtureMode} pollMs={20} /></QueryClientProvider>);
+  return render(<QueryClientProvider client={queries}><App transport={transport} fixtureMode={fixtureMode} apiTestMode={apiTestMode} pollMs={20} /></QueryClientProvider>);
 }
 async function connect() { fireEvent.change(screen.getByLabelText('API-ключ'), { target: { value: secret } }); fireEvent.click(screen.getByRole('button', { name: /Подключить/ })); await screen.findByRole('button', { name: 'Сбросить ключ' }); }
 async function upload() {
@@ -79,4 +79,22 @@ test('explicit demo can exercise synthetic outcome while visibly remaining untra
 });
 test('public failed remains failure with its reason, no synthetic clean verdict', async () => {
   const s = server({ outcome: 'insufficient_evidence' }); mount(s.transport); await connect(); await upload(); await screen.findByRole('heading', { name: 'Анализ не завершён' }); expect(screen.getByText(/Недостаточно наблюдаемых данных/)).toBeTruthy(); expect(screen.queryByRole('img')).toBeNull(); expect(s.posts()).toBe(1);
+});
+
+test('explicit API test mode requires server test_only; normal untrained production remains blocked', async () => {
+  const notReady = fixtureCase('model_status') as ModelStatusData;
+  const transport: ApiTransport = { fetch: async () => json({ ...notReady, test_only: true }) };
+  mount(transport, false, true); await connect();
+  await waitFor(() => expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(false));
+  expect(screen.getByRole('note').textContent).toContain('SYNTHETIC API TEST'); expect(screen.queryByText('Можно начать анализ')).toBeNull();
+});
+test('API test flag does not bypass normal production not_ready', async () => {
+  mount(server({ notReady: true }).transport, false, true); await connect(); await screen.findByText('Как подготовить локальный release');
+  expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true);
+});
+test('production runtime ignores API-test and fixture props even with test-only transport', async () => {
+  vi.stubEnv('PROD', true);
+  const model = fixtureCase('model_status') as ModelStatusData;
+  mount({ fetch: async () => json({ ...model, test_only: true }) }, true, true); await connect(); await screen.findByText('Как подготовить локальный release');
+  expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true); expect(screen.queryByRole('note')).toBeNull();
 });

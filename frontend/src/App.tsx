@@ -10,7 +10,7 @@ import { JobStatus, useJobPolling } from './components/JobStatus';
 import { EventList } from './components/EventList';
 import { VideoPlayer, type SeekRequest } from './components/VideoPlayer';
 const retryRead = (count: number, error: unknown) => count < 2 && error instanceof ApiError && error.code === 'network';
-export default function App({ transport, fixtureMode = false, pollMs = 1800 }: { transport?: ApiTransport; fixtureMode?: boolean; pollMs?: number }) {
+export default function App({ transport, fixtureMode = false, apiTestMode = false, pollMs = 1800 }: { transport?: ApiTransport; fixtureMode?: boolean; apiTestMode?: boolean; pollMs?: number }) {
   const queries = useQueryClient();
   const [client, setClient] = useState<ApiClient>();
   const [jobId, setJobId] = useState<string>();
@@ -22,6 +22,7 @@ export default function App({ transport, fixtureMode = false, pollMs = 1800 }: {
   const uploadController = useRef<AbortController | null>(null);
   const activeClient = useRef<ApiClient | undefined>(undefined);
   const demo = fixtureMode && !!transport && !import.meta.env.PROD;
+  const apiTest = apiTestMode && !import.meta.env.PROD;
   const model = useQuery<ModelStatusData>({
     queryKey: ['fortress', client?.session ?? 0, 'model'], queryFn: ({ signal }) => client!.model(signal),
     enabled: !!client, retry: retryRead, refetchOnWindowFocus: false, refetchOnReconnect: false,
@@ -59,7 +60,7 @@ export default function App({ transport, fixtureMode = false, pollMs = 1800 }: {
   const outcomeUnknown = uploadError instanceof ApiError && uploadError.code === 'upload_outcome_unknown';
   const occupied = !!jobId && (!job.data || !!job.error || job.data.status === 'processing');
   const canUpload = !!client && !model.isFetching && !model.error && !modelRejected && !outcomeUnknown &&
-    (demo || isModelReady(model.data)) && !uploading && !occupied;
+    (demo || isModelReady(model.data) || apiTest && model.data?.test_only === true && !model.data.trained && !model.data.validated) && !uploading && !occupied;
   async function upload(file: File) {
     if (!client || !canUpload || uploadController.current) return;
     const current = client, controller = new AbortController(); uploadController.current = controller;
@@ -91,6 +92,7 @@ export default function App({ transport, fixtureMode = false, pollMs = 1800 }: {
       <main id="main" tabIndex={-1}>
         <div className="page-heading"><div><div className="section-eyebrow">КОНТРОЛЬ ОПЕРАЦИЙ</div><h1>Каждый вывод —<br className="mobile-break" /> с доказательством.</h1><p>Загрузите запись, проверьте наблюдаемые события<br className="desktop-break" /> и сопоставьте выводы с исходными кадрами.</p></div><div className="page-index" aria-hidden="true">01<span>VIDEO REVIEW</span></div></div>
         {demo && <div className="fixture-banner" role="note"><strong>SYNTHETIC TEST / DEMO</strong> Искусственные примеры. Модель, нормы и реальное качество не проверены. Исходное видео в этом режиме не обрабатывается.</div>}
+        {apiTest && <div className="fixture-banner" role="note"><strong>SYNTHETIC API TEST</strong> Настоящий локальный API в тестовом режиме. Используйте только искусственные тестовые ролики. Модель и реальное качество не проверены; этот режим не подтверждает готовность production.</div>}
         <div className="steps" aria-label="Этапы проверки"><div className="step current"><span>01</span><div><strong>Загрузите видео</strong><small>Исходная запись MP4 / MOV</small></div></div><div className={`step ${jobId ? 'current' : ''}`}><span>02</span><div><strong>Дождитесь обработки</strong><small>Проверка состояния задания</small></div></div><div className={`step ${job.data?.status === 'done' ? 'current' : ''}`}><span>03</span><div><strong>Проверьте события</strong><small>Таймкоды, кадры, ограничения</small></div></div></div>
         {notice && <div className="notice" role="status">{notice}</div>}
         <div className="workspace-grid">
@@ -100,8 +102,8 @@ export default function App({ transport, fixtureMode = false, pollMs = 1800 }: {
             {client && <JobStatus key={'job-' + client.session} jobId={jobId} job={job.data} checking={job.isFetching} error={job.error} stage={detail?.stage} authenticated={!uploading} onRetry={() => { void job.refetch(); }} onResume={id => { if (!uploading) { setJobId(id); setSeek(undefined); setUploadError(undefined); } }} onClear={() => { setJobId(undefined); setSeek(undefined); }} />}
           </div>
           <div className="secondary-column">
-            <ApiKeyForm connected={!!client} onConnect={connect} onReset={() => reset()} fixtureMode={demo} />
-            <ModelStatus model={model.data} connected={!!client} pending={model.isFetching} fixtureMode={demo} blocked={modelRejected || !!model.error} />
+            <ApiKeyForm connected={!!client} onConnect={connect} onReset={() => reset()} fixtureMode={demo || apiTest} />
+            <ModelStatus model={model.data} connected={!!client} pending={model.isFetching} fixtureMode={demo || apiTest} blocked={modelRejected || !!model.error} />
             {!!model.error && <ErrorPanel error={model.error} onRetry={() => { void model.refetch(); }} />}
             <div className="operator-note"><span aria-hidden="true">↗</span><p><strong>Оператор принимает решение.</strong> Сервис помогает найти наблюдаемые события. Невидимое и неподдерживаемое остаётся неизвестным.</p></div>
           </div>

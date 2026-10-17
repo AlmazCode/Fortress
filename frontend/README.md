@@ -51,3 +51,13 @@ Fixtures подключаются только guarded dynamic import при Vit
 ## Граница проверки
 
 Компонентные и клиентские тесты проверяют реальное поведение React/Query/client на явных K fixtures и отказах транспорта. В F дополнительно осмотрены начальный экран и synthetic result в браузере при 360/768/1440 px. Это авторская проверка UI; настоящее API, внешний HTTPS, исходное видео/seek и ML readiness не объявляются пройденными. U выполняется только после принятого I.
+
+## Настоящий API в изолированном test profile (для I/U)
+
+```powershell
+npm run dev:api-test -- --host 127.0.0.1 --port 5173 --strictPort
+```
+
+Этот режим использует настоящий fetch через /api proxy, без frontend fixture transport. На странице видна метка SYNTHETIC API TEST. Выбирайте только искусственные видеопримеры. Для разрешения тестового upload сервер обязан сам сообщить `test_only=true`, `trained=false`, `validated=false`; обычный production not_ready этим режимом не обходится. Компоненты проверки backend и изолированные PostgreSQL/Redis готовятся по backend/README.md в I/U. Production остаётся защищённым trained/validated gate.
+
+Режим только для dev: `vite build --mode api-test` запрещён, как и fixture build. Стандартный production build игнорирует test/demo props; это проверено отдельным тестом. Реальный test-profile API в браузере пока не запускался, зависимость I не принята. Этот запуск не называется ML validation.
