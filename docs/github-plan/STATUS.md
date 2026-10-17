@@ -45,6 +45,12 @@
 
 Результаты ниже заменяют старые возвраты D3/COPY contracts. История дальше относится к прежним SHA. Проверки выполнены главным в собственном checkout; это не человеческая/ML/production приёмка.
 
+### Повторная сверка после просьбы «а щас проверь»
+
+Свежий `git fetch origin` → exit0. №3 остаётся **4513993fd8679d93e39424aa3d63178c84e15fb4**: нового M4/M исправления `.video` нет, прежнее воспроизведение относится к текущему коду. №4 опубликовал **f2e40c6750d4794ae6817c248a45e9b3380f9401** — только5 документов, executable code/тесты/locks не изменены. Подготовлен новый [RELEASE.md](../operations/RELEASE.md); исправление 404 отмечено закрытым. Авторский свежий runtime report: Windows engine pipe отсутствует, host NVIDIA query не подтверждает container CUDA; Docker/worker/volumes/GPU/external HTTPS всё ещё not_run. Доступ к другому ПК по журналу №4 отложен пользователем; новых подключений не предпринималось.
+
+Главный прочитал runbook/DEV-4/ACCEPTANCE, проверил **11 Bash blocks (`bash -n`), 5 Python snippets (`ast.parse`)**, relative links, JSON и production/harness Compose config — exit0. Документация включена merge **2495a6d1114e913f8d36ae40cb6a3ac42f6f8fc0**; это подготовка инструкции, не приёмка O или публикация Release/deploy. Повторный Linux `docker version` → exit1 `permission denied /var/run/docker.sock`. Неизменённые application tests не повторялись. **M4/M, O и I остаются blocked** по тем же точно указанным ниже условиям.
+
 ### Принятые D3–D и M1–M3
 
 D3 **54493fcd10b1824356f82df3f6bbbfadc1ea5ffc**: 55 targeted tests passed. Собственный CLI import четырёх новых FFV1/MKV → split seed17 с final → re-split без final flag при (seed,dev_fraction)=(17,.2),(99,.7),(321,0) сохранил один final во всех трёх случаях. Training/calibration selectors его не возвращают; попытка выбрать другой final → exit2, output отсутствует, originals/hash/mtime сохранены. Старый P1 d0b9704 **закрыт**.
