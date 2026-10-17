@@ -61,3 +61,11 @@ Fetch не предоставляет надёжный прогресс байт
 ## Следующее действие
 
 Главному: проверить и интегрировать точный F1 `bab9998bb094605ceadbfb42412080fa1e0f3b3f`, записать принятую ветку/SHA в STATUS.md. Затем №2 продолжает F2/F3/F4 без нового рутинного разрешения. Push не означает accepted; общая main не изменялась.
+
+## Продолжение по указанию пользователя
+
+Пользователь явно разрешил F2–F4 в собственной ветке на проверенном F1, оставив приёмку и общую интеграцию главному. В свою ветку объединён `origin/codex/integration` на `14e322a`; merge `d22a8bccc8ed384cdc74bb14a2c0a1a97a58c26f`. K не менялся, A1–A3 и их проверки доступны; main не изменялась.
+
+F2: кандидат review, текущий commit определяется заголовком следующей Git-записи. Четыре файла UploadPanel/JobStatus и их тесты. Реализованы ограничения выбора, indeterminate transfer, явная отмена связи, UUID/auth resume и useJobPolling с bounded GET retry, terminal stop и cleanup. `npm test -- src/components/UploadPanel.test.tsx src/components/JobStatus.test.tsx` → exit 0, 19 passed. Отдельный strict tsc для этих четырёх файлов → exit 0. Начальный тест выявил доступный native file input при disabled panel; добавлен disabled, повторная проверка прошла. Сценарии настоящего API остаются U после I.
+
+Уточнение проверки F2: первоначальная команда tsc с явными файлами была отклонена TypeScript 7 (TS5112). После добавления `--ignoreConfig` исправлены типы query options и boolean-условие JSX; strict tsc → exit 0, затем повторно 19 passed. Эти исправления включены в окончательный commit F2 до публикации.
