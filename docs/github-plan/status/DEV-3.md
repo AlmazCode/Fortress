@@ -10,8 +10,8 @@
 | D2 | accepted | codex/fortress-no3-ml | b4961272723cefec463d45ccb49d041afd52150b | Принят главным как draft, merge 47787cb; final taxonomy/human review не заявлены |
 | D3 | review | codex/fortress-no3-ml | 54493fcd10b1824356f82df3f6bbbfadc1ea5ffc | Исправлен P1 re-split holdout leak; 136 passed + реальный повторный CLI; нужен повторный review №1 |
 | D4 | review | codex/fortress-no3-ml | 8b263be898a7f62504cce7a27d82ad8cce89e60b | 14 targeted tests; вместе K/ML 150 passed; четыре настоящих CLI passed; приёмка отдельно |
-| D5 | working | codex/fortress-no3-ml | База D4 8b263be | Человек явно поручил продолжать после проверки статуса; D2 принят, D4 авторски проверен, ждёт N1 |
-| D | blocked | codex/fortress-no3-ml | — | Зависит от D1/D5 |
+| D5 | review | codex/fortress-no3-ml | 4ad53e30fe844fba794368e15fa53b91588e007f | 40 targeted tests; K/ML 190 passed; task CLI + JSONL/CSV/COCO/QA smoke passed |
+| D | working | codex/fortress-no3-ml | База D5 4ad53e3 | Продолжение по прямому поручению человека; единый data CLI/readiness |
 | M1 | blocked | codex/fortress-no3-ml | — | Зависит от D |
 | M2 | blocked | codex/fortress-no3-ml | — | Зависит от M1 |
 | M3 | blocked | codex/fortress-no3-ml | — | Зависит от M2 |
@@ -133,3 +133,17 @@ Base исправления: `0e9bebc8417dbf63364b735624f7fbd8ac4e309f`; candida
 - `git diff --cached --name-status` — ровно 7 D4 paths; `git diff --cached --check` → exit 0. Source code после общей проверки не менялся. Полные local argv, output paths и frozen checkpoint остаются вне Git.
 
 Следующая работа по прямому поручению — D5 поверх этого проверенного кандидата; D3/D4 остаются review для N1. Публикация проверенных собственных commits разрешена человеком ранее.
+
+## D5 — проверенный кандидат разметки и QA
+
+- Base `763f2b91dd9df7262d38d1ff866cc2dcbea7fff7`; candidate `4ad53e30fe844fba794368e15fa53b91588e007f`. Ровно 9 разрешённых добавленных файлов D5, 982 строки, без shared changes.
+- Финальный `.venv/Scripts/python.exe -m pytest tests/contracts/test_schemas.py tests/ml -q` → exit 0, **190 passed in 18.20s, no skips** (D5 40). Source code после этой проверки не менялся.
+- `python -m ml.data.annotation_tasks --manifest <synthetic-split> --index <index> --scenes <scenes> --frames <PNG-output> --annotation-version synthetic-cli-labels-v1 --output-dir <new-local-bundle>` → exit 0: 4 frames, 6 tasks, training_ready=false, annotation_ui=not_verified. --help → exit 0.
+- Отдельный local API smoke: COCO+sidecar roundtrip, action JSONL/CSV roundtrip и настоящий pixel/source-hash QA → exit 0; valid=true, annotation_records=0, unknown_rate=null, assets/sources_verified=true, data_ready=false/training_ready=false. Первый запуск внешнего helper как script не видел cwd package; запуск через `python -c "import runpy; runpy.run_path(...)"` из checkout прошёл. Это ошибка вызова helper, не успешная проверка первого запуска.
+- Final QA report SHA-256 `ccc7d98e85b49b5d7d3b9c075c749a5a408fa79a560bec5e2155cd5cdfbfd629`; COCO `d7aaaf29c0c687c44387831f13d34974519d0efb2e569f0dea8d8f805c57678d`; sidecar `93a0bedddc881c0179684b6743fedaf3bbdb283563126810532fde274528d205`; action JSONL `728c51601efc2508302e5a710010bec8e0198aa632909c6b8677bb1a2c6579cb`; CSV `e85553d9593ca0f5b91c2a1798d79f5c020709dc6ca5fdbc16f70b90cc7720e9`. Эти артефакты synthetic, полные paths/argv вне Git.
+- Acceptance: canonical original bbox/PTS/visibility/occlusion/truncation/nullable identities/review versions; проверенный COCO xyxy↔xywh с четырьмя rotations/crop и metadata sidecar; ID/area/bounds/path/provenance validation; независимые actions могут пересекаться, противоречащие reviewed labels не могут; explicit negatives требуют reviewed complete visible interval; pseudo/unreviewed/needs_review не становятся gold/known. Новые/редактированные/удалённые COCO labels требуют новой annotation version и сбрасывают затронутый review; dataset_revision меняется по content.
+- QA показывает per-class/case/video counts, small-side diagnostic16px (не recognition threshold), occlusion/truncation, unknown/disagreement/duplicate/leakage/review/rights/source+PNG checks. Objects-only, synthetic и пустые templates не открывают temporal/training gate. Human-reviewed taxonomy/scenes/labels, original sources, rights и independent final evidence требуются отдельно.
+- K views структурно проверены настоящим validator. Objects K/COCO geometry соответствует фактическому PNG; original coordinates/transform/дополнительные review fields сохранены canonical sidecar. Нормативные выводы R1 не присваиваются; annotation UI не объявлен установленным. COCO primary API сверено по официальному cocoapi source, ссылка в ANNOTATION_WORKFLOW.md.
+- `git diff --cached --name-status` — ровно 9 D5 paths; `git diff --cached --check` → exit 0. Реальный датасет не размечался/не оценивался, training не запускался.
+
+После очередного fetch N1 всё ещё не зафиксировал приёмку исправленного D3. Продолжение D выполняется по прямому поручению человека; все собственные D3/D4/D5 остаются review и не объявляются accepted.
