@@ -102,5 +102,22 @@
     "CPU/CUDA numerical parity remains unconfirmed.",
     "Linux distributed infrastructure acceptance remains separate."
   ],
-  "private_artifacts_excluded_from_git": true
+  "private_artifacts_excluded_from_git": true,
+  "ci_portability_followup": {
+    "initial_run": "https://github.com/AlmazCode/Fortress/actions/runs/39094894618",
+    "initial_result": "frontend passed; Python 1 failed,428 passed,1 Windows-only skipped",
+    "cause": "Exact equality compared FP32 scores with batch sizes 1 and 2; observed delta 5.960464477539063e-08.",
+    "fix_commit": "db9acebdba81dab8fb56a2eb89cd1a2bd7f14c5a",
+    "isolation_assertion": "Exact same-batch before/after equality and unchanged checkpoint bytes retained.",
+    "cross_batch_tolerance": {
+      "absolute": 1e-06,
+      "relative": 0
+    },
+    "runtime_model_or_guard_changes": false,
+    "targeted_tests": {
+      "passed": 9,
+      "seconds": 8.34,
+      "exit_code": 0
+    }
+  }
 }
