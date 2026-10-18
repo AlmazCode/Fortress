@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "seed_vote_improved_and_selected",
+  "status": "source_action_heads_selected_clip_unchanged",
   "baseline": {
     "accuracy": 0.7129629629629629,
     "balanced_accuracy": 0.6471571906354515,
@@ -204,14 +204,16 @@
     "promoted": false
   },
   "active_model": {
-    "version": "three-seed-vote-extension-v1",
-    "model_sha256": "8075af005222a5de4eccfceac9d24a8f9ee2e50a8eff9c2b6b153d72993f2dad",
+    "version": "source-action-heads-local-v1",
+    "model_sha256": "bcefb403110e075fd841869df18421a327f091a569dcd31a7c79c48cf7638faf",
     "accuracy": 0.75,
     "balanced_accuracy": 0.6872909698996655,
     "macro_f1": 0.6974789915966386,
     "deployed_seed42_control_accuracy": 0.7222222222222222,
     "improvement_correct_sources_vs_seed42": 1,
     "independent_external_test": false,
-    "production_ready": false
+    "production_ready": false,
+    "action_results": "SOURCE_ACTIONS_RESULTS.json",
+    "clip_classifier_unchanged": true
   }
 }

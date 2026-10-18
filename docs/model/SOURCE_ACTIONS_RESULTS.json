@@ -503,7 +503,7 @@
   "dynamic_macro_f1_selected": 0.4226811294587531,
   "promotion": "Per-class P>=.8,R>=.5,F1>=.8 and above exact-frame control; linear, kernel, calibration, control fixed priority. These selected-class development estimates are not independent acceptance.",
   "target_80_overall_reached": false,
-  "deployment": "pending_source_and_API_verification",
+  "deployment": "active_local_main",
   "source_smoke": {
     "model_sha256": "bcefb403110e075fd841869df18421a327f091a569dcd31a7c79c48cf7638faf",
     "sources": [
@@ -577,5 +577,81 @@
       "typecheck_exit_code": 0,
       "build_exit_code": 0
     }
+  },
+  "implementation_commit": "0f96949faaf04d5714986fe1889b01f1619809cf",
+  "api_verification": {
+    "readiness": {
+      "schema_version": "1.0",
+      "status": "prototype",
+      "reason": "experimental_model",
+      "release_version": "prototype-source-actions-bcefb403110e",
+      "trained": true,
+      "validated": false,
+      "test_only": false,
+      "limitations": [
+        "Точность на отложенных семействах: 75.00%; независимая внешняя проверка не выполнена.",
+        "Оценка ансамбля — доля голосов трёх моделей, а не калиброванная вероятность.",
+        "Обновлены отдельные визуальные головы; качество действий и clip accuracy измеряются отдельно.",
+        "Интервалы действий — предположения модели с шагом 0,5 с; они не доказывают причину вердикта или нарушение.",
+        "Нормативная применимость неизвестна; результат требует ручной проверки.",
+        "Новый ракурс и CPU/CUDA numerical parity не валидированы."
+      ]
+    },
+    "sources": [
+      {
+        "video_id": "video_001",
+        "job_id": "43cc13b5-5581-4d52-b3be-e2c3575eb808",
+        "verdict": "violation",
+        "api_seconds": 23.42199999999866,
+        "processing_seen": true,
+        "review_times": [
+          10.5,
+          15.5,
+          22.5
+        ],
+        "jpeg_count": 9,
+        "observation_count": 9
+      },
+      {
+        "video_id": "video_010",
+        "job_id": "f18f4033-7c99-4cf7-961f-5811871bdff6",
+        "verdict": "no_violation",
+        "api_seconds": 14.31199999999808,
+        "processing_seen": true,
+        "review_times": [],
+        "jpeg_count": 0,
+        "observation_count": 5
+      },
+      {
+        "video_id": "video_039",
+        "job_id": "d2680f71-1015-4cc7-9214-c6728988d507",
+        "verdict": "violation",
+        "api_seconds": 58.92199999999866,
+        "processing_seen": true,
+        "review_times": [
+          17.5,
+          23.5,
+          32.5,
+          68.0
+        ],
+        "jpeg_count": 11,
+        "observation_count": 30
+      }
+    ],
+    "independent_test": false,
+    "not_42_video_timing": true
+  },
+  "media_checks": {
+    "original": {
+      "range_status": 206,
+      "bytes": 1024,
+      "unauthenticated_status": 401
+    },
+    "preview": {
+      "range_status": 206,
+      "bytes": 1024,
+      "unauthenticated_status": 401
+    },
+    "frontend_build": "index-Bi6goRFB.js"
   }
 }
