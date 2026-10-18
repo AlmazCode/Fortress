@@ -21,7 +21,7 @@ from backend.app.media import MediaService, create_media_router
 from backend.app.schemas import MissingRelease
 from backend.app.storage import IntakeError, LocalStorage
 from backend.app.video import VideoValidator
-from .inference import LIMITATIONS, predictor
+from .inference import model_limitations, predictor
 from .repository import LocalRepository
 from .runtime import run_worker
 
@@ -49,7 +49,8 @@ class PrototypeRelease:
         self.path = Path(config['bundle_root'])/'weights.pt'
         model = predictor(config['bundle_root'], config['device'])
         self.digest = model.metadata['weights_sha256']
-        self.version = 'prototype-uniform-gru-'+self.digest[:12]
+        self.version = ('prototype-weak-risk-' if model.metadata.get('risk_extension') else 'prototype-uniform-gru-')+self.digest[:12]
+        self.limitations = model_limitations(model.metadata)
         del model
 
     def readiness(self):
@@ -62,7 +63,7 @@ class PrototypeRelease:
             return MissingRelease().readiness()
         return {'schema_version': '1.0', 'status': 'prototype', 'reason': 'experimental_model',
                 'release_version': self.version, 'trained': True, 'validated': False,
-                'test_only': False, 'limitations': LIMITATIONS}
+                'test_only': False, 'limitations': self.limitations}
 
 
 class PrototypeUpload(UploadService):

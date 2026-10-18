@@ -1,6 +1,7 @@
 import { formatTime, type Observation } from '../api/types';
 
 const names: Record<string, string> = {
+  risk_candidate: 'Подозрительный фрагмент по сценарию',
   flat_item_handling: 'Работа с купюрой, карточкой или бумагой',
   counter_interaction: 'Работа с настольным устройством', computer_interaction: 'Работа с компьютером',
   storage_interaction: 'Взаимодействие с сейфом', bag_interaction: 'Работа с сумкой',
@@ -11,7 +12,7 @@ const names: Record<string, string> = {
   two_people_at_counter: 'Два человека у стойки', cup_visible: 'Видимая чашка', garment_on_desk: 'Одежда на столе',
   green_bag_visible: 'Видимая сумка', screen_bright_content: 'Светлое содержимое экрана',
 };
-const actions = new Set(['flat_item_handling', 'counter_interaction', 'computer_interaction',
+const actions = new Set(['risk_candidate', 'flat_item_handling', 'counter_interaction', 'computer_interaction',
   'storage_interaction', 'bag_interaction', 'door_interaction', 'writing', 'cup_to_mouth']);
 
 export function ObservationList({ observations, duration, onSeek }: {

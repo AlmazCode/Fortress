@@ -9,6 +9,7 @@ import math
 VERSION = 'source-action-review-v1'
 MAX_REVIEW_EVENTS = 4
 LABELS = {
+    'risk_candidate': ('Подозрительный фрагмент по сценарию', 'Модель локализовала фрагмент по слабым сценарным меткам. Причина и нормативная применимость требуют проверки.'),
     'flat_item_handling': ('Работа с купюрой, карточкой или бумагой', 'Модель выделила работу с плоским предметом. Номинал, подлинность и подмена денег не установлены.'),
     'counter_interaction': ('Взаимодействие с настольным устройством', 'Модель выделила контакт с настольным устройством проверки или пересчёта. Результат проверки и сумма не установлены.'),
     'computer_interaction': ('Работа с компьютером', 'Модель выделила взаимодействие с клавиатурой, тачпадом или крышкой. Проведение операции и блокировка ОС не установлены.'),
@@ -23,7 +24,7 @@ LABELS = {
     'laptop_screen_lit': ('Светящийся экран', 'Модель выделила светящийся экран. Блокировка ОС и доступность данных не установлены.'),
     'garment_on_desk': ('Одежда на рабочей поверхности', 'Модель выделила предмет одежды на рабочей поверхности. Нормативная оценка не установлена.'),
 }
-ACTIONS = frozenset(('flat_item_handling', 'counter_interaction', 'computer_interaction',
+ACTIONS = frozenset(('risk_candidate', 'flat_item_handling', 'counter_interaction', 'computer_interaction',
                      'storage_interaction', 'bag_interaction', 'door_interaction', 'writing', 'cup_to_mouth'))
 
 
@@ -58,7 +59,8 @@ def segments(raw, duration):
         if identity in seen:
             continue
         seen.add(identity)
-        middle = min(selected, key=lambda f: abs(f['timestamp_sec']-(times[0]+times[-1])/2))
+        middle = (max(selected, key=lambda f: f['state_scores'][action]) if action == 'risk_candidate'
+                  else min(selected, key=lambda f: abs(f['timestamp_sec']-(times[0]+times[-1])/2)))
         result.append({'action': action, 'start': times[0], 'end': times[-1],
                        'score': sum(scores)/len(scores), 'middle': middle['timestamp_sec'],
                        'frame_count': len(points)})
@@ -67,9 +69,10 @@ def segments(raw, duration):
 
 def review_segments(values):
     # Actions are useful review context; static presence alone must not outrank them.
-    eligible = [s for s in values if s['action'] in LABELS and s['frame_count'] >= 2]
+    eligible = [s for s in values if s['action'] in LABELS and (s['frame_count'] >= 2 or s['action'] == 'risk_candidate')]
+    risk = [s for s in eligible if s['action'] == 'risk_candidate']
     actions = [s for s in eligible if s['action'] in ACTIONS]
-    eligible = actions or eligible
+    eligible = risk or actions or eligible
     if len(eligible) <= MAX_REVIEW_EVENTS:
         return eligible
     # Bound JPEG/decode cost, keeping temporal coverage rather than only the start.

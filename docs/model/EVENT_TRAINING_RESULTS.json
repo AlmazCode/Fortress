@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0",
+  "status": "training_gap_implemented_no_accuracy_gain",
+  "baseline": {
+    "accuracy": 0.7129629629629629,
+    "balanced_accuracy": 0.6471571906354515,
+    "macro_f1": 0.65286595757184
+  },
+  "development_sources": 36,
+  "reserved_sources": 4,
+  "reserved_used_for_fit_or_selection": false,
+  "original_sources_preserved": 42,
+  "operation_classes": [
+    "cash_exchange",
+    "cash_handling",
+    "cash_device_operation",
+    "document_exchange",
+    "document_inspection",
+    "safe_opening",
+    "safe_closing",
+    "storage_transfer",
+    "bag_handling",
+    "computer_use",
+    "workplace_arrival",
+    "workplace_departure"
+  ],
+  "weak_operation_frames": 1261,
+  "supervision": "assistant exact-frame action observations plus imported weak operation/scenario intervals; no fabricated human approvals",
+  "experiments": {
+    "temporal-operations-stage-v1c": {
+      "protocol_sha256": "2b4bf7c31cfca431f609041738b848450bef89b9293e36b2a8f007d1730b66a7",
+      "report_sha256": "00883654ece5634bc9d8fea016dbc3cce51decae7584268768b3cdf6609e0007",
+      "fits": 52,
+      "clip_mean": {
+        "accuracy": 0.5185185185185185,
+        "balanced_accuracy": 0.4448160535117058,
+        "macro_f1": 0.4308109308752452
+      },
+      "promoted": false,
+      "weak_operation_macro_f1": 0.1866343587670518
+    },
+    "operation-decoder-stage-v1": {
+      "protocol_sha256": "5dd4b90ca21ffc06fad1e19499659aa7b2610e1dcdb9e7892981f8ae1551424b",
+      "report_sha256": "014bf1f6e4f989d2ecadee2bd51065333eaa36e358ccd9c236f537be879b2bab",
+      "fits": 20,
+      "clip_mean": {
+        "accuracy": 0.6759259259259259,
+        "balanced_accuracy": 0.6181716833890747,
+        "macro_f1": 0.6215794143744455
+      },
+      "promoted": false,
+      "weak_operation_macro_f1": 0.13715870878967096
+    },
+    "temporal-risk-stage-v1": {
+      "protocol_sha256": "b53445f359631299c3dbe9cd57b6ad959d49db54d40c8ee498f1d1e04d0bca1e",
+      "report_sha256": "50a19f5b46daae4bcdaaa61cbf9030db785d6dc172cbf05f7d88fb2f4f2acf21",
+      "fits": 28,
+      "clip_mean": {
+        "accuracy": 0.6388888888888888,
+        "balanced_accuracy": 0.6114827201783724,
+        "macro_f1": 0.6107353730542137
+      },
+      "promoted": false,
+      "localization": {
+        "weak_frame_precision": 0.4236559139784946,
+        "weak_frame_recall": 0.6253968253968254,
+        "weak_frame_f1": 0.5051282051282051,
+        "positive_videos_with_intervals": 23,
+        "peak_in_weak_interval": 13,
+        "outside_positive_intervals": "unknown, not counted as confirmed false positives"
+      }
+    },
+    "hidden-risk-stage-v1": {
+      "protocol_sha256": "e90d0167dc321f197739b3fbf8d9baf0496d68a812bc3cc517d4a41e3f8733e9",
+      "report_sha256": "652ea807966538a911bd7cf681422c8c47ea1697bee27279d43c7c11130cab94",
+      "fits": 28,
+      "clip_mean": {
+        "accuracy": 0.6666666666666666,
+        "balanced_accuracy": 0.6220735785953178,
+        "macro_f1": 0.625
+      },
+      "promoted": false,
+      "localization": {
+        "weak_frame_precision": 0.40122199592668023,
+        "weak_frame_recall": 0.6253968253968254,
+        "weak_frame_f1": 0.48883374689826303,
+        "positive_videos_with_intervals": 23,
+        "peak_in_weak_interval": 8,
+        "outside_positive_intervals": "unknown, not counted as confirmed false positives"
+      }
+    },
+    "dinov2-json-readout-v1": {
+      "protocol_sha256": "83332fe8fbe8a001b48fb5c2f302fc98a3b82f294dfb1e62eb8c2439a7a07da8",
+      "report_sha256": "8f0d68e40c86fd79c2d6415230849b4295d83bc31a330acb864274acc64491ef",
+      "promoted": false,
+      "independent_external_test": false,
+      "clip_quality": {
+        "accuracy": 0.6388888888888888,
+        "balanced_accuracy": 0.600334448160535,
+        "macro_f1": 0.6017021276595744
+      },
+      "readout_fit_calls": 155,
+      "encoder": "DINOv2 ViT-S/14, frozen",
+      "deterministic_no_seed_average": true
+    },
+    "local-vlm-operation-probe-v1": {
+      "protocol_sha256": "a6e652a84e5f6011449fa403d56bf5c8ee6e9c52ba1d25d61b716089c7951d67",
+      "report_sha256": "8f47309456325ed9e69eb3c989cf5dd02f0eb312663a8533c3efc155a35e0627",
+      "promoted": false,
+      "independent_external_test": false,
+      "sampled_frames": 576,
+      "known_weak_frames": 277,
+      "weak_set_accuracy": 0.22021660649819494,
+      "weak_macro_f1_all_classes": 0.17868451950200914,
+      "mean_elapsed_seconds": 6.642861111111415,
+      "max_elapsed_seconds": 10.109000000004016,
+      "timing_scope": "decode+two requests for16 frames, excludes model startup and full API/evidence",
+      "binary_accuracy_measured": false,
+      "vision_max_tokens": 512
+    }
+  },
+  "production_ready": false,
+  "independent_external_test": false,
+  "deployed_weights_unchanged_sha256": "c5c673f54cabb1e675f058950454a4f431d39aae5fa656c26cc79f7853b0a077",
+  "software_checks": {
+    "full_python": {
+      "passed": 461,
+      "subtests_passed": 29,
+      "seconds": 237.26,
+      "exit_code": 0
+    },
+    "after_backend_gate_changes": {
+      "passed": 98,
+      "exit_code": 0
+    },
+    "hidden_and_gate_tests": {
+      "passed": 4,
+      "exit_code": 0
+    }
+  },
+  "limitations": [
+    "Repeated development-family evaluation is exploratory, not independent acceptance",
+    "Only one cash_substitution scenario and one cash-giving interval",
+    "Banknote denominations and verified identity/OS-lock state are not observable ground truth",
+    "New packages were rejected by fixed quality gates"
+  ],
+  "functional_package_check": {
+    "bundle_bytes": 11317402,
+    "clip_delta": 0.0,
+    "risk_delta": 0.0,
+    "feature_max_delta": 3.5837292671203613e-06,
+    "source_pts_match": true,
+    "elapsed_seconds": 8.31592929999897,
+    "localizer_enabled": false,
+    "normative_status": "unknown",
+    "role": "known training MOV, raw/cache numerical check; not accuracy"
+  },
+  "development_scenario_support": {
+    "cash_substitution": 1,
+    "cash_accepted_without_ID": 8,
+    "cash_not_secured": 2,
+    "mix_customer_cash": 1,
+    "workstation_left_unsecured": 2,
+    "cash_stored_without_counting": 1,
+    "transaction_not_recorded": 3,
+    "cash_bag_left_unsecured": 1,
+    "lights_left_on": 1,
+    "cash_bag_accepted_without_ID": 1,
+    "overlapping_customer_sessions": 2,
+    "safe_key_left_unsecured": 1,
+    "journal_left_unsecured": 1,
+    "stamp_left_unsecured": 1,
+    "door_left_open": 3,
+    "unauthorized_entry": 2,
+    "cash_handled_without_customer": 1,
+    "belongings_placed_on_workdesk": 1,
+    "rejected_banknotes_not_rechecked": 1,
+    "liquid_near_cash": 1
+  },
+  "requirements_correction": {
+    "cnn_gru_12mb_limit_in_original_case": false,
+    "larger_commercial_open_pretrained_local_models_permitted": true
+  },
+  "vlm_higher_resolution_functional_probe": {
+    "vision_min_max_tokens": 1024,
+    "development_sources": 3,
+    "weak_known_frames": 29,
+    "matched_frames": 10,
+    "binary_accuracy_measured": false,
+    "promoted": false
+  }
+}

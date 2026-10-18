@@ -28,9 +28,28 @@ LIMITATIONS = [
 
 
 def predictor(bundle, device):
-    # Preserve the measured GRU control; do not deploy the regressing boundary candidates.
+    metadata = json.loads((Path(bundle)/'bundle.json').read_text(encoding='utf-8-sig'))
+    if metadata.get('risk_extension'):
+        extension = metadata['risk_extension']
+        if extension.get('clip_enabled') is not True and extension.get('localizer_enabled') is not True:
+            raise ValueError('Risk package did not pass deployment gates')
+        from ml.temporal_risk_infer import Predictor
+        return Predictor(Path(bundle), device)
+    if metadata.get('version') == 'temporal-operations-local-bundle-v1':
+        raise ValueError('Joint temporal operation candidate is research-only and not deployable')
+    # Preserve the measured GRU control when no accepted extension is configured.
     from ml.object_state_infer import Predictor
     return Predictor(Path(bundle), device)
+
+
+def model_limitations(info):
+    quality = info.get('clip_metrics') or info.get('risk_extension', {}).get('clip_metrics')
+    if not quality:
+        return LIMITATIONS
+    accuracy = quality['accuracy']
+    if type(accuracy) not in (int, float) or not 0 <= accuracy <= 1:
+        raise ValueError('Invalid model evaluation')
+    return [f'Средняя grouped accuracy: {accuracy*100:.2f}%; независимая внешняя проверка не выполнена.', *LIMITATIONS[1:]]
 
 
 def make_result(job, raw, evidence, *, deadline_monotonic):
@@ -51,11 +70,12 @@ def make_result(job, raw, evidence, *, deadline_monotonic):
             if (len(snapshots) != len(times) or any(abs(f.timestamp_sec-t) > .1
                     or not event['start'] <= f.timestamp_sec <= event['end'] for f, t in zip(snapshots, times))):
                 raise ValueError('Evidence is outside its source action interval')
+            frame_description = 'Показан исходный кадр действия.' if len(snapshots) == 1 else 'Показаны исходные кадры опорного момента, начала и конца интервала.'
             violations.append({
                 'type': 'Для проверки: '+label,
                 'timecode_sec': snapshots[0].timestamp_sec,
                 'description': f"Интервал {event['start']:.1f}–{event['end']:.1f} с. {description} "
-                               'Показаны исходные кадры середины, начала и конца действия. '
+                               f'{frame_description} '
                                'Действие само по себе не является нарушением; связь с вердиктом классификатора не подтверждена.',
                 'evidence_frames': [f.public() for f in snapshots]
             })
@@ -67,7 +87,7 @@ def make_result(job, raw, evidence, *, deadline_monotonic):
         'processed_sec': job.upload.video.duration_sec, 'duration_sec': job.upload.video.duration_sec,
         'coverage': 'partial', 'unknown': ['Тип/границы события и нормативная применимость неизвестны.'],
         'unsupported': ['Проверенные по нормативам типы нарушений и точная локализация события.'],
-        'limitations': [*LIMITATIONS, f"Оценка модели: {raw['score']:.6f}; фиксированный порог: {raw['threshold']:.6f}.",
+        'limitations': [*model_limitations(raw), f"Оценка модели: {raw['score']:.6f}; фиксированный порог: {raw['threshold']:.6f}.",
                        'Оценки действий не являются калиброванной вероятностью.',
                        f'Карточки показывают до {events.MAX_REVIEW_EVENTS} фрагментов; все найденные интервалы доступны в наблюдениях.'],
         'versions': {'dataset': 'existing-development-36', 'annotations': 'assistant-review', 'split': 'grouped-family',

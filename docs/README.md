@@ -12,7 +12,8 @@
 | Linux/PostgreSQL/Celery | [backend](../backend/README.md), [operations](operations/SETUP.md) |
 | Frontend/dev/сборка | [frontend](../frontend/README.md) |
 | Первое обучение и воспроизведение | [FIRST_TRAINING.md](model/FIRST_TRAINING.md) |
-| Реальные результаты последнего этапа | [OBJECT_BOUNDARIES_RESULTS.json](model/OBJECT_BOUNDARIES_RESULTS.json) |
+| Обучение подробных событий и итоговые метрики | [TEMPORAL_EVENT_TRAINING.md](model/TEMPORAL_EVENT_TRAINING.md), [EVENT_TRAINING_RESULTS.json](model/EVENT_TRAINING_RESULTS.json) |
+| Предыдущие эксперименты границ объектов | [OBJECT_BOUNDARIES_RESULTS.json](model/OBJECT_BOUNDARIES_RESULTS.json) |
 | Правила и источники | [RULES.md](operations/RULES.md), [CASE_SUPPORT.md](operations/CASE_SUPPORT.md) |
 
 `docs/model/` сохраняет протоколы и отрицательные результаты исследований, а не набор готовых production-моделей. `docs/github-plan/` — исторический план четырёх разработчиков и журналы с привязкой к прошлым commits. Эти записи не заменяют текущее состояние и не требуют продолжать старую административную координацию.

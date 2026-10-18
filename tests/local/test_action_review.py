@@ -102,6 +102,20 @@ def test_positive_without_localization_fails_explicitly_instead_of_inventing_a_t
     assert caught.value.reason == 'insufficient_evidence' and not evidence.calls
 
 
+def test_accepted_risk_head_uses_its_own_peak_and_keeps_weak_semantics(tmp_path):
+    raw=output()
+    for frame in raw['frames']:
+        frame['state_scores']['risk_candidate']=.7 if frame['timestamp_sec']>=20 else .1
+    raw['frames'][49]['state_scores']['risk_candidate']=.95
+    raw['candidate_events'].append({**raw['candidate_events'][0],'action':'risk_candidate'})
+    evidence=Evidence()
+    result=make_result(job(tmp_path),raw,evidence,deadline_monotonic=999)
+    assert evidence.calls==[[24.5,20.,25.5]]
+    event=result.public['violations'][0]
+    assert event['timecode_sec']==24.5 and 'слабым сценарным' in event['description']
+    assert result.diagnostics['timeline']['findings']==[]
+
+
 def test_real_child_can_report_insufficient_evidence_without_losing_the_reason(tmp_path,monkeypatch):
     import subprocess
     import sys
