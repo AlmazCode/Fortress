@@ -27,12 +27,12 @@ function render() {
   $('question-title').textContent = q().title; $('question-help').textContent = q().help;
   const scope = state.frames.filter(f => !$('video').value || f.video_id === $('video').value); const done = scope.filter(f => answer(f.id)).length;
   $('progress-text').textContent = `${done} / ${scope.length}`; $('progress').max = Math.max(1, scope.length); $('progress').value = done;
-  $('overall-progress').textContent = `Всего ответов: ${Object.values(state.answers).reduce((n, a) => n + Object.keys(a).length, 0)}`;
+  $('overall-progress').textContent = `${$('video').value ? 'Одно видео' : `${state.videos.length} видео подряд`} · Всего ответов: ${Object.values(state.answers).reduce((n, a) => n + Object.keys(a).length, 0)}`;
   $('bulk-choices').innerHTML = choicesHTML(); $('grid').innerHTML = page.map(card).join(''); $('empty').hidden = !!rows.length;
   $('page-info').textContent = rows.length ? `Кадры ${state.page * size() + 1}–${Math.min(rows.length, (state.page + 1) * size())} из ${rows.length}` : 'Нет кадров';
   $('previous').disabled = !state.page; $('next').disabled = (state.page + 1) * size() >= rows.length;
   refreshSelection(); if ($('zoom').open) updateZoom();
-  try { localStorage.setItem('fortress-review-position', JSON.stringify({ question: q().id, video: $('video').value, filter: $('filter').value, size: $('size').value, page: state.page, focus: state.focus })); } catch {}
+  try { localStorage.setItem('fortress-review-position', JSON.stringify({ queueVersion: 2, question: q().id, video: $('video').value, filter: $('filter').value, size: $('size').value, page: state.page, focus: state.focus })); } catch {}
 }
 async function api(path, payload) {
   const response = await fetch(path, payload ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {});
@@ -115,8 +115,18 @@ try {
   let previous = null; try { previous = JSON.parse(localStorage.getItem('fortress-review-position') ?? 'null'); } catch {}
   const data = await api('/api/session'); Object.assign(state, data); state.selected = new Set();
   $('question').innerHTML = data.questions.map(q => `<option value="${esc(q.id)}">${esc(q.title)}</option>`).join('');
-  $('video').innerHTML = `<option value="">Все видео · ${data.videos.length}</option>` + data.videos.map(v => `<option value="${esc(v.id)}">${esc(v.id.replace('video_', 'Видео '))} · ${time(v.duration_sec)}</option>`).join('');
-  $('video').value = data.videos[0]?.id ?? '';
-  if (previous) { for (const id of ['question', 'video', 'filter', 'size']) if ([...$(id).options].some(o => o.value === previous[id])) $(id).value = previous[id]; state.page = previous.page ?? 0; state.focus = previous.focus ?? null; }
+  $('video').innerHTML = `<option value="">Все видео подряд · ${data.videos.length}</option>` + data.videos.map(v => `<option value="${esc(v.id)}">${esc(v.id.replace('video_', 'Видео '))} · ${time(v.duration_sec)}</option>`).join('');
+  $('video').value = '';
+  if (previous) {
+    const modern = previous.queueVersion === 2;
+    for (const id of (modern ? ['question', 'video', 'filter', 'size'] : ['question', 'size'])) if ([...$(id).options].some(o => o.value === previous[id])) $(id).value = previous[id];
+    if (modern) { state.page = previous.page ?? 0; state.focus = previous.focus ?? null; }
+    else {
+      // Migrate the former single-video default into the shared queue. Resume
+      // from an unanswered frame without changing any stored human answers.
+      const rows = filtered(); const first = rows.findIndex(f => !answer(f.id));
+      if (first >= 0) { state.page = Math.floor(first / size()); state.focus = rows[first].id; }
+    }
+  }
   status('✓ Автосохранение включено'); render();
 } catch (error) { status('Ошибка подключения', true); message(error.message); }
