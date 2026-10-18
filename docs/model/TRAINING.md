@@ -15,6 +15,8 @@ Validated production release пока отсутствует; приложени
 
 На другом ПК получить проверенный интегрированный commit Fortress из AlmazCode/Fortress, сохранить SHA и проверить clean tree. Не подменять чужую working copy. Команды из корня отдельного checkout:
 
+Для полного software набора нужен локальный FFmpeg/ffprobe: `uv sync` устанавливает Python-зависимости, но не эти executables. Проверить `ffprobe -version`; если он вне PATH, перед тестами задать `FORTRESS_TEST_FFPROBE` абсолютным путём. Backend/worker и финальная I требуют Linux; Windows ML checks используют явно описанную в CLI.md адаптацию только POSIX directory fsync/pipe polling.
+
 ```powershell
 git remote get-url origin
 git rev-parse HEAD
@@ -116,3 +118,5 @@ Runtime compatibility сейчас строгая, включая torch/torchvis
 CLI inference без отдельного подтверждённого visibility context сохраняет unknown для любых scores. Низкий score не означает absence; только explicit visible+complete interval может дать known negative. Partial visibility допускает predicted positive, actor_id=null и relations known=false. Интервалы не пересекают reviewed scene boundaries; raw port использует одну unreviewed scene. Дополнительный detector/views/face recognition/actor matching не добавлены.
 
 Decode/OOM/deadline/inference failure возвращается как failed, coverage=none как insufficient evidence на уровне A/I, не no_violation. HTTP integration с backend, external HTTPS, Docker/GPU/offline deployment и реальная ML validation здесь не проверялись. Финальная E передача после интеграции I остаётся отдельной зависимостью. Собственные exact commits/реальные checks и gaps — [DEV-3](../github-plan/status/DEV-3.md).
+
+Для проверки соответствия примеров актуальному CLI без чтения данных и без выполнения train/import: `python -m pytest tests/ml/test_cli_handoff.py -q`. Этот тест извлекает команды из TRAINING.md/CLI.md и останавливается после настоящего argparse; включая будущие real-training команды, он проверяет только flags/types/required arguments. Выполнение tiny pipeline и отрицательные release/holdout checks подтверждаются отдельно записанными проверками на точном SHA.
