@@ -1,0 +1,1398 @@
+{
+  "version": "workspace-action-first-v1",
+  "code_commit": "097da59c57b67090010301e1e9a63a755efc8d4f",
+  "protocol_sha256": "18c1365ee8766c1e805ce2571a087485dfcaafa561ad00543c5a5602f19f2574",
+  "primary_seed": 42,
+  "development_sources": 36,
+  "development_families": 16,
+  "reserved_sources": 4,
+  "fitted_models": 163,
+  "review_sources": 36,
+  "review_evidence": 1537,
+  "review_human_approved": false,
+  "review_sha256": "f35cea02021ac080899e119f97955505aa49b4d196f169d9fcb38b81d1a12977",
+  "taxonomy": [
+    "flat_item_handling",
+    "counter_interaction",
+    "computer_interaction",
+    "storage_interaction",
+    "bag_interaction",
+    "door_interaction",
+    "writing",
+    "operator_at_station",
+    "person_at_counter",
+    "storage_open",
+    "bag_on_desk",
+    "laptop_open",
+    "laptop_screen_lit",
+    "glass_door_open",
+    "two_people_at_counter"
+  ],
+  "config": {
+    "epochs": 60,
+    "lr": 0.0003,
+    "dropout": 0.5,
+    "weight_decay": 0.05,
+    "pretrain_epochs": 40,
+    "cnn_epochs": 6,
+    "cnn_lr": 0.0001,
+    "clip_frames_2fps": 32
+  },
+  "primary_nested": {
+    "accuracy": 0.5833333333333334,
+    "balanced_accuracy": 0.5568561872909699,
+    "macro_f1": 0.5555555555555556,
+    "tp": 15,
+    "tn": 6,
+    "fp": 7,
+    "fn": 8,
+    "covered": 36
+  },
+  "nested_by_seed": {
+    "42": {
+      "accuracy": 0.5833333333333334,
+      "balanced_accuracy": 0.5568561872909699,
+      "macro_f1": 0.5555555555555556,
+      "tp": 15,
+      "tn": 6,
+      "fp": 7,
+      "fn": 8,
+      "covered": 36
+    },
+    "137": {
+      "accuracy": 0.5277777777777778,
+      "balanced_accuracy": 0.5301003344481605,
+      "macro_f1": 0.5184893784421715,
+      "tp": 12,
+      "tn": 7,
+      "fp": 6,
+      "fn": 11,
+      "covered": 36
+    },
+    "2026": {
+      "accuracy": 0.5833333333333334,
+      "balanced_accuracy": 0.5568561872909699,
+      "macro_f1": 0.5555555555555556,
+      "tp": 15,
+      "tn": 6,
+      "fp": 7,
+      "fn": 8,
+      "covered": 36
+    }
+  },
+  "nested_seed_mean_accuracy": 0.5648148148148149,
+  "comparisons": {
+    "global_joint": {
+      "42": {
+        "accuracy": 0.5833333333333334,
+        "balanced_accuracy": 0.6070234113712374,
+        "macro_f1": 0.5804195804195804,
+        "tp": 12,
+        "tn": 9,
+        "fp": 4,
+        "fn": 11,
+        "covered": 36
+      },
+      "137": {
+        "accuracy": 0.5277777777777778,
+        "balanced_accuracy": 0.5635451505016722,
+        "macro_f1": 0.5274131274131274,
+        "tp": 10,
+        "tn": 9,
+        "fp": 4,
+        "fn": 13,
+        "covered": 36
+      },
+      "2026": {
+        "accuracy": 0.5555555555555556,
+        "balanced_accuracy": 0.5685618729096991,
+        "macro_f1": 0.55,
+        "tp": 12,
+        "tn": 8,
+        "fp": 5,
+        "fn": 11,
+        "covered": 36
+      }
+    },
+    "roi_joint": {
+      "42": {
+        "accuracy": 0.5555555555555556,
+        "balanced_accuracy": 0.5685618729096991,
+        "macro_f1": 0.55,
+        "tp": 12,
+        "tn": 8,
+        "fp": 5,
+        "fn": 11,
+        "covered": 36
+      },
+      "137": {
+        "accuracy": 0.5277777777777778,
+        "balanced_accuracy": 0.5635451505016722,
+        "macro_f1": 0.5274131274131274,
+        "tp": 10,
+        "tn": 9,
+        "fp": 4,
+        "fn": 13,
+        "covered": 36
+      },
+      "2026": {
+        "accuracy": 0.5,
+        "balanced_accuracy": 0.5250836120401338,
+        "macro_f1": 0.4984520123839009,
+        "tp": 10,
+        "tn": 8,
+        "fp": 5,
+        "fn": 13,
+        "covered": 36
+      }
+    },
+    "roi_pretrain": {
+      "42": {
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.5953177257525084,
+        "macro_f1": 0.5909090909090908,
+        "tp": 15,
+        "tn": 7,
+        "fp": 6,
+        "fn": 8,
+        "covered": 36
+      },
+      "137": {
+        "accuracy": 0.5555555555555556,
+        "balanced_accuracy": 0.5518394648829431,
+        "macro_f1": 0.5428571428571429,
+        "tp": 13,
+        "tn": 7,
+        "fp": 6,
+        "fn": 10,
+        "covered": 36
+      },
+      "2026": {
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.5953177257525084,
+        "macro_f1": 0.5909090909090908,
+        "tp": 15,
+        "tn": 7,
+        "fp": 6,
+        "fn": 8,
+        "covered": 36
+      }
+    },
+    "roi_action_bottleneck": {
+      "42": {
+        "accuracy": 0.4722222222222222,
+        "balanced_accuracy": 0.5033444816053512,
+        "macro_f1": 0.47181467181467185,
+        "tp": 9,
+        "tn": 8,
+        "fp": 5,
+        "fn": 14,
+        "covered": 36
+      },
+      "137": {
+        "accuracy": 0.5555555555555556,
+        "balanced_accuracy": 0.5016722408026756,
+        "macro_f1": 0.5,
+        "tp": 16,
+        "tn": 4,
+        "fp": 9,
+        "fn": 7,
+        "covered": 36
+      },
+      "2026": {
+        "accuracy": 0.5,
+        "balanced_accuracy": 0.4916387959866221,
+        "macro_f1": 0.4857142857142857,
+        "tp": 12,
+        "tn": 6,
+        "fp": 7,
+        "fn": 11,
+        "covered": 36
+      }
+    },
+    "roi_finetune_pair": {
+      "42": {
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.5785953177257526,
+        "macro_f1": 0.5785953177257526,
+        "tp": 16,
+        "tn": 6,
+        "fp": 7,
+        "fn": 7,
+        "covered": 36
+      },
+      "137": {
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.5785953177257526,
+        "macro_f1": 0.5785953177257526,
+        "tp": 16,
+        "tn": 6,
+        "fp": 7,
+        "fn": 7,
+        "covered": 36
+      },
+      "2026": {
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.5785953177257526,
+        "macro_f1": 0.5785953177257526,
+        "tp": 16,
+        "tn": 6,
+        "fp": 7,
+        "fn": 7,
+        "covered": 36
+      }
+    },
+    "roi4_finetune_pair": {
+      "42": {
+        "accuracy": 0.5833333333333334,
+        "balanced_accuracy": 0.540133779264214,
+        "macro_f1": 0.5404255319148936,
+        "tp": 16,
+        "tn": 5,
+        "fp": 8,
+        "fn": 7,
+        "covered": 36
+      },
+      "137": {
+        "accuracy": 0.6388888888888888,
+        "balanced_accuracy": 0.5836120401337793,
+        "macro_f1": 0.5847382431233363,
+        "tp": 18,
+        "tn": 5,
+        "fp": 8,
+        "fn": 5,
+        "covered": 36
+      },
+      "2026": {
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.5618729096989966,
+        "macro_f1": 0.5625,
+        "tp": 17,
+        "tn": 5,
+        "fp": 8,
+        "fn": 6,
+        "covered": 36
+      }
+    }
+  },
+  "mean_accuracy_by_arm": {
+    "global_joint": 0.5555555555555556,
+    "roi_joint": 0.5277777777777778,
+    "roi_pretrain": 0.5925925925925927,
+    "roi_action_bottleneck": 0.5092592592592592,
+    "roi_finetune_pair": 0.6111111111111112,
+    "roi4_finetune_pair": 0.6111111111111112
+  },
+  "frozen_choice": {
+    "arm": "roi_action_bottleneck",
+    "fit_sha256": "7b98387dfff913cce5d016d5883e05ba63ba5707f3605c5483290d702e997884",
+    "threshold": 0.48374301195144653,
+    "final_inner_metrics": {
+      "accuracy": 0.7222222222222222,
+      "balanced_accuracy": 0.6655518394648829,
+      "macro_f1": 0.6727272727272727,
+      "tp": 20,
+      "tn": 6,
+      "fp": 7,
+      "fn": 3,
+      "covered": 36
+    }
+  },
+  "reserved_previously_observed_internal": {
+    "accuracy": 0.5,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.5,
+    "tp": 1,
+    "tn": 1,
+    "fp": 1,
+    "fn": 1,
+    "covered": 4
+  },
+  "all42_training_inclusive": {
+    "accuracy": 0.6666666666666666,
+    "balanced_accuracy": 0.6105769230769231,
+    "macro_f1": 0.6100795755968169,
+    "tp": 22,
+    "tn": 6,
+    "fp": 10,
+    "fn": 4,
+    "covered": 42
+  },
+  "train36": {
+    "accuracy": 0.6944444444444444,
+    "balanced_accuracy": 0.6270903010033445,
+    "macro_f1": 0.6302521008403361,
+    "tp": 20,
+    "tn": 5,
+    "fp": 8,
+    "fn": 3,
+    "covered": 36
+  },
+  "raw_timing": {
+    "mean_seconds": 5.8236193880951586,
+    "median_seconds": 3.9471145500010607,
+    "p95_seconds": 11.264270330000544,
+    "max_seconds": 25.996965199999977,
+    "sum_seconds": 244.59201429999666,
+    "setup_seconds": 0.09370789999957196,
+    "passes": 1,
+    "includes": "source hash/probe/index/decode/crop/CNN/GRU/CUDA sync; excludes setup and parity checks"
+  },
+  "model_tensor_bytes": 6343818,
+  "pytorch_peak_allocated_bytes": 82756608,
+  "source_pts_parity": 42,
+  "verdict_parity": 42,
+  "max_raw_cache_score_delta": 5.424022674560547e-06,
+  "max_raw_cache_feature_delta": 0.019022464752197266,
+  "max_feature_relative_l2": 0.0006713199545629323,
+  "software_checks": {
+    "training_and_regression_tests": 51,
+    "portable_tests": 2,
+    "skipped": 0,
+    "prepare_exit": 0,
+    "train_exit": 0,
+    "reserved_exit": 0,
+    "raw42_benchmark_exit": 0,
+    "cli_cuda_exit": 0,
+    "cli_cpu_exit": 0
+  },
+  "integrity": {
+    "original42_unchanged": true,
+    "previous15_first11_unchanged": true,
+    "default_baseline_unchanged": true,
+    "encoder_sha256": "047dcff4addef86ea5bc2eff13c9614dc11f47ab1160d0a71a25e7db994f4e1f",
+    "default_baseline_sha256": "20be8f123a4f0087031a8a392e169f0e73e93ed0556bdeeac28e40eaae839606"
+  },
+  "type_support_diagnostic": {
+    "diagnostic_only_not_new_selection": true,
+    "positive_sources": 23,
+    "positive_with_any_unseen_type": 14,
+    "positive_with_only_unseen_types": 11
+  },
+  "error_diagnostic": {
+    "not_new_model_selection": true,
+    "subsets": {
+      "nested": {
+        "only_unseen_positive_types": {
+          "count": 11,
+          "correct": 5
+        },
+        "other_positive_sources": {
+          "count": 12,
+          "correct": 10
+        },
+        "normal_sources": {
+          "count": 13,
+          "correct": 6
+        }
+      },
+      "roi_pretrain": {
+        "only_unseen_positive_types": {
+          "count": 11,
+          "correct": 6
+        },
+        "other_positive_sources": {
+          "count": 12,
+          "correct": 9
+        },
+        "normal_sources": {
+          "count": 13,
+          "correct": 7
+        }
+      },
+      "roi_finetune_pair": {
+        "only_unseen_positive_types": {
+          "count": 11,
+          "correct": 6
+        },
+        "other_positive_sources": {
+          "count": 12,
+          "correct": 10
+        },
+        "normal_sources": {
+          "count": 13,
+          "correct": 6
+        }
+      }
+    },
+    "missing_visual_class_example": {
+      "video_046": "Visible cup brought to mouth; liquid/cup category not part of15 supervised classes; no training examples of this violation type in its outer fold."
+    },
+    "priority_from_auxiliary_oof": "Improve bag interaction/on-desk, storage-open and screen-light recognition; separate visible event recognition from normative policy."
+  },
+  "auxiliary_oof": {
+    "global_joint": {
+      "actions": {
+        "flat_item_handling": {
+          "positive": 342,
+          "negative": 361,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7753924284395198,
+          "macro_f1": 0.7748016361933863
+        },
+        "counter_interaction": {
+          "positive": 127,
+          "negative": 922,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5971527149128051,
+          "macro_f1": 0.5214131801608817
+        },
+        "computer_interaction": {
+          "positive": 67,
+          "negative": 1055,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5758647520690388,
+          "macro_f1": 0.3741749558427071
+        },
+        "storage_interaction": {
+          "positive": 139,
+          "negative": 1153,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7108699857113442,
+          "macro_f1": 0.5566889077184289
+        },
+        "bag_interaction": {
+          "positive": 99,
+          "negative": 1239,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.2639225181598063,
+          "macro_f1": 0.32831325301204817
+        },
+        "door_interaction": {
+          "positive": 53,
+          "negative": 1238,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8049273021001615,
+          "macro_f1": 0.46880891268846736
+        },
+        "writing": {
+          "positive": 0,
+          "negative": 313,
+          "unsupported_known": 200,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "operator_at_station": {
+          "positive": 1234,
+          "negative": 99,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7248784440842788,
+          "macro_f1": 0.4231140129755321
+        },
+        "person_at_counter": {
+          "positive": 450,
+          "negative": 856,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8000726895119419,
+          "macro_f1": 0.7814984315839058
+        },
+        "storage_open": {
+          "positive": 56,
+          "negative": 1266,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4569651320243737,
+          "macro_f1": 0.4598533591354206
+        },
+        "bag_on_desk": {
+          "positive": 26,
+          "negative": 1225,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.3600156985871271,
+          "macro_f1": 0.2806337098430395
+        },
+        "laptop_open": {
+          "positive": 1150,
+          "negative": 0,
+          "unsupported_known": 192,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "laptop_screen_lit": {
+          "positive": 363,
+          "negative": 142,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6052749000892407,
+          "macro_f1": 0.49108112665231496
+        },
+        "glass_door_open": {
+          "positive": 136,
+          "negative": 974,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.633115412489431,
+          "macro_f1": 0.46035374149659863
+        },
+        "two_people_at_counter": {
+          "positive": 0,
+          "negative": 978,
+          "unsupported_known": 380,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      },
+      "objects": {
+        "10": {
+          "positive": 149,
+          "negative": 385,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6375141636886603,
+          "macro_f1": 0.6078335373317013
+        },
+        "11": {
+          "positive": 443,
+          "negative": 0,
+          "unsupported_known": 91,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "1": {
+          "positive": 138,
+          "negative": 396,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4990118577075099,
+          "macro_f1": 0.4974227935260183
+        },
+        "4": {
+          "positive": 390,
+          "negative": 0,
+          "unsupported_known": 144,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "7": {
+          "positive": 0,
+          "negative": 0,
+          "unsupported_known": 534,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "12": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "13": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      }
+    },
+    "roi_joint": {
+      "actions": {
+        "flat_item_handling": {
+          "positive": 342,
+          "negative": 361,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6792089873807325,
+          "macro_f1": 0.6705800405268489
+        },
+        "counter_interaction": {
+          "positive": 127,
+          "negative": 922,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5952866927425828,
+          "macro_f1": 0.5023578225897813
+        },
+        "computer_interaction": {
+          "positive": 67,
+          "negative": 1055,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6894673551672915,
+          "macro_f1": 0.4137131952017448
+        },
+        "storage_interaction": {
+          "positive": 139,
+          "negative": 1153,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6706683222372666,
+          "macro_f1": 0.5019698657442692
+        },
+        "bag_interaction": {
+          "positive": 99,
+          "negative": 1239,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.2923912245946144,
+          "macro_f1": 0.34434976723926713
+        },
+        "door_interaction": {
+          "positive": 53,
+          "negative": 1238,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7017328618892309,
+          "macro_f1": 0.41573353488979714
+        },
+        "writing": {
+          "positive": 0,
+          "negative": 313,
+          "unsupported_known": 200,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "operator_at_station": {
+          "positive": 1234,
+          "negative": 99,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.723126729204525,
+          "macro_f1": 0.446472635997474
+        },
+        "person_at_counter": {
+          "positive": 450,
+          "negative": 856,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8403582554517134,
+          "macro_f1": 0.8159043717655481
+        },
+        "storage_open": {
+          "positive": 56,
+          "negative": 1266,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.45658429248476645,
+          "macro_f1": 0.4396838288486204
+        },
+        "bag_on_desk": {
+          "positive": 26,
+          "negative": 1225,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.26861852433281,
+          "macro_f1": 0.3298781709462898
+        },
+        "laptop_open": {
+          "positive": 1150,
+          "negative": 0,
+          "unsupported_known": 192,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "laptop_screen_lit": {
+          "positive": 363,
+          "negative": 142,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4098087145462305,
+          "macro_f1": 0.27978322188064525
+        },
+        "glass_door_open": {
+          "positive": 136,
+          "negative": 974,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5835170310423965,
+          "macro_f1": 0.43057745434943734
+        },
+        "two_people_at_counter": {
+          "positive": 0,
+          "negative": 978,
+          "unsupported_known": 380,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      },
+      "objects": {
+        "10": {
+          "positive": 149,
+          "negative": 385,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6438943606728842,
+          "macro_f1": 0.6260087544767211
+        },
+        "11": {
+          "positive": 443,
+          "negative": 0,
+          "unsupported_known": 91,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "1": {
+          "positive": 138,
+          "negative": 396,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4427975406236276,
+          "macro_f1": 0.4256597022554469
+        },
+        "4": {
+          "positive": 390,
+          "negative": 0,
+          "unsupported_known": 144,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "7": {
+          "positive": 0,
+          "negative": 0,
+          "unsupported_known": 534,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "12": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "13": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      }
+    },
+    "roi_pretrain": {
+      "actions": {
+        "flat_item_handling": {
+          "positive": 342,
+          "negative": 361,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6722837796244998,
+          "macro_f1": 0.6641566613702609
+        },
+        "counter_interaction": {
+          "positive": 127,
+          "negative": 922,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.654397321809828,
+          "macro_f1": 0.5765598458098496
+        },
+        "computer_interaction": {
+          "positive": 67,
+          "negative": 1055,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8307066562919997,
+          "macro_f1": 0.6320748529829701
+        },
+        "storage_interaction": {
+          "positive": 139,
+          "negative": 1153,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6952741362850743,
+          "macro_f1": 0.6254470229284883
+        },
+        "bag_interaction": {
+          "positive": 99,
+          "negative": 1239,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.3765133171912833,
+          "macro_f1": 0.4108322324966975
+        },
+        "door_interaction": {
+          "positive": 53,
+          "negative": 1238,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9671411588990155,
+          "macro_f1": 0.8068232829567559
+        },
+        "writing": {
+          "positive": 0,
+          "negative": 313,
+          "unsupported_known": 200,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "operator_at_station": {
+          "positive": 1234,
+          "negative": 99,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9603203837401568,
+          "macro_f1": 0.8449502398444152
+        },
+        "person_at_counter": {
+          "positive": 450,
+          "negative": 856,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.916788681204569,
+          "macro_f1": 0.9022992805122225
+        },
+        "storage_open": {
+          "positive": 56,
+          "negative": 1266,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5257701421800948,
+          "macro_f1": 0.5163348173798334
+        },
+        "bag_on_desk": {
+          "positive": 26,
+          "negative": 1225,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.3681632653061224,
+          "macro_f1": 0.41895030190431953
+        },
+        "laptop_open": {
+          "positive": 1150,
+          "negative": 0,
+          "unsupported_known": 192,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "laptop_screen_lit": {
+          "positive": 363,
+          "negative": 142,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5195747487680906,
+          "macro_f1": 0.3366500496101486
+        },
+        "glass_door_open": {
+          "positive": 136,
+          "negative": 974,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7313609735475299,
+          "macro_f1": 0.6221724273554234
+        },
+        "two_people_at_counter": {
+          "positive": 0,
+          "negative": 978,
+          "unsupported_known": 380,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      },
+      "objects": {
+        "10": {
+          "positive": 149,
+          "negative": 385,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6015689008977599,
+          "macro_f1": 0.5918227946916472
+        },
+        "11": {
+          "positive": 443,
+          "negative": 0,
+          "unsupported_known": 91,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "1": {
+          "positive": 138,
+          "negative": 396,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5141084760649979,
+          "macro_f1": 0.4911022940322771
+        },
+        "4": {
+          "positive": 390,
+          "negative": 0,
+          "unsupported_known": 144,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "7": {
+          "positive": 0,
+          "negative": 0,
+          "unsupported_known": 534,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "12": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "13": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      }
+    },
+    "roi_action_bottleneck": {
+      "actions": {
+        "flat_item_handling": {
+          "positive": 342,
+          "negative": 361,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6603570329332102,
+          "macro_f1": 0.6493244605767292
+        },
+        "counter_interaction": {
+          "positive": 127,
+          "negative": 922,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6909149913744512,
+          "macro_f1": 0.5971845485146573
+        },
+        "computer_interaction": {
+          "positive": 67,
+          "negative": 1055,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8275093725684375,
+          "macro_f1": 0.6371625863151287
+        },
+        "storage_interaction": {
+          "positive": 139,
+          "negative": 1153,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6934116193601927,
+          "macro_f1": 0.6261227230756317
+        },
+        "bag_interaction": {
+          "positive": 99,
+          "negative": 1239,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.38256658595641646,
+          "macro_f1": 0.4146981627296588
+        },
+        "door_interaction": {
+          "positive": 53,
+          "negative": 1238,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9731993172188862,
+          "macro_f1": 0.8423127317950654
+        },
+        "writing": {
+          "positive": 0,
+          "negative": 313,
+          "unsupported_known": 200,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "operator_at_station": {
+          "positive": 1234,
+          "negative": 99,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9690175662622988,
+          "macro_f1": 0.8619654136895516
+        },
+        "person_at_counter": {
+          "positive": 450,
+          "negative": 856,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9249221183800623,
+          "macro_f1": 0.9062832468590005
+        },
+        "storage_open": {
+          "positive": 56,
+          "negative": 1266,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.534063981042654,
+          "macro_f1": 0.527738659344877
+        },
+        "bag_on_desk": {
+          "positive": 26,
+          "negative": 1225,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.3673469387755102,
+          "macro_f1": 0.41841004184100417
+        },
+        "laptop_open": {
+          "positive": 1150,
+          "negative": 0,
+          "unsupported_known": 192,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "laptop_screen_lit": {
+          "positive": 363,
+          "negative": 142,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5286055174019323,
+          "macro_f1": 0.3479951884522855
+        },
+        "glass_door_open": {
+          "positive": 136,
+          "negative": 974,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7257141562990699,
+          "macro_f1": 0.6138975125884981
+        },
+        "two_people_at_counter": {
+          "positive": 0,
+          "negative": 978,
+          "unsupported_known": 380,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      },
+      "objects": {
+        "10": {
+          "positive": 149,
+          "negative": 385,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6203957116708795,
+          "macro_f1": 0.6198958333333333
+        },
+        "11": {
+          "positive": 443,
+          "negative": 0,
+          "unsupported_known": 91,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "1": {
+          "positive": 138,
+          "negative": 396,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4922046552481335,
+          "macro_f1": 0.45972814850657634
+        },
+        "4": {
+          "positive": 390,
+          "negative": 0,
+          "unsupported_known": 144,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "7": {
+          "positive": 0,
+          "negative": 0,
+          "unsupported_known": 534,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "12": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "13": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      }
+    },
+    "roi_finetune_pair": {
+      "actions": {
+        "flat_item_handling": {
+          "positive": 342,
+          "negative": 361,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6472760849492152,
+          "macro_f1": 0.6342039716118466
+        },
+        "counter_interaction": {
+          "positive": 127,
+          "negative": 922,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6842664867542316,
+          "macro_f1": 0.5912987012987013
+        },
+        "computer_interaction": {
+          "positive": 67,
+          "negative": 1055,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8603239725542902,
+          "macro_f1": 0.6674326866075807
+        },
+        "storage_interaction": {
+          "positive": 139,
+          "negative": 1153,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6942290053473267,
+          "macro_f1": 0.6165445819651427
+        },
+        "bag_interaction": {
+          "positive": 99,
+          "negative": 1239,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.420500403551251,
+          "macro_f1": 0.43781512605042017
+        },
+        "door_interaction": {
+          "positive": 53,
+          "negative": 1238,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9486771115920383,
+          "macro_f1": 0.8001135425268373
+        },
+        "writing": {
+          "positive": 0,
+          "negative": 313,
+          "unsupported_known": 200,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "operator_at_station": {
+          "positive": 1234,
+          "negative": 99,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9410597056464156,
+          "macro_f1": 0.768288190120382
+        },
+        "person_at_counter": {
+          "positive": 450,
+          "negative": 856,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8329283489096573,
+          "macro_f1": 0.8346813869422803
+        },
+        "storage_open": {
+          "positive": 56,
+          "negative": 1266,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5076026856240126,
+          "macro_f1": 0.49616042685349615
+        },
+        "bag_on_desk": {
+          "positive": 26,
+          "negative": 1225,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4097959183673469,
+          "macro_f1": 0.4452328159645233
+        },
+        "laptop_open": {
+          "positive": 1150,
+          "negative": 0,
+          "unsupported_known": 192,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "laptop_screen_lit": {
+          "positive": 363,
+          "negative": 142,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5319714429829667,
+          "macro_f1": 0.35831761659687367
+        },
+        "glass_door_open": {
+          "positive": 136,
+          "negative": 974,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7011565406450054,
+          "macro_f1": 0.5763284430717395
+        },
+        "two_people_at_counter": {
+          "positive": 0,
+          "negative": 978,
+          "unsupported_known": 380,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      },
+      "objects": {
+        "10": {
+          "positive": 149,
+          "negative": 385,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.587379063889131,
+          "macro_f1": 0.5893262747482696
+        },
+        "11": {
+          "positive": 443,
+          "negative": 0,
+          "unsupported_known": 91,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "1": {
+          "positive": 138,
+          "negative": 396,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5404040404040404,
+          "macro_f1": 0.5326108027138955
+        },
+        "4": {
+          "positive": 390,
+          "negative": 0,
+          "unsupported_known": 144,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "7": {
+          "positive": 0,
+          "negative": 0,
+          "unsupported_known": 534,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "12": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "13": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      }
+    },
+    "roi4_finetune_pair": {
+      "actions": {
+        "flat_item_handling": {
+          "positive": 404,
+          "negative": 372,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6782710529117428,
+          "macro_f1": 0.6602730730292501
+        },
+        "counter_interaction": {
+          "positive": 152,
+          "negative": 1032,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6884434924520604,
+          "macro_f1": 0.5908545284795674
+        },
+        "computer_interaction": {
+          "positive": 67,
+          "negative": 1201,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8649757043259969,
+          "macro_f1": 0.6631326611308818
+        },
+        "storage_interaction": {
+          "positive": 148,
+          "negative": 1292,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.7061438373357878,
+          "macro_f1": 0.6182093931878885
+        },
+        "bag_interaction": {
+          "positive": 99,
+          "negative": 1390,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.39928057553956836,
+          "macro_f1": 0.42708734128510967
+        },
+        "door_interaction": {
+          "positive": 53,
+          "negative": 1388,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9450410526888151,
+          "macro_f1": 0.768252973672943
+        },
+        "writing": {
+          "positive": 0,
+          "negative": 346,
+          "unsupported_known": 200,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "operator_at_station": {
+          "positive": 1384,
+          "negative": 100,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.9346676300578034,
+          "macro_f1": 0.7382089439397186
+        },
+        "person_at_counter": {
+          "positive": 571,
+          "negative": 871,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.8359787349122634,
+          "macro_f1": 0.8394633017798946
+        },
+        "storage_open": {
+          "positive": 56,
+          "negative": 1417,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4972212420606916,
+          "macro_f1": 0.48486035055835863
+        },
+        "bag_on_desk": {
+          "positive": 26,
+          "negative": 1376,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.4004360465116279,
+          "macro_f1": 0.44009584664536744
+        },
+        "laptop_open": {
+          "positive": 1289,
+          "negative": 0,
+          "unsupported_known": 204,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "laptop_screen_lit": {
+          "positive": 413,
+          "negative": 157,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5321324470628153,
+          "macro_f1": 0.3534174803524649
+        },
+        "glass_door_open": {
+          "positive": 136,
+          "negative": 1083,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.6811790505675954,
+          "macro_f1": 0.54344365237212
+        },
+        "two_people_at_counter": {
+          "positive": 0,
+          "negative": 1050,
+          "unsupported_known": 459,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      },
+      "objects": {
+        "10": {
+          "positive": 149,
+          "negative": 385,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5749324501002353,
+          "macro_f1": 0.5758014404745093
+        },
+        "11": {
+          "positive": 443,
+          "negative": 0,
+          "unsupported_known": 91,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "1": {
+          "positive": 138,
+          "negative": 396,
+          "unsupported_known": 0,
+          "balanced_accuracy": 0.5318950373298199,
+          "macro_f1": 0.5212909009412819
+        },
+        "4": {
+          "positive": 390,
+          "negative": 0,
+          "unsupported_known": 144,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "7": {
+          "positive": 0,
+          "negative": 0,
+          "unsupported_known": 534,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "12": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        },
+        "13": {
+          "positive": 0,
+          "negative": 377,
+          "unsupported_known": 157,
+          "balanced_accuracy": null,
+          "macro_f1": null
+        }
+      }
+    }
+  },
+  "production_ready": false,
+  "independent_external_test": false,
+  "quality_target_met": false,
+  "default_model_changed": false,
+  "limitations": [
+    "Same-camera exploratory sources previously inspected; assistant snapshot labels, not human event validation.",
+    "Best individual arm selected from6 comparisons is optimistic; nested selection is primary.",
+    "Final inner-selected action bottleneck had poor outer OOF; selection instability disclosed.",
+    "Four reserved sources were previously observed and cannot establish independent performance.",
+    "All42 includes36 training sources and2 aliases; it is not a generalization benchmark.",
+    "Raw fast-path GPU batch layout has measured feature differences; exact PTS/verdicts and score error<=0.0001 verified.",
+    "Two failed pointwise feature guards retained; training/weights/thresholds/CV were not changed."
+  ]
+}

@@ -73,3 +73,13 @@ python -m ml.action_focus_infer infer --bundle <local-bundle> --video <local.mov
 The JSON contains the clip score, threshold, source PTS, supported action scores
 and elapsed analysis time. Unknown/unsupported action classes are null. Scores
 do not claim validated event intervals or a production-ready normative verdict.
+
+The fast inference path encodes one brightness variant. Cache creation encodes
+three variants in a larger GPU batch. On the source-level parity check, the
+original batch layout reproduced cached features exactly; the fast layout had
+numerical feature differences (source001 max.0009013;source003 max.01903 with
+relative L2.000481 and score delta below.000001). The benchmark reports maximum
+feature differences and requires feature relative L2<=.002, absolute score
+difference<=.0001 and identical verdicts/PTS. Two initial stricter pointwise
+feature guard failures are retained in the local audit. This
+changes no quality threshold, training data, fitted weights or CV result.
