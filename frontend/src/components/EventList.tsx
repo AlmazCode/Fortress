@@ -3,6 +3,7 @@ import { EvidenceCard } from './EvidenceCard';
 import { RuleSource } from './RuleSource';
 import { findingLabel } from './VideoTimeline';
 import { Icon } from './ui';
+import { ObservationList } from './ObservationList';
 const versionNames: Record<keyof Diagnostics['versions'], string> = {
   dataset: 'Данные', annotations: 'Разметка', split: 'Выборка', rules: 'Правила',
   model: 'Модель', preprocessing: 'Подготовка видео', taxonomy: 'Классы событий',
@@ -29,6 +30,7 @@ export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { st
     <p className="result-note">Проверьте результат по исходному видео. Анализ учитывает только доступные данные и поддерживаемые правила.</p>
     {matching?.provenance.kind === 'synthetic' && <p className="fixture-banner">Демонстрационный результат: искусственные данные.</p>}
     <div className="event-list">{job.violations.map((event, index) => <EvidenceCard key={`${job.job_id}-${event.type}-${event.timecode_sec}-${index}`} event={event} onSeek={onSeek} />)}</div>
+    {!!matching?.timeline?.observations.length && <ObservationList observations={matching.timeline.observations} duration={matching.duration_sec} onSeek={onSeek} />}
     <section className="rule-results" aria-label="Правила и нормативные основания">
       <h3>Правила и нормативные основания</h3>
       {findings.length ? <>

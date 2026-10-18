@@ -54,6 +54,8 @@ class ProcessRunner:
                 raise AnalysisFailure('inference_failed')
             try:
                 result = json.loads(output)
+                if isinstance(result, dict) and set(result) == {'failure_reason'}:
+                    raise AnalysisFailure(result['failure_reason'])
                 return AnalysisBundle(**result)
             except (ValueError, TypeError):
                 raise AnalysisFailure('inference_failed') from None
