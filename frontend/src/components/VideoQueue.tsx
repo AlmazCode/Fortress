@@ -1,60 +1,48 @@
-import { useLayoutEffect, useRef } from 'react';
 import type { Diagnostics, UploadProgress } from '../api/types';
 import type { QueueItem, QueueState } from '../useVideoQueue';
 import { stageLabels } from './JobStatus';
-import { isQueueFinished, useQueuePresence } from './useQueuePresence';
-
-const labels: Record<QueueState, string> = {
-  waiting: 'В очереди', uploading: 'Загрузка', processing: 'Анализ',
-  done: 'Готово', failed: 'Ошибка', uncertain: 'Приём не подтверждён',
+import { VideoFile } from './VideoFile';
+import { Button, Notification, StatusBadge, type IconName } from './ui';
+export { formatBytes } from './VideoFile';
+const statuses: Record<QueueState, { label: string; tone: 'neutral' | 'active' | 'success' | 'danger' | 'warning'; icon: IconName }> = {
+  waiting: { label: 'В очереди', tone: 'neutral', icon: 'clock' },
+  uploading: { label: 'Обрабатывается', tone: 'active', icon: 'loader' },
+  processing: { label: 'Обрабатывается', tone: 'active', icon: 'loader' },
+  done: { label: 'Готово', tone: 'success', icon: 'check' },
+  failed: { label: 'Ошибка', tone: 'danger', icon: 'alert' },
+  uncertain: { label: 'Приём не подтверждён', tone: 'warning', icon: 'alert' },
 };
-export function formatBytes(bytes: number): string {
-  return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} МиБ` : `${Math.max(1, Math.ceil(bytes / 1024))} КиБ`;
-}
-function QueueFile({ item, index }: { item: QueueItem; index: number }) {
-  return <><span className="queue-number">{String(index).padStart(2, '0')}</span><strong className="queue-file-name" title={item.name}>{item.name}</strong><span className="queue-file-size">{item.size > 0 ? formatBytes(item.size) : 'Размер неизвестен'}</span></>;
-}
-export function VideoQueue({ items, active, running, started, canStart, blockedReason, progress, diagnostics, connectionLost, onStart, onPause, onAbort, onRemove, onClearWaiting, onView, onSettings }: {
+export function VideoQueue({ items, active, running, started, canStart, blockedReason, progress, diagnostics, connectionLost, onStart, onPause, onAbort, onRemove, onClear, onSettings }: {
   items: QueueItem[]; active?: QueueItem; running: boolean; started: boolean; canStart: boolean;
   blockedReason?: string; progress?: UploadProgress; diagnostics?: Diagnostics; connectionLost: boolean;
   onStart: () => void; onPause: () => void; onAbort: () => void; onRemove: (id: string) => void;
-  onClearWaiting: () => void; onView: (id: string) => void; onSettings?: () => void;
+  onClear: () => void; onSettings?: () => void;
 }) {
-  const { visible, finishExit } = useQueuePresence(items);
-  const results = useRef(new Map<string, HTMLLIElement>());
-  useLayoutEffect(() => {
-    const focusedId = document.activeElement?.closest('[data-queue-id]')?.getAttribute('data-queue-id');
-    if (focusedId && items.some(item => item.id === focusedId && isQueueFinished(item))) {
-      results.current.get(focusedId)?.focus({ preventScroll: true });
-    }
-  }, [items]);
   if (!items.length) return null;
-  const finished = items.filter(isQueueFinished);
   const waiting = items.filter(item => item.state === 'waiting').length;
-  const done = items.filter(item => item.state === 'done').length;
-  const failed = items.filter(item => item.state === 'failed').length;
-  const errors = failed + items.filter(item => item.state === 'uncertain').length;
-  const processed = diagnostics && diagnostics.job_id === active?.jobId && diagnostics.public.status === 'processing' ? diagnostics : undefined;
+  const finished = items.filter(item => item.state === 'done' || item.state === 'failed').length;
+  const detail = diagnostics?.job_id === active?.jobId && diagnostics?.public.status === 'processing' ? diagnostics : undefined;
   const percent = progress?.computable && progress.total > 0 ? Math.min(100, Math.round(100 * progress.loaded / progress.total)) : undefined;
   return <section className="queue-panel" aria-labelledby="queue-title">
-    <div className="queue-heading"><h2 id="queue-title">Очередь видео</h2><span className="queue-volume" role="status">{waiting || active ? `Готово ${done} из ${items.length}` : errors ? `Готово ${done}, ошибок ${errors}` : `Готово ${done} из ${items.length}`}</span></div>
-    <div className="queue-controls">{running && (waiting > 0 || active) ? <button className="secondary-button" onClick={onPause}>Пауза</button> : (waiting > 0 || connectionLost) && <button className="primary-button" onClick={onStart} disabled={!canStart}>{connectionLost ? 'Восстановить связь' : started ? 'Продолжить' : 'Начать анализ'}</button>}{waiting > 0 && <button className="text-button" onClick={onClearWaiting}>Убрать ожидающие</button>}</div>
-    {!canStart && blockedReason && <p className="queue-hint">{blockedReason}{onSettings && <button className="text-button queue-settings-link" onClick={onSettings}>Открыть настройки</button>}</p>}
-    {visible.length > 0 ? <ol className="queue-list" aria-label="Видео в очереди" tabIndex={0}>{visible.map((item, index) => {
-      const leaving = isQueueFinished(item);
-      const position = leaving ? index + 1 : visible.slice(0, index + 1).filter(entry => !isQueueFinished(entry)).length;
-      return <li key={item.id} data-queue-id={item.id} className={`queue-item queue-item-${item.state}${leaving ? ' queue-item-exiting' : ''}`} aria-label={`${item.name}, ${item.id === active?.id && connectionLost ? 'Связь прервана' : labels[item.state]}`} aria-hidden={leaving || undefined} inert={leaving || undefined} onTransitionEnd={event => { if (leaving && event.target === event.currentTarget && event.propertyName === 'flex-basis') finishExit(item.id); }}>
-        {item.jobId ? <button className="queue-card" aria-label={`Открыть ${item.name}`} onClick={() => onView(item.jobId!)}><QueueFile item={item} index={position} /></button> : <div className="queue-card"><QueueFile item={item} index={position} /></div>}
+    <div className="queue-heading"><div><h3 id="queue-title">Очередь видео <span className="count-label">{items.length}</span></h3><p role="status">Завершено {finished} из {items.length}</p></div>
+      <div className="queue-controls">{running && (waiting > 0 || active) ? <Button icon="pause" onClick={onPause}>Пауза</Button> : (waiting > 0 || connectionLost) ? <Button variant="primary" icon="play" onClick={onStart} disabled={!canStart}>{connectionLost ? 'Проверить состояние' : started ? `Продолжить · ${waiting}` : `Начать анализ · ${waiting}`}</Button> : null}<Button variant="text" onClick={onClear} disabled={!!active || running}>Очистить очередь</Button></div>
+    </div>
+    {!canStart && waiting > 0 && blockedReason && <Notification tone="warning">{blockedReason}{onSettings && <Button variant="text" onClick={onSettings}>Открыть настройки</Button>}</Notification>}
+    <ol className="queue-list" aria-label="Видео в очереди">{items.map(item => {
+      const status = statuses[item.state];
+      return <li className={`file-row file-row-${item.state}`} key={item.id} aria-label={`${item.name}, ${status.label}`}>
+        <VideoFile item={item} />
+        <StatusBadge tone={status.tone} icon={status.icon}>{status.label}</StatusBadge>
+        <div className="file-row-action">{item.state === 'waiting' && <Button icon="trash" aria-label={`Удалить ${item.name} из очереди`} onClick={() => onRemove(item.id)} />}</div>
+        {item.message && <p className="file-row-error">{item.message}</p>}
       </li>;
-    })}</ol> : <p className="queue-empty">Очередь пуста</p>}
-    {active && <div className="queue-feedback">
-      <strong>{active.name}</strong>
-      {connectionLost ? <p className="queue-item-message">Связь прервана. Восстановите подключение для проверки состояния.</p> : active.state === 'uploading' ? <div className="queue-transfer"><span>Отправляем файл{percent === undefined ? '…' : ` · ${percent}%`}</span><progress aria-label={`Загрузка ${active.name}`} value={percent} max={100} /><button className="text-button" onClick={onAbort}>Прервать передачу</button></div> : <div className="queue-transfer"><span>{processed ? stageLabels[processed.stage] ?? 'Обрабатываем видео…' : 'Проверяем состояние…'}</span>{processed && processed.processed_sec !== null && processed.duration_sec > 0 ? <><progress aria-label={`Анализ ${active.name}`} value={Math.min(processed.processed_sec, processed.duration_sec)} max={processed.duration_sec} /><span>Обработано {processed.processed_sec.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} из {processed.duration_sec.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} с видео</span></> : <progress aria-label={`Анализ ${active.name}`} max={100} />}</div>}
+    })}</ol>
+    {active && <div className="queue-processing" aria-label="Ход обработки">
+      <div className="processing-heading"><div><span className="eyebrow">Текущий файл</span><strong>{active.name}</strong></div><span>Завершено {finished} из {items.length}</span></div>
+      <progress aria-label="Завершение очереди" value={finished} max={items.length} />
+      {connectionLost ? <Notification tone="danger" role="alert"><strong>Связь с сервисом прервана</strong><p>Состояние задания сейчас неизвестно. Повторная проверка не загружает файл заново.</p><Button onClick={onStart}>Проверить состояние</Button></Notification> : active.state === 'uploading' ? <div className="queue-transfer"><span>Загружаем файл{percent === undefined ? '…' : ` · ${percent}%`}</span><progress aria-label={`Загрузка ${active.name}`} value={percent} max={100} /><Button variant="text" onClick={onAbort}>Прервать передачу</Button></div> : <div className="queue-transfer"><span>{detail ? stageLabels[detail.stage] ?? 'Обрабатываем видео…' : 'Проверяем состояние…'}</span>{detail && detail.processed_sec !== null && detail.duration_sec > 0 ? <><progress aria-label={`Анализ ${active.name}`} value={Math.min(detail.processed_sec, detail.duration_sec)} max={detail.duration_sec} /><span>Обработано {detail.processed_sec.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} из {detail.duration_sec.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} с видео</span></> : <progress aria-label={`Анализ ${active.name}`} max={100} />}</div>}
+      {(waiting > 0 || active.state === 'uploading') && <p className="helper-text">Не закрывайте вкладку, пока загружаются выбранные файлы.</p>}
+      {!running && waiting > 0 && <p className="helper-text">Следующие загрузки на паузе. Принятое задание продолжает обрабатываться.</p>}
     </div>}
-    {items.filter(item => item.message).map(item => <div className="queue-item-message" key={item.id}>{item.name}: {item.message}{item.state === 'uncertain' && <button className="text-button" onClick={() => onRemove(item.id)}>Убрать из очереди</button>}</div>)}
-    {(waiting > 0 || active) && <p className="queue-hint">{active ? 'Пауза не отменяет принятое сервером задание.' : 'Файлы будут обработаны по очереди. Не закрывайте вкладку.'}</p>}
-    {finished.length > 0 && <section className="queue-history" aria-label="Завершённые видео"><div className="queue-history-heading"><h3>Завершённые · {finished.length}</h3><button className="text-button" onClick={() => finished.forEach(item => onRemove(item.id))}>Очистить завершённые</button></div><ul className="queue-results">{finished.map(item => <li key={item.id} className={`queue-item-${item.state}`} aria-label={`${item.name}, ${labels[item.state]}`} tabIndex={-1} ref={element => { if (element) results.current.set(item.id, element); else results.current.delete(item.id); }}>
-      {item.jobId ? <button className="queue-card" aria-label={`Открыть ${item.name}`} onClick={() => onView(item.jobId!)}><QueueFile item={item} index={items.findIndex(entry => entry.id === item.id) + 1} /></button> : <div className="queue-card"><QueueFile item={item} index={items.findIndex(entry => entry.id === item.id) + 1} /></div>}
-    </li>)}</ul></section>}
   </section>;
 }

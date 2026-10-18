@@ -1,4 +1,5 @@
 import { ApiError } from '../api/client';
+import { Button, Icon } from './ui';
 export function describeError(error: unknown): { title: string; description: string } {
   if (error instanceof DOMException && error.name === 'AbortError') return { title: 'Запрос прерван', description: 'Принятое задание не отменено. Его можно открыть по ID.' };
   if (!(error instanceof ApiError)) return { title: 'Не удалось завершить запрос', description: 'Повторите проверку. Результат анализа не подтверждён.' };
@@ -24,5 +25,5 @@ export function describeError(error: unknown): { title: string; description: str
 }
 export function ErrorPanel({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const message = describeError(error);
-  return <div className="error-panel" role="alert"><span className="error-symbol" aria-hidden="true">!</span><div><strong>{message.title}</strong><p>{message.description}</p>{onRetry && <button className="text-button" onClick={onRetry}>Повторить проверку</button>}</div></div>;
+  return <div className="error-panel" role="alert"><Icon name="alert" /><div><strong>{message.title}</strong><p>{message.description}</p>{onRetry && <Button variant="text" onClick={onRetry}>Повторить проверку</Button>}</div></div>;
 }

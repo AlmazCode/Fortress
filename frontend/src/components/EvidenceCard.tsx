@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { formatTime, type EvidenceFrame, type Finding, type Violation } from '../api/types';
+import { StatusBadge } from './ui';
 function evidenceData(frame: EvidenceFrame): string | undefined {
   if (frame.image_base64.length > 8388608 || !/^\/9j\/[A-Za-z0-9+/]*={0,2}$/.test(frame.image_base64)) return;
   try { const bytes = atob(frame.image_base64); if (bytes.length < 4 || bytes.charCodeAt(bytes.length - 2) !== 255 || bytes.charCodeAt(bytes.length - 1) !== 217) return; return `data:image/jpeg;base64,${frame.image_base64}`; } catch { return; }
@@ -11,7 +12,7 @@ function Frame({ frame, index, onSeek }: { frame: EvidenceFrame; index: number; 
 export function EvidenceCard({ event, finding, onSeek }: { event: Violation; finding?: Finding; onSeek: (time: number) => void }) {
   const url = finding?.source.url; const safeLink = url && /^https?:\/\//i.test(url) ? url : undefined;
   return <article className="evidence-card">
-    <div className="event-heading"><span className="pill warning">Требует проверки</span><button className="time-button" onClick={() => onSeek(event.timecode_sec)} aria-label={`Событие ${event.type}, ${event.timecode_sec} секунд`}>{formatTime(event.timecode_sec)} ↗</button></div>
+    <div className="event-heading"><StatusBadge tone="warning" icon="alert">Возможное нарушение</StatusBadge><button className="time-button" onClick={() => onSeek(event.timecode_sec)} aria-label={`Событие ${event.type}, ${event.timecode_sec} секунд`}>{formatTime(event.timecode_sec)} ↗</button></div>
     <h3>{event.type}</h3><p>{event.description}</p>
     {finding && <p className="muted">Исходный интервал: {finding.interval.start_sec}–{finding.interval.end_sec} с</p>}
     {event.evidence_frames.length < 1 || event.evidence_frames.length > 3 ? <p role="alert">Кадры события недоступны.</p> : <div className="evidence-grid">{event.evidence_frames.map((frame, index) => <Frame key={`${frame.timestamp_sec}-${frame.image_base64}-${index}`} frame={frame} index={index} onSeek={onSeek} />)}</div>}

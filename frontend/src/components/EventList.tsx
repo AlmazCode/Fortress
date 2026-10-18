@@ -2,6 +2,7 @@ import { formatTime, type Diagnostics, type Finding, type Job } from '../api/typ
 import { EvidenceCard } from './EvidenceCard';
 import { RuleSource } from './RuleSource';
 import { findingLabel } from './VideoTimeline';
+import { Icon } from './ui';
 const versionNames: Record<keyof Diagnostics['versions'], string> = {
   dataset: 'Данные', annotations: 'Разметка', split: 'Выборка', rules: 'Правила',
   model: 'Модель', preprocessing: 'Подготовка видео', taxonomy: 'Классы событий',
@@ -23,7 +24,8 @@ export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { st
     </article>;
   }
   return <section className="results-panel" aria-labelledby="results-title">
-    <h2 id="results-title">{job.violations.length ? `События для проверки · ${job.violations.length}` : 'События не найдены'}</h2>
+    <h2 id="results-title">{job.violations.length ? `События для проверки · ${job.violations.length}` : 'Возможные нарушения не обнаружены'}</h2>
+    {job.violations.length === 0 && <div className="clean-result"><Icon name="check" /><p>По доступным данным и поддерживаемым правилам признаков возможных нарушений не найдено.</p></div>}
     <p className="result-note">Проверьте результат по исходному видео. Анализ учитывает только доступные данные и поддерживаемые правила.</p>
     {matching?.provenance.kind === 'synthetic' && <p className="fixture-banner">Демонстрационный результат: искусственные данные.</p>}
     <div className="event-list">{job.violations.map((event, index) => <EvidenceCard key={`${job.job_id}-${event.type}-${event.timecode_sec}-${index}`} event={event} onSeek={onSeek} />)}</div>
@@ -31,7 +33,7 @@ export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { st
       <h3>Правила и нормативные основания</h3>
       {findings.length ? <>
         {job.violations.length > 0 && <p className="muted">Основания относятся к интервалам правил. Связь событий с конкретными правилами не указана.</p>}
-        {triggered.length > 0 ? <div className="rule-list">{triggered.map(ruleCard)}</div> : <p className="muted">Подтверждённое нормативное основание для найденных событий не предоставлено.</p>}
+        {triggered.length > 0 ? <div className="rule-list">{triggered.map(ruleCard)}</div> : job.violations.length > 0 && <p className="muted">Подтверждённое нормативное основание для найденных событий не предоставлено.</p>}
         {other.length > 0 && <details className="other-rule-results"><summary>Остальные правила и ограничения · {other.length}</summary><div className="rule-list">{other.map(ruleCard)}</div></details>}
       </> : <p className="muted">Нормативное основание не предоставлено.</p>}
     </section>

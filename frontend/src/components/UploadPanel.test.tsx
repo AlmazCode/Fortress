@@ -4,7 +4,7 @@ afterEach(cleanup);
 const video = () => new File(['test'], 'clip.mp4', { type: 'video/mp4' });
 test('adds multiple files locally and displays file limits', async () => {
   const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />);
-  expect(screen.getByText(/180 с/).textContent).toContain('60 fps');
+  expect(screen.getByText(/180 с/)).toBeTruthy(); expect(screen.getByText(/до 60 fps/).closest('details')?.open).toBe(false);
   const files = [video(), new File(['test'], 'second.mov', { type: 'video/quicktime' })];
   fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files } });
   await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith(files));
@@ -19,7 +19,7 @@ test.each(['empty', 'oversize', 'unsupported'])('rejects %s without POST', async
 test('keeps valid files when another selected file is invalid', async () => {
   const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />); const file = video();
   fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files: [file, new File(['bad'], 'bad.txt', { type: 'text/plain' })] } });
-  await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith([file])); expect(screen.getByRole('alert').textContent).toContain('1');
+  await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith([file])); expect(screen.getByRole('alert').textContent).toContain('bad.txt');
 });
 test('adds pasted files to the local queue exactly once', async () => {
   const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />); const file = video();

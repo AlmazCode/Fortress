@@ -8,7 +8,7 @@ const model = () => fixtureCase('model_status') as ModelStatusData;
 test.each(['missing', 'invalid', 'incompatible', 'test-only'])('unusable %s release is not ready and explains local import', async reason => {
   const value = model(); value.reason = reason; value.test_only = reason === 'test-only'; render(<ModelStatus connected pending={false} model={value} />);
   expect(screen.getByRole('heading', { name: 'Модель' })).toBeTruthy(); expect(screen.queryByText('Можно начать анализ.')).toBeNull();
-  if (value.test_only) expect(screen.getByText('Качество модели не проверено.')).toBeTruthy();
+  if (value.test_only) expect(screen.getByText('Тестовая модель. Найденные события требуют проверки сотрудником.')).toBeTruthy();
   else {
     const summary = screen.getByText('Как подключить модель'); await userEvent.setup().click(summary); expect(summary.closest('details')?.open).toBe(true);
     expect(screen.getByText(/по инструкции сервера/)).toBeTruthy();
@@ -21,7 +21,7 @@ test('only trained validated non-test release can be shown ready', () => {
   view.rerender(<ModelStatus connected pending={false} model={{ ...ready, trained: false }} />); expect(screen.queryByText('Можно начать анализ.')).toBeNull();
 });
 test('explicit demo remains visibly synthetic even if producer claims ready', () => {
-  render(<ModelStatus connected pending={false} fixtureMode model={model()} />); expect(screen.getByText('Тестовая')).toBeTruthy(); expect(screen.getByText('Качество модели не проверено.')).toBeTruthy();
+  render(<ModelStatus connected pending={false} fixtureMode model={model()} />); expect(screen.getByText('Тестовая')).toBeTruthy(); expect(screen.getByText('Тестовая модель. Найденные события требуют проверки сотрудником.')).toBeTruthy();
 });
 test.each([360, 768, 1440])('semantic model harness at %spx retains accessible controls', width => {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: width }); render(<ModelStatus connected pending={false} model={model()} />);

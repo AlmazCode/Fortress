@@ -8,7 +8,8 @@ declare const __TEST_API_MODE__: boolean;
 const queries = new QueryClient({ defaultOptions: { queries: { staleTime: 0 }, mutations: { retry: false } } });
 async function boot() {
   // Vite replaces the constant; production removes this import and its payload.
-  const transport = __FIXTURE_MODE__ ? (await import('./fixtures/contract-fixtures')).createFixtureTransport({ enabled: true, outcome: 'violation' }) : undefined;
+  const demoOutcome = __FIXTURE_MODE__ ? new URLSearchParams(location.search).get('demo') : null;
+  const transport = __FIXTURE_MODE__ ? (await import('./fixtures/contract-fixtures')).createFixtureTransport({ enabled: true, outcome: demoOutcome === 'clean' ? 'no_violation' : demoOutcome === 'error' ? 'failed' : 'violation' }) : undefined;
   createRoot(document.getElementById('root')!).render(<StrictMode><QueryClientProvider client={queries}><App transport={transport} fixtureMode={__FIXTURE_MODE__} apiTestMode={__TEST_API_MODE__} /></QueryClientProvider></StrictMode>);
 }
 void boot();

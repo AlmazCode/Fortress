@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiClient, ApiError } from './api/client';
 import { MAX_MEDIA_BYTES, type Diagnostics, type UploadProgress } from './api/types';
@@ -9,6 +9,7 @@ export type QueueState = 'waiting' | 'uploading' | 'processing' | 'done' | 'fail
 export interface QueueItem {
   id: string; name: string; size: number; state: QueueState; file?: File; jobId?: string;
   startedAt?: number; finishedAt?: number; message?: string; events?: number;
+  durationSec?: number; durationSource?: 'local' | 'server'; thumbnail?: string;
 }
 export const MAX_QUEUE_FILES = 20;
 
@@ -85,6 +86,16 @@ export function useVideoQueue({ client, ready, onAccepted, pollMs = 1800 }: {
 
   useEffect(() => { if (job.error) setRunning(false); }, [job.error]);
 
+  useEffect(() => {
+    const detail = diagnostics.data;
+    if (!active?.jobId || detail?.job_id !== active.jobId || !Number.isFinite(detail.duration_sec) || detail.duration_sec <= 0) return;
+    setItems(previous => previous.map(item => item.id === active.id && item.durationSource !== 'local' && item.durationSec !== detail.duration_sec ? { ...item, durationSec: detail.duration_sec, durationSource: 'server' } : item));
+  }, [active?.id, active?.jobId, diagnostics.data?.job_id, diagnostics.data?.duration_sec]);
+  const setMediaInfo = useCallback((id: string, info: { durationSec?: number; thumbnail?: string }) => {
+    if (info.durationSec === undefined && !info.thumbnail) return;
+    setItems(previous => previous.map(item => item.id === id ? { ...item, ...(info.durationSec !== undefined ? { durationSec: info.durationSec, durationSource: 'local' as const } : {}), thumbnail: info.thumbnail ?? item.thumbnail } : item));
+  }, []);
+
   function add(files: File[]) {
     const valid = files.filter(file => file.size > 0 && file.size <= MAX_MEDIA_BYTES && /\.(mp4|mov)$/i.test(file.name));
     const available = Math.max(0, MAX_QUEUE_FILES - items.length);
@@ -112,7 +123,7 @@ export function useVideoQueue({ client, ready, onAccepted, pollMs = 1800 }: {
   }
   return {
     items, active, running, started, uploading, progress, error, selectionNotice, job, diagnostics,
-    add, clear, start, resume, clearError: () => setError(undefined), pause: () => setRunning(false),
+    add, clear, start, resume, setMediaInfo, clearError: () => setError(undefined), pause: () => setRunning(false),
     abort: () => controller.current?.abort(),
     remove: (id: string) => setItems(previous => previous.filter(item => item.id !== id || item.state === 'uploading' || item.state === 'processing')),
     clearWaiting: () => setItems(previous => previous.filter(item => item.state !== 'waiting')),

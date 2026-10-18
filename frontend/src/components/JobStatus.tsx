@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ApiClient, ApiError, validJobId } from '../api/client';
 import type { FailureReason, Job } from '../api/types';
+import { Button } from './ui';
 
 export const failureMessages: Record<FailureReason, string> = {
   insufficient_evidence: 'Недостаточно данных для анализа.',
@@ -47,16 +48,18 @@ export function JobStatus({ jobId, job, checking, stage, error, authenticated = 
     setInvalid(false); onResume(value.trim());
   }
   return <section className="job-panel" aria-labelledby="job-title">
-    <h2 id="job-title">{jobId ? job?.status === 'done' ? 'Результат получен' : job?.status === 'failed' ? 'Анализ не завершён' : 'Обработка видео' : 'Открыть задание'}</h2>
-    {jobId ? <>
+    <h2 id="job-title">Задание по ID</h2>
+    {jobId && <>
       <div className="job-id"><span>ID</span><code>{jobId}</code></div>
-      <p role="status">{error ? 'Текущее состояние не подтверждено.' : job?.status === 'done' ? 'События и кадры — ниже.' : job?.status === 'failed' ? failureMessages[job.reason] : stage ? stageLabels[stage] ?? 'Обрабатываем видео…' : checking ? 'Проверяем состояние…' : 'Ожидаем результат…'}</p>
+      <p role="status">{error ? 'Текущее состояние не подтверждено.' : job?.status === 'done' ? 'Результат готов к просмотру.' : job?.status === 'failed' ? failureMessages[job.reason] : stage ? stageLabels[stage] ?? 'Обрабатываем видео…' : checking ? 'Проверяем состояние…' : 'Ожидаем результат…'}</p>
       <p className="muted">Сохраните ID, чтобы открыть задание позже.{(!job || job.status === 'processing') && ' Закрытие страницы не отменяет обработку.'}</p>
-      <button className="text-button" onClick={onClear}>Закрыть просмотр задания</button>
-    </> : <>
-      <p>Введите ID ранее загруженного видео.</p>
-      <form className="resume-form" onSubmit={resume}><label htmlFor="job-id">ID задания</label><div className="input-row"><input id="job-id" value={value} onChange={event => setValue(event.target.value)} placeholder="Вставьте ID задания" autoComplete="off" aria-invalid={invalid} aria-describedby={invalid ? 'job-id-error' : undefined} /><button className="secondary-button" disabled={!authenticated || !value.trim()} type="submit">Открыть</button></div>{invalid && <p id="job-id-error" role="alert" className="field-error">Неверный формат ID. Скопируйте его целиком.</p>}</form>
+      <Button variant="text" onClick={onClear}>Закрыть просмотр задания</Button>
     </>}
-    {!!error && <div role="alert" className="field-error"><p>{requestMessage(error)}</p>{onRetry && <button onClick={onRetry}>Повторить проверку</button>}</div>}
+    <>
+      <p>Введите ID ранее загруженного видео.</p>
+      <form className="resume-form" onSubmit={resume}><label htmlFor="job-id">ID задания</label><div className="input-row"><input id="job-id" value={value} onChange={event => setValue(event.target.value)} placeholder="Вставьте ID задания" autoComplete="off" aria-invalid={invalid} aria-describedby={invalid ? 'job-id-error' : undefined} /><Button disabled={!authenticated || !value.trim()} type="submit">Открыть</Button></div>{invalid && <p id="job-id-error" role="alert" className="field-error">Неверный формат ID. Скопируйте его целиком.</p>}</form>
+    </>
+    {!authenticated && <p className="helper-text">Для поиска требуется доступ к сервису и свободная очередь.</p>}
+    {!!error && <div role="alert" className="field-error"><p>{requestMessage(error)}</p>{onRetry && <Button onClick={onRetry}>Повторить проверку</Button>}</div>}
   </section>;
 }

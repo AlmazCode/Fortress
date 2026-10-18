@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiClient, ApiError } from '../api/client';
 import type { Playback } from './VideoTimeline';
+import { Icon } from './ui';
 export interface SeekRequest { sourceTime: number; nonce: number }
 export function VideoPlayer({ client, path, maxBytes, seek, onPlaybackChange }: { client: ApiClient; path?: string; maxBytes?: number; seek?: SeekRequest; onPlaybackChange?: (playback: Playback) => void }) {
   const video = useRef<HTMLVideoElement>(null);
@@ -47,7 +48,7 @@ export function VideoPlayer({ client, path, maxBytes, seek, onPlaybackChange }: 
   }
   useEffect(applySeek, [seek, current?.url, path, error]);
   return <section className="video-panel" aria-label="Видео и исходные таймкоды">
-    {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={() => { applySeek(); reportPlayback(); }} onTimeUpdate={reportPlayback} onDurationChange={reportPlayback} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><span aria-hidden="true">▷</span><p role={error ? 'alert' : undefined}>{error ?? (path ? 'Загружаем видео…' : 'Видео не предоставлено')}</p></div>}
+    {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={() => { applySeek(); reportPlayback(); }} onTimeUpdate={reportPlayback} onDurationChange={reportPlayback} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><Icon name="video" /><p role={error ? 'alert' : undefined}>{error ?? (path ? 'Загружаем видео…' : 'Видео не предоставлено')}</p></div>}
     {seekError && <p role="alert" className="field-error">{seekError}</p>}
   </section>;
 }
