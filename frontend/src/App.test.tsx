@@ -43,7 +43,7 @@ function server(options: { status?: number; code?: string; notReady?: boolean; o
 test('complete upload/poll/done/evidence path uses one POST and bounded authenticated video', async () => {
   const consoleErrors = vi.spyOn(console, 'error'); const s = server(), storage = vi.spyOn(Storage.prototype, 'setItem'); mount(s.transport); await connect(); await upload();
   await screen.findByRole('heading', { name: 'Результат получен' }); await screen.findByRole('img'); await screen.findByLabelText('Видео задания');
-  expect(consoleErrors).not.toHaveBeenCalled(); expect(s.posts()).toBe(1); expect(screen.getByText(/SYNTHETIC TEST \/ DEMO/)).toBeTruthy(); expect(storage).not.toHaveBeenCalled();
+  expect(consoleErrors).not.toHaveBeenCalled(); expect(s.posts()).toBe(1); expect(screen.getByText(/Демонстрационный результат/)).toBeTruthy(); expect(storage).not.toHaveBeenCalled();
   expect(s.fetch.mock.calls.every(([path, init]) => !String(path).includes(secret) && (init?.headers as Record<string, string>)['X-API-Key'] === secret)).toBe(true);
   fireEvent.click(screen.getByRole('button', { name: /Кадр 1,/ })); fireEvent.click(screen.getByRole('button', { name: 'Сбросить ключ' }));
   expect(screen.queryByLabelText('Видео задания')).toBeNull(); expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:app-test'); expect(screen.getByLabelText('API-ключ')).toBeTruthy();
@@ -58,8 +58,8 @@ test('401 resets the session and offers password re-entry', async () => {
   await screen.findByLabelText('API-ключ'); expect(screen.queryByRole('button', { name: 'Сбросить ключ' })).toBeNull(); expect(screen.getByText(/Ключ не принят. Введите/)).toBeTruthy(); expect(s.posts()).toBe(1);
 });
 test('production path without release remains not ready and cannot send a file or show fixtures', async () => {
-  const s = server({ notReady: true }); mount(s.transport); await connect(); await screen.findByText('model_not_ready');
-  expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true); expect(s.posts()).toBe(0); expect(screen.queryByText(/SYNTHETIC TEST/)).toBeNull(); expect(screen.getByText('Как подготовить локальный release')).toBeTruthy();
+  const s = server({ notReady: true }); mount(s.transport); await connect(); await screen.findByText('Не готова');
+  expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true); expect(s.posts()).toBe(0); expect(screen.queryByText(/Демонстрационный результат/)).toBeNull(); expect(screen.getByText('Как подключить модель')).toBeTruthy();
 });
 test('outage after 202 retains job id, stops bounded retries and resumes via GET without POST', async () => {
   const s = server({ outage: true }); mount(s.transport); await connect(); await upload();
@@ -75,10 +75,10 @@ test('reset during pending acceptance aborts fetch and ignores a late 202', asyn
 });
 test('explicit demo can exercise synthetic outcome while visibly remaining untrained', async () => {
   mount(createFixtureTransport({ enabled: true, outcome: 'no_violation' }), true); await connect(); await upload();
-  await screen.findByRole('heading', { name: 'Результат получен' }); expect(screen.getByRole('note').textContent).toContain('SYNTHETIC TEST / DEMO'); expect(screen.getByText(/не считаются проверенными/)).toBeTruthy(); expect(screen.queryByText('Можно начать анализ')).toBeNull();
+  await screen.findByRole('heading', { name: 'Результат получен' }); expect(screen.getByRole('note').textContent).toContain('Деморежим'); expect(await screen.findByText(/Не все условия и правила удалось проверить/)).toBeTruthy(); expect(screen.queryByText('Можно начать анализ.')).toBeNull();
 });
 test('public failed remains failure with its reason, no synthetic clean verdict', async () => {
-  const s = server({ outcome: 'insufficient_evidence' }); mount(s.transport); await connect(); await upload(); await screen.findByRole('heading', { name: 'Анализ не завершён' }); expect(screen.getByText(/Недостаточно наблюдаемых данных/)).toBeTruthy(); expect(screen.queryByRole('img')).toBeNull(); expect(s.posts()).toBe(1);
+  const s = server({ outcome: 'insufficient_evidence' }); mount(s.transport); await connect(); await upload(); await screen.findByRole('heading', { name: 'Анализ не завершён' }); expect(screen.getByText(/Недостаточно данных для анализа/)).toBeTruthy(); expect(screen.queryByRole('img')).toBeNull(); expect(s.posts()).toBe(1);
 });
 
 test('explicit API test mode requires server test_only; normal untrained production remains blocked', async () => {
@@ -86,15 +86,15 @@ test('explicit API test mode requires server test_only; normal untrained product
   const transport: ApiTransport = { fetch: async () => json({ ...notReady, test_only: true }) };
   mount(transport, false, true); await connect();
   await waitFor(() => expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(false));
-  expect(screen.getByRole('note').textContent).toContain('SYNTHETIC API TEST'); expect(screen.queryByText('Можно начать анализ')).toBeNull();
+  expect(screen.getByRole('note').textContent).toContain('Тестовый API'); expect(screen.queryByText('Можно начать анализ.')).toBeNull();
 });
 test('API test flag does not bypass normal production not_ready', async () => {
-  mount(server({ notReady: true }).transport, false, true); await connect(); await screen.findByText('Как подготовить локальный release');
+  mount(server({ notReady: true }).transport, false, true); await connect(); await screen.findByText('Как подключить модель');
   expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true);
 });
 test('production runtime ignores API-test and fixture props even with test-only transport', async () => {
   vi.stubEnv('PROD', true);
   const model = fixtureCase('model_status') as ModelStatusData;
-  mount({ fetch: async () => json({ ...model, test_only: true }) }, true, true); await connect(); await screen.findByText('Как подготовить локальный release');
+  mount({ fetch: async () => json({ ...model, test_only: true }) }, true, true); await connect(); await screen.findByText('Тестовая');
   expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true); expect(screen.queryByRole('note')).toBeNull();
 });

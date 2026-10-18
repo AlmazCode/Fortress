@@ -23,12 +23,14 @@ test('source interval, revision and limitations use actual finding fields; unsaf
 test('unknown/unsupported and versions remain visible; sources are not assigned to events by list order', () => {
   const d = fixtureCase('ui_diagnostics') as Diagnostics;
   const { container } = render(<EventList job={done()} diagnostics={d} onSeek={vi.fn()} />);
-  expect(screen.getByText(/Неизвестно:/).textContent).toContain('actor'); expect(screen.getByText(/SYNTHETIC TEST/)).toBeTruthy();
-  expect(screen.getByText('Не поддерживается')).toBeTruthy(); expect(container.querySelector('.evidence-card')?.textContent).toContain('Связь с конкретным правилом не предоставлена');
-  expect(screen.getByText(/не доказывает безопасность/)).toBeTruthy();
+  fireEvent.click(screen.getByText('Подробности анализа'));
+  expect(screen.getByText(/Неизвестные условия:/).textContent).toContain('actor'); expect(screen.getByText(/Демонстрационный результат/)).toBeTruthy();
+  expect(screen.getByText('Не поддерживается')).toBeTruthy(); expect(container.querySelector('.evidence-card')?.querySelector('.source-block')).toBeNull();
+  expect(screen.getByText(/Связь событий с конкретными правилами не указана/)).toBeTruthy();
+  expect(screen.getByText(/только доступные данные и поддерживаемые правила/)).toBeTruthy();
 });
 test('foreign-job diagnostics are not substituted and empty events do not promise safety', () => {
   const d = fixtureCase('ui_diagnostics') as Diagnostics; d.job_id = '00000000-0000-4000-8000-000000000002';
   render(<EventList job={fixtureCase('no_violation') as Extract<Job, { status: 'done' }>} diagnostics={d} onSeek={vi.fn()} />);
-  expect(screen.getByText(/Расширенные сведения не получены/)).toBeTruthy(); expect(screen.queryByText(/SYNTHETIC TEST/)).toBeNull(); expect(screen.getByText(/не считаются проверенными/)).toBeTruthy();
+  expect(screen.getByText(/Расширенные сведения не получены/)).toBeTruthy(); expect(screen.queryByText(/Демонстрационный результат/)).toBeNull(); expect(screen.getByText(/только доступные данные и поддерживаемые правила/)).toBeTruthy();
 });

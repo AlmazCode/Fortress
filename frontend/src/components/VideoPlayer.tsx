@@ -17,7 +17,7 @@ export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClien
       created = URL.createObjectURL(blob); setLoaded({ client, path, url: created });
     }).catch(reason => {
       if (!active || reason?.name === 'AbortError') return;
-      const message = reason instanceof ApiError && reason.code === 'media_too_large' ? 'Видео превышает разрешённый лимит памяти (не более 200 МиБ).' : reason instanceof ApiError && reason.status === 401 ? 'Для видео нужен действующий API-ключ. Сбросьте ключ и подключитесь заново.' : 'Видео недоступно или повреждено. Видеопроверка событий не выполнена.';
+      const message = reason instanceof ApiError && reason.code === 'media_too_large' ? 'Видео превышает лимит 200 МиБ.' : reason instanceof ApiError && reason.status === 401 ? 'Ключ не принят. Подключитесь заново.' : 'Не удалось загрузить видео.';
       setFailure({ client, path, message });
     });
     return () => { active = false; controller.abort(); if (created) URL.revokeObjectURL(created); };
@@ -30,7 +30,7 @@ export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClien
       return;
     }
     if (!Number.isFinite(seek.sourceTime) || seek.sourceTime < 0 || Number.isFinite(element.duration) && seek.sourceTime > element.duration) {
-      setSeekError('Исходный таймкод находится за пределами видео. Переход не выполнен.'); return;
+      setSeekError('Таймкод за пределами видео.'); return;
     }
     if (element.readyState === 0) return;
     // K/A3 previews preserve elapsed source PTS. Identity mapping in seconds;
@@ -40,9 +40,8 @@ export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClien
   }
   useEffect(applySeek, [seek, current?.url, path, error]);
   return <section className="video-panel" aria-label="Видео и исходные таймкоды">
-    {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={applySeek} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео. Проверка доказательств не выполнена.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><span aria-hidden="true">▷</span><p>{path && !error ? 'Загружаем защищённое видео…' : 'Видео не предоставлено или недоступно'}</p></div>}
-    {error && <p role="alert" className="field-error">{error}</p>}
+    {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={applySeek} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><span aria-hidden="true">▷</span><p role={error ? 'alert' : undefined}>{error ?? (path ? 'Загружаем видео…' : 'Видео не предоставлено')}</p></div>}
     {seekError && <p role="alert" className="field-error">{seekError}</p>}
-    <p className="muted">Таймкоды отсчитываются от начала исходного ролика. Нажмите событие или кадр, чтобы перейти к соответствующему моменту видео.</p>
+    {current && !error && <p className="muted">Нажмите событие или кадр, чтобы перейти к нужному моменту.</p>}
   </section>;
 }
