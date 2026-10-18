@@ -95,11 +95,17 @@ def test_actual_fit_normalizes_and_supervises_training_sources_only(tmp_path,arm
     assert len(saved["loss_history"]) == 3
     predictions = obj.predict(fitted,["v6","v7"])
     assert all(0 <= p["score"] <= 1 for p in predictions)
+    separate = obj.predict(fitted,["v7"])
+    assert separate[0]["video_id"] == predictions[1]["video_id"]
+    assert separate[0]["truth"] == predictions[1]["truth"]
+    # FP32 kernels may round differently for batch sizes one and two. Keep the
+    # before/after isolation assertion below exact by using the same batch layout.
+    assert separate[0]["score"] == pytest.approx(predictions[1]["score"],abs=1e-6,rel=0)
     before = Path(fitted).read_bytes()
     rows[6]["actions"][:] = 1; rows[6]["objects"][:] = 1
     rows[6]["features"] *= 1000
     assert obj.fit(ids,arm,config,42) == fitted and Path(fitted).read_bytes() == before
-    assert obj.predict(fitted,["v7"]) == predictions[1:]
+    assert obj.predict(fitted,["v7"]) == separate
     with pytest.raises(ValueError,match="development"):
         obj.fit(ids+["v6"],arm,config,42)
     assert saved["production_ready"] is False and saved["human_approved_actions"] is False
