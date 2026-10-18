@@ -1,6 +1,6 @@
 # Fortress Frontend
 
-React / TypeScript / Vite / Tailwind / TanStack Query / Dropzone. Кандидат этапов F1–F4/F разработчика №2. Настоящая сквозная приёмка API/браузера относится к U после I. Обученного release и подтверждённого ML-качества этот интерфейс не создаёт.
+React / TypeScript / Vite / Tailwind / TanStack Query / Dropzone. Основной запуск вместе с настоящим backend: [LOCAL_SETUP](../docs/LOCAL_SETUP.md). Native API раздаёт production build на одном origin; модель отображается как обученный, но не валидированный прототип. Ниже — отдельные dev/test команды; synthetic demo не подменяет анализ пользовательских видео.
 
 ## Подготовка и проверки
 

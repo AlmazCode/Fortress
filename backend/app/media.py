@@ -200,7 +200,8 @@ class MediaService:
                 any(abs(float((p-source_pts[0])*source_tb-q*preview_tb)) > .0001
                     for p, q in zip(source_pts, preview_pts))):
                 raise IntakeError(400, 'invalid_request', 'Preview time mapping could not be verified.')
-            with temporary.open('rb') as source:
+            # Windows _commit/os.fsync requires a writable handle.
+            with temporary.open('r+b') as source:
                 digest = hashlib.file_digest(source, 'sha256').hexdigest()
                 os.fsync(source.fileno())
             os.replace(temporary, target)

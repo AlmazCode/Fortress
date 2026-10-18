@@ -4,6 +4,14 @@ import type { ModelStatusData } from '../api/types';
 import { fixtureCase } from '../fixtures/contract-fixtures';
 import { ModelStatus } from './ModelStatus';
 afterEach(cleanup);
+test('actual prototype stays distinct from validated production and synthetic demo', () => {
+  const value: ModelStatusData = { schema_version: '1.0', status: 'prototype', reason: 'experimental_model', release_version: 'prototype-test', trained: true, validated: false, test_only: false, limitations: ['Quality target not met.'] };
+  render(<ModelStatus connected pending={false} model={value} />);
+  expect(screen.getByText('Прототип')).toBeTruthy();
+  expect(screen.getByText(/экспериментальная модель подключена/)).toBeTruthy();
+  expect(screen.queryByText('Готова')).toBeNull();
+  expect(screen.queryByText('Тестовая')).toBeNull();
+});
 const model = () => fixtureCase('model_status') as ModelStatusData;
 test.each(['missing', 'invalid', 'incompatible', 'test-only'])('unusable %s release is not ready and explains local import', async reason => {
   const value = model(); value.reason = reason; value.test_only = reason === 'test-only'; render(<ModelStatus connected pending={false} model={value} />);

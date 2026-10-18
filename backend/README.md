@@ -1,8 +1,8 @@
 # Fortress backend
 
-Рабочая копия №1: `/home/almazcode/.codex/worktrees/fortress-backend/Fortress`. Ветки `codex/fortress-backend` и `codex/integration`; точные принятые SHA и проверки — в [журнале №1](../docs/github-plan/status/DEV-1.md).
+Основной запуск на текущем Windows-ПК — [native-профиль](../docs/LOCAL_SETUP.md) из `backend/local`: настоящий FastAPI, SQLite и обученная экспериментальная модель. Ниже описан отдельный **Linux/PostgreSQL/Celery профиль**, его production gate и проверки.
 
-Это собранная программная часть API/очереди. Production сейчас **не загружает обученную модель**: `/api/ui/v1/model` сообщает `not_ready`, upload возвращает `503 model_not_ready`. Подключение проверенных M/R/F/O выполняется в I. Никаких случайных весов, фиктивных production verdict или полного обучения здесь нет.
+Он сохраняет `503 model_not_ready` до интеграции проверенного событийного release. Native prototype не подменяет эти гарантии и не выдаётся за приёмку распределённой инфраструктуры.
 
 ## Требования и подготовка
 

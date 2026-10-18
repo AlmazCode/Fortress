@@ -3,10 +3,12 @@ from fractions import Fraction
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import selectors
 import subprocess
 import time
+import threading
 
 from contracts.python_ports import AcceptedUpload, VideoInfo
 from .storage import IntakeError, MAX_UPLOAD_BYTES
@@ -36,6 +38,11 @@ class VideoValidator:
             raise IntakeError(503, 'service_unavailable', 'Video runtime is unavailable.') from None
         output, errors = bytearray(), bytearray()
         try:
+            if os.name == 'nt':
+                self._read_windows(process, output, errors, deadline, max_output)
+                if process.returncode or errors:
+                    raise _invalid()
+                return json.loads(output)
             with selectors.DefaultSelector() as selector:
                 selector.register(process.stdout, selectors.EVENT_READ, (output, max_output))
                 selector.register(process.stderr, selectors.EVENT_READ, (errors, 65536))
@@ -64,6 +71,41 @@ class VideoValidator:
             process.wait()
             process.stdout.close()
             process.stderr.close()
+
+    @staticmethod
+    def _read_windows(process, output, errors, deadline, max_output):
+        """Windows selectors cannot select anonymous pipes; bound both readers."""
+        overflow = threading.Event()
+        def read(pipe, target, limit):
+            while True:
+                chunk = pipe.read1(65536)
+                if not chunk:
+                    return
+                if len(target) + len(chunk) > limit:
+                    overflow.set()
+                    return
+                target.extend(chunk)
+        readers = [threading.Thread(target=read, args=args, daemon=True) for args in
+                   [(process.stdout, output, max_output), (process.stderr, errors, 65536)]]
+        for thread in readers:
+            thread.start()
+        try:
+            while any(thread.is_alive() for thread in readers):
+                if overflow.is_set():
+                    raise _invalid('Video metadata exceeds the decoding budget.')
+                if time.monotonic() >= deadline:
+                    raise _invalid('Video decode time budget exceeded.')
+                for thread in readers:
+                    thread.join(.02)
+            if overflow.is_set():
+                raise _invalid('Video metadata exceeds the decoding budget.')
+            process.wait(timeout=max(.001, deadline-time.monotonic()))
+        finally:
+            if process.poll() is None:
+                process.kill()
+            process.wait()
+            for thread in readers:
+                thread.join(timeout=2)
 
     def validate(self, path: Path, *, size_bytes: int, deadline_monotonic: float) -> AcceptedUpload:
         path = Path(path).resolve(strict=True)

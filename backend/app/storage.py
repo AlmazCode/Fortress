@@ -28,7 +28,7 @@ class StagedUpload:
 
 
 class LocalStorage:
-    def __init__(self, root: Path, *, max_bytes: int = MAX_UPLOAD_BYTES):
+    def __init__(self, root: Path, *, max_bytes: int = MAX_UPLOAD_BYTES, sync_directories=True):
         root = Path(root)
         if not root.is_absolute() or not 0 < max_bytes <= MAX_UPLOAD_BYTES:
             raise ValueError('Absolute runtime root and a valid upload limit required')
@@ -36,6 +36,9 @@ class LocalStorage:
         if any((parent / '.git').exists() for parent in [self.root, *self.root.parents]):
             raise ValueError('Runtime storage must be outside the Git checkout')
         self.max_bytes = max_bytes
+        # The native Windows prototype explicitly opts out of POSIX directory fsync.
+        # Linux production keeps its original persistence contract.
+        self.sync_directories = sync_directories
         self.incoming, self.originals = self.root / 'incoming', self.root / 'originals'
         for path in [self.root, self.incoming, self.originals]:
             if path.is_symlink():
@@ -87,11 +90,12 @@ class LocalStorage:
         destination = self.originals / (uuid4().hex + '.video')
         try:
             os.replace(path, destination)
-            descriptor = os.open(self.originals, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
-            try:
-                os.fsync(descriptor)
-            finally:
-                os.close(descriptor)
+            if self.sync_directories:
+                descriptor = os.open(self.originals, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+                try:
+                    os.fsync(descriptor)
+                finally:
+                    os.close(descriptor)
             return destination
         except OSError:
             self.discard(destination)

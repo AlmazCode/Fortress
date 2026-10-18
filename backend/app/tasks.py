@@ -6,7 +6,6 @@ DB lease is lost: lease expiry alone must never overlap two GPU analyses.
 """
 from contextlib import contextmanager
 from datetime import datetime, timezone
-import fcntl
 import os
 from pathlib import Path
 import threading
@@ -39,10 +38,18 @@ def gpu_slot(path):
     held = False
     try:
         try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if os.name == 'nt':
+                import msvcrt
+                os.lseek(descriptor, 0, os.SEEK_SET)
+                msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
             held = True
-        except BlockingIOError:
-            pass
+        except OSError as error:
+            import errno
+            if error.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+                raise
         yield held
     finally:
         os.close(descriptor)

@@ -11,3 +11,24 @@ frontend/dist/
 *.safetensors
 training_artifacts/
 outputs/
+# Private inputs, runtime, generated evidence and credentials
+/open/
+/dataset_for_annotation/
+*.mov
+*.mp4
+*.xlsx
+/Кейс_ForteBank.docx
+.env.*
+!.env.example
+*.pem
+*.key
+*.sqlite*
+*.log
+coverage/
+htmlcov/
+.coverage*
+test-results/
+playwright-report/
+/tests/e2e/report.json
+.DS_Store
+Thumbs.db

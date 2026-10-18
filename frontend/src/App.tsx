@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiClient, ApiError, type ApiTransport } from './api/client';
-import { isModelReady, type Diagnostics, type ModelStatusData } from './api/types';
+import { isModelReady, isPrototypeAvailable, type Diagnostics, type ModelStatusData } from './api/types';
 import { ApiKeyForm } from './components/ApiKeyForm';
 import { ErrorPanel } from './components/ErrorPanel';
 import { ModelStatus } from './components/ModelStatus';
@@ -38,7 +38,7 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
     enabled: !!client, retry: retryRead, refetchOnWindowFocus: false, refetchOnReconnect: false,
   });
   const onAccepted = useCallback((id: string) => setJobId(previous => previous ?? id), []);
-  const ready = !!client && !model.isFetching && !model.error && (demo || isModelReady(model.data) || apiTest && model.data?.test_only === true && !model.data.trained && !model.data.validated);
+  const ready = !!client && !model.isFetching && !model.error && (demo || isModelReady(model.data) || isPrototypeAvailable(model.data) || apiTest && model.data?.test_only === true && !model.data.trained && !model.data.validated);
   const queue = useVideoQueue({ client, ready, onAccepted, pollMs });
   useLocalVideoMetadata(queue.items, queue.setMediaInfo);
   const viewingActive = !!jobId && jobId === queue.active?.jobId;
@@ -115,6 +115,7 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
       <div className="page-heading"><div><h1>Анализ видео</h1><p>Загрузите видео, чтобы найти возможные нарушения и просмотреть события с таймкодами</p></div><Button ref={settingsButton} icon="settings" aria-haspopup="dialog" aria-expanded={settingsOpen} aria-controls="analysis-settings" onClick={openSettings}>Настройки</Button></div>
       {demo && <Notification tone="warning" role="note" className="demo-notice">Деморежим: показаны примеры результатов, загруженные видео не анализируются</Notification>}
       {apiTest && <Notification tone="warning" role="note">Тестовый API. Используйте только искусственные ролики. Качество модели не проверено.</Notification>}
+      {isPrototypeAvailable(model.data) && <Notification tone="warning" role="note">Локальный прототип · точность около 71%. Тип нарушения и точный момент события пока не подтверждены. Результаты требуют ручной проверки.</Notification>}
       {notice && <Notification>{notice}</Notification>}
       <section className="video-workbench" aria-label="Загрузка и очередь видео">
         <UploadPanel controlRef={uploadControl} onAdd={queue.add} busy={queue.uploading} compact={queue.items.length > 0} />

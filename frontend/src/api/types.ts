@@ -51,7 +51,7 @@ export interface Diagnostics {
   provenance: { kind: 'original' | 'synthetic'; source_id: string; sha256: string };
 }
 export interface ModelStatusData {
-  schema_version: '1.0'; status: 'ready' | 'not_ready'; reason: string | null;
+  schema_version: '1.0'; status: 'ready' | 'not_ready' | 'prototype'; reason: string | null;
   release_version: string | null; trained: boolean; validated: boolean; test_only: boolean;
   limitations: string[];
 }
@@ -95,6 +95,9 @@ export function parseError(value: unknown, status: number): ErrorEnvelope | unde
 }
 export function isModelReady(model: ModelStatusData | undefined): boolean {
   return !!model && model.status === 'ready' && model.trained && model.validated && !model.test_only;
+}
+export function isPrototypeAvailable(model: ModelStatusData | undefined): boolean {
+  return !!model && model.status === 'prototype' && model.trained && !model.validated && !model.test_only;
 }
 export function parseDiagnostics(value: unknown, id: string): Diagnostics {
   if (!checkDiagnostics(value) || value.job_id !== id || value.public.job_id !== id)

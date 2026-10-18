@@ -1,33 +1,71 @@
 # Fortress
 
-Локальный прототип анализа кассового видео: React/FastAPI, очередь, правила и ML-инструменты.
+Локальный AI-прототип для проверки кассового видео: загрузка MOV/MP4, очередь анализа, API и просмотр исходных кадров. Обработка выполняется на вашем ПК без облачных AI-сервисов.
 
-Первое обучение вердикта по целому видео: [проверенный Windows/CUDA workflow](docs/model/FIRST_TRAINING.md).
-`tools/setup_training.ps1` устанавливает locked окружение, проверяет GPU, подготавливает локальные
-ImageNet-веса, импортирует annotation package и считает feature cache. `tools/train_first.ps1`
-запускает MobileNetV3-Small + GRU с checkpoint/resume, dev early stopping и отдельной holdout-оценкой.
-Цель 80% проверяется по accuracy, balanced accuracy и macro-F1; заранее она не гарантируется.
+**Текущий статус:** обученная модель подключена в явном режиме прототипа. Средняя точность на отложенных семействах видео — **71,30%**. Цель 80% не достигнута. Точный тип нарушения, границы события и нормативная применимость не подтверждены; показанный кадр служит для ручной проверки.
 
-Следующий этап с целью 95%+: [эксперименты на имеющихся видео](docs/model/SMALL_DATA.md).
+## Запуск на Windows
 
-Уточнение15 проблемных роликов и обучение с наблюдаемыми действиями:
-[action-assisted этап с unknown masks и grouped CV](docs/model/ACTION_REFINEMENT.md).
-Grouped nested CV сравнивает linear/GRU/MIL и ограниченный fine-tuning на исходных train/dev;
-тестовые семьи остаются вне обучения. Независимые 95% на новых ракурсах пока не подтверждены.
+Нужны Windows 10/11 x64, Node.js 22.12+ и локальная копия пакета модели `transition-state-bundle-v1`. Установщик подготовит Python 3.11, зависимости CUDA/CPU и FFmpeg. Веса, видео и ключи хранятся вне Git.
 
-**С 17 октября 2026 года работаем через обычный Git/GitHub. Aster больше не используется для координации.**
+Из корня репозитория:
 
-- [Инструкция всем агентам](AGENTS.md)
-- [Начало работы и состав пакета](docs/github-plan/README.md)
-- [Общая инструкция GitHub](docs/github-plan/WORKFLOW.md)
-- [План: 36 задач / 4 разработчика](docs/github-plan/PLAN.md)
-- [ТЗ №1 — Главный / Backend](docs/github-plan/DEV1_BACKEND.md)
-- [ТЗ №2 — Frontend](docs/github-plan/DEV2_FRONTEND.md)
-- [ТЗ №3 — ML / Данные](docs/github-plan/DEV3_ML_DATA.md)
-- [ТЗ №4 — Правила / Инфраструктура](docs/github-plan/DEV4_RULES_INFRA.md)
-- [Сообщения для передачи агентам](docs/github-plan/PROMPTS.md)
-- [Проверка плана и миграции](docs/github-plan/AUDIT.md)
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1
+powershell -ExecutionPolicy Bypass -File tools/start_local.ps1 -Background
+```
 
-Без проверенного событийного release сервис возвращает `503 model_not_ready`.
-Первый video-verdict baseline сохраняется отдельно от production событийной модели:
-он не подтверждает таймкоды, нормативные правила или качество на другой камере.
+| Что | Адрес / расположение |
+| --- | --- |
+| Web interface URL | http://127.0.0.1:8000/ |
+| API base URL | http://127.0.0.1:8000/api/v1 |
+| API key | `%LOCALAPPDATA%\Fortress\jury-access.json`, поле `api_key` |
+| Конфигурация | `%LOCALAPPDATA%\Fortress\local-config.json` |
+| Очередь, оригиналы и результаты | `%LOCALAPPDATA%\Fortress\runtime` |
+
+Откройте интерфейс → **Настройки** → введите ключ → добавьте видео → запустите очередь. Ключ передаётся только заголовком `X-API-Key` и хранится в памяти вкладки.
+
+Остановка:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/stop_local.ps1
+```
+
+Подробности, перенос на другой ПК и выбор CPU/CUDA: [локальная установка](docs/LOCAL_SETUP.md). **127.0.0.1 доступен только на этом ПК.** Для удалённого жюри нужен отдельный публичный HTTPS-адрес; он сейчас не настроен.
+
+## API жюри
+
+- `POST /api/v1/analyze` — multipart-поле `file`, ответ `202 {job_id}`.
+- `GET /api/v1/jobs/{job_id}` — `processing`, затем `done` или `failed`.
+- Все `/api/…` требуют `X-API-Key`; неверный/отсутствующий ключ → `401`.
+- Одно незавершённое задание; переполнение → `429`. Общий бюджет — 240 секунд.
+- MOV/MP4 до 200 МиБ, 180 секунд, 60 fps, 1920×1080 или 1080×1920.
+
+[Примеры запросов и сдача жюри](docs/JURY_HANDOFF.md) · [OpenAPI](contracts/openapi.yaml).
+
+## Состав проекта
+
+| Каталог | Назначение |
+| --- | --- |
+| `frontend/` | React / TypeScript, очередь загрузок, результаты и плеер |
+| `backend/local/` | Запускаемый на Windows прототип: FastAPI, SQLite, отдельный процесс модели |
+| `backend/app/` | Общие API/auth/media и отдельный Linux-вариант PostgreSQL/Celery |
+| `ml/` | Модель, локальный inference, инструменты разметки и обучения |
+| `rules/` | Правила и нормативные источники; применимость отделена от визуального сигнала |
+| `contracts/` | JSON Schema, API и интерфейсы компонентов |
+| `infra/` | Опциональная инфраструктура Linux/Compose/TLS |
+| `tests/`, `tools/` | Проверки и команды установки/запуска |
+
+[Архитектура](docs/ARCHITECTURE.md) · [текущее состояние](docs/PROJECT_STATUS.md) · [карта документации](docs/README.md).
+
+## Разработка и проверки
+
+```powershell
+.venv\Scripts\python.exe -B -m pytest tests/local tests/contracts tests/ml tests/rules -q
+npm --prefix frontend test
+npm --prefix frontend run build
+```
+
+FFmpeg/ffprobe должны находиться в PATH для медиа-проверок; установщик кладёт их в приватный каталог. Тесты распределённого backend требуют отдельные PostgreSQL/Redis и описаны в [backend/README.md](backend/README.md). Tiny/synthetic tests проверяют код, а не точность модели.
+
+Основные ветки объединены с сохранением истории. Генерируемые отчёты, окружения, датасет и секреты исключены из Git и Docker build context. Старый план четырёх разработчиков сохранён в `docs/github-plan/` как история; актуальные инструкции — этот README и `AGENTS.md`.

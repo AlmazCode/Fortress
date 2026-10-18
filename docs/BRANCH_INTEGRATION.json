@@ -1,0 +1,81 @@
+{
+  "version": "branch-integration-v1",
+  "date": "2026-10-18",
+  "source_base": "46b7bc941e64fec5649242b8290607c8f7339819",
+  "integrated_before_cleanup": "ec47349a50691285e5f0a43719f8a42ef5021b55",
+  "history_rewritten": false,
+  "branches_deleted": false,
+  "refs": [
+    {
+      "ref": "refs/heads/codex/dev2-frontend",
+      "sha": "0c8cb9f3a24c3636ea881bd58933fe846b692d65",
+      "included": true
+    },
+    {
+      "ref": "refs/heads/codex/fortress-no3-ml",
+      "sha": "097e413ede60771515389a9629eff37cccdb6ae2",
+      "included": true
+    },
+    {
+      "ref": "refs/heads/codex/frontend-copy-cleanup",
+      "sha": "bdfc1c90505f5c50f7d32dc4cda99b03a5e93e93",
+      "included": true
+    },
+    {
+      "ref": "refs/heads/codex/integration",
+      "sha": "469b2eb841de187d8e3429dc17514254777d3bdc",
+      "included": true
+    },
+    {
+      "ref": "refs/heads/codex/training-readiness",
+      "sha": "a54055218bd6a2afeb4435099b71980293be06fc",
+      "included": true
+    },
+    {
+      "ref": "refs/heads/main",
+      "sha": "46b7bc941e64fec5649242b8290607c8f7339819",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/dev2-frontend",
+      "sha": "0c8cb9f3a24c3636ea881bd58933fe846b692d65",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/dev4-rules-infra",
+      "sha": "b8356f64342ead419070b5325bfb44e1fb4eb3c8",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/fortress-backend",
+      "sha": "469b2eb841de187d8e3429dc17514254777d3bdc",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/fortress-no3-ml",
+      "sha": "097e413ede60771515389a9629eff37cccdb6ae2",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/github-plan",
+      "sha": "bc139562beb1d4bdf306669a4cd7bdfd6332a62c",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/github-transition",
+      "sha": "c70a6d366c9b48b090368b92ca1bb60b692f6c26",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/integration",
+      "sha": "469b2eb841de187d8e3429dc17514254777d3bdc",
+      "included": true
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "46b7bc941e64fec5649242b8290607c8f7339819",
+      "included": true
+    }
+  ],
+  "conflict_resolution": "Both appended DEV-3 journal sections retained; application code merged without conflict."
+}
