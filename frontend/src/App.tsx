@@ -95,8 +95,14 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
   }
   function clearQueue() {
     if (queue.active || queue.running) return;
-    queue.clear(); revealResult.current = false;
-    setJobId(undefined); setSeek(undefined); setPlayback(undefined); setResultOpen(false);
+    queue.clearPending();
+  }
+  function clearResults() {
+    const selected = queue.items.find(item => item.jobId === jobId);
+    queue.clearFinished();
+    if (selected?.state === 'done' || selected?.state === 'failed') {
+      revealResult.current = false; setJobId(undefined); setSeek(undefined); setPlayback(undefined); setResultOpen(false);
+    }
   }
   const modelRejected = queue.error instanceof ApiError && queue.error.code === 'model_not_ready';
   const detail = diagnostics.data && diagnostics.data.job_id === jobId && diagnostics.data.public.status === job.data?.status ? diagnostics.data : undefined;
@@ -111,12 +117,12 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
       {apiTest && <Notification tone="warning" role="note">Тестовый API. Используйте только искусственные ролики. Качество модели не проверено.</Notification>}
       {notice && <Notification>{notice}</Notification>}
       <section className="video-workbench" aria-label="Загрузка и очередь видео">
-        <UploadPanel controlRef={uploadControl} onAdd={queue.add} busy={queue.uploading} />
+        <UploadPanel controlRef={uploadControl} onAdd={queue.add} busy={queue.uploading} compact={queue.items.length > 0} />
         {queue.selectionNotice && <Notification tone="danger" role="alert">{queue.selectionNotice}</Notification>}
         <VideoQueue items={queue.items} active={queue.active} running={queue.running} started={queue.started} canStart={ready && !modelRejected} blockedReason={blockedReason} progress={queue.progress} diagnostics={queue.diagnostics.data} connectionLost={!!queue.job.error} onStart={queue.start} onPause={queue.pause} onAbort={queue.abort} onRemove={queue.remove} onClear={clearQueue} onSettings={openSettings} />
         {!!queue.error && <ErrorPanel error={queue.error} />}
       </section>
-      <ResultsOverview items={queue.items} onView={viewJob} onChooseFiles={() => uploadControl.current?.open()} />
+      <ResultsOverview items={queue.items} onView={viewJob} onChooseFiles={() => uploadControl.current?.open()} onClear={clearResults} primaryAction={!queue.items.some(item => item.state !== 'done' && item.state !== 'failed')} />
       {client && resultOpen && job.data?.status === 'done' && <section className="result-workspace" ref={resultView} tabIndex={-1} aria-label="Просмотр результата видео">
         <div className="result-heading"><div><span className="eyebrow">Просмотр результата</span><h2>{queue.items.find(item => item.jobId === jobId)?.name ?? 'Результат задания'}</h2></div><Button onClick={() => { setResultOpen(false); const item = queue.items.find(entry => entry.jobId === jobId); if (item) document.getElementById(`result-${item.id}`)?.focus(); }}>К списку результатов</Button></div>
         <div className="review-layout"><div className="video-review"><VideoPlayer key={`${client.session}-${jobId}`} client={client} path={media?.url} maxBytes={media?.max_bytes} seek={seek} onPlaybackChange={next => { if (jobId) setPlayback({ ...next, jobId }); }} />

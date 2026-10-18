@@ -18,17 +18,18 @@ export function VideoQueue({ items, active, running, started, canStart, blockedR
   onStart: () => void; onPause: () => void; onAbort: () => void; onRemove: (id: string) => void;
   onClear: () => void; onSettings?: () => void;
 }) {
-  if (!items.length) return null;
+  const pending = items.filter(item => item.state !== 'done' && item.state !== 'failed');
+  if (!pending.length) return null;
   const waiting = items.filter(item => item.state === 'waiting').length;
   const finished = items.filter(item => item.state === 'done' || item.state === 'failed').length;
   const detail = diagnostics?.job_id === active?.jobId && diagnostics?.public.status === 'processing' ? diagnostics : undefined;
   const percent = progress?.computable && progress.total > 0 ? Math.min(100, Math.round(100 * progress.loaded / progress.total)) : undefined;
   return <section className="queue-panel" aria-labelledby="queue-title">
-    <div className="queue-heading"><div><h3 id="queue-title">Очередь видео <span className="count-label">{items.length}</span></h3><p role="status">Завершено {finished} из {items.length}</p></div>
+    <div className="queue-heading"><div><h3 id="queue-title">Очередь видео <span className="count-label">{pending.length}</span></h3><p role="status">Завершено {finished} из {items.length}</p></div>
       <div className="queue-controls">{running && (waiting > 0 || active) ? <Button icon="pause" onClick={onPause}>Пауза</Button> : (waiting > 0 || connectionLost) ? <Button variant="primary" icon="play" onClick={onStart} disabled={!canStart}>{connectionLost ? 'Проверить состояние' : started ? `Продолжить · ${waiting}` : `Начать анализ · ${waiting}`}</Button> : null}<Button variant="text" onClick={onClear} disabled={!!active || running}>Очистить очередь</Button></div>
     </div>
     {!canStart && waiting > 0 && blockedReason && <Notification tone="warning">{blockedReason}{onSettings && <Button variant="text" onClick={onSettings}>Открыть настройки</Button>}</Notification>}
-    <ol className="queue-list" aria-label="Видео в очереди">{items.map(item => {
+    <ol className="queue-list" aria-label="Видео в очереди">{pending.map(item => {
       const status = statuses[item.state];
       return <li className={`file-row file-row-${item.state}`} key={item.id} aria-label={`${item.name}, ${status.label}`}>
         <VideoFile item={item} />

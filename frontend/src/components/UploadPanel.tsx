@@ -10,7 +10,7 @@ function rejectionText(rejection: FileRejection) {
   if (codes.includes('file-too-small')) return `${rejection.file.name}: файл пустой. Выберите непустое видео.`;
   return `${rejection.file.name}: формат не поддерживается. Выберите MP4 или MOV.`;
 }
-export function UploadPanel({ onAdd, busy = false, controlRef }: { onAdd: (files: File[]) => void; busy?: boolean; controlRef?: Ref<UploadHandle> }) {
+export function UploadPanel({ onAdd, busy = false, compact = false, controlRef }: { onAdd: (files: File[]) => void; busy?: boolean; compact?: boolean; controlRef?: Ref<UploadHandle> }) {
   const [errors, setErrors] = useState<string[]>([]);
   const dropzone = useDropzone({
     accept: { 'video/mp4': ['.mp4'], 'video/quicktime': ['.mov'] },
@@ -18,17 +18,17 @@ export function UploadPanel({ onAdd, busy = false, controlRef }: { onAdd: (files
     onDrop: (files, rejected) => { if (files.length) onAdd(files); setErrors(rejected.map(rejectionText)); },
   });
   useImperativeHandle(controlRef, () => ({ open: dropzone.open }), [dropzone.open]);
-  return <section className="upload-panel" aria-labelledby="upload-title" id="video-upload">
-    <h2 id="upload-title">Видео для анализа</h2>
-    <div {...dropzone.getRootProps({ className: `upload-zone ${dropzone.isDragActive ? 'drag-active' : ''} ${busy ? 'upload-zone-busy' : ''}` })}>
+  return <section className={`upload-panel ${compact ? 'upload-panel-compact' : ''}`} aria-labelledby="upload-title" id="video-upload">
+    <h2 id="upload-title" className={compact ? 'sr-only' : undefined}>Видео для анализа</h2>
+    <div {...dropzone.getRootProps({ className: `upload-zone ${compact ? 'upload-zone-compact' : ''} ${dropzone.isDragActive ? 'drag-active' : ''} ${busy ? 'upload-zone-busy' : ''}` })}>
       <input {...dropzone.getInputProps({ 'aria-label': 'Видеофайлы' })} />
-      <span className="upload-symbol"><Icon name="upload" /></span>
-      <strong>{dropzone.isDragActive ? 'Отпустите файлы, чтобы добавить их' : 'Перетащите видео сюда'}</strong>
-      <span>Можно добавить несколько файлов</span>
-      <Button onClick={event => { event.stopPropagation(); dropzone.open(); }}>Выбрать видео</Button>
+      {!compact && <span className="upload-symbol"><Icon name="upload" /></span>}
+      {(!compact || dropzone.isDragActive) && <strong>{dropzone.isDragActive ? 'Отпустите файлы, чтобы добавить их' : 'Перетащите видео сюда'}</strong>}
+      {!compact && <span>Можно добавить несколько файлов</span>}
+      <Button key="choose-video" icon={compact ? 'upload' : undefined} onClick={event => { event.stopPropagation(); dropzone.open(); }}>{compact ? 'Добавить ещё видео' : 'Выбрать видео'}</Button>
       <p className="upload-limits">MP4 или MOV · до 200 МиБ · до 180 с</p>
     </div>
-    <details className="file-requirements"><summary>Требования к файлам</summary><p>Разрешение — до 1920×1080 или 1080×1920. Частота кадров — до 60 fps. Фактические параметры и возможность декодирования проверяет сервер.</p></details>
+    <details className="file-requirements"><summary>Требования к файлам</summary>{compact && <p className="compact-file-limits">MP4 или MOV · до 200 МиБ · до 180 с</p>}<p>Разрешение — до 1920×1080 или 1080×1920. Частота кадров — до 60 fps. Фактические параметры и возможность декодирования проверяет сервер.</p></details>
     {errors.length > 0 && <Notification tone="danger" role="alert"><strong>Не удалось добавить файлы</strong><ul>{errors.map((error, index) => <li key={index}>{error}</li>)}</ul></Notification>}
   </section>;
 }

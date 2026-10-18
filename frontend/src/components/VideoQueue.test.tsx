@@ -24,15 +24,23 @@ test('only the current job supplies measured analysis progress; an accepted job 
   expect(screen.getByRole('progressbar', { name: 'Анализ clip.mp4' }).getAttribute('value')).toBe('4');
   expect(screen.queryByText(/Не закрывайте вкладку/)).toBeNull();
 });
-test('file rows retain completed statuses, real duration, deletion before start and the selected count', () => {
+test('completed files leave the queue while pending files remain deletable', () => {
   const done: QueueItem = { ...item, state: 'done', events: 2, jobId: 'accepted', durationSec: 12.3 };
   const second: QueueItem = { ...item, id: 'two', name: 'second.mov', state: 'waiting' };
   render(<VideoQueue {...props} items={[done, second]} active={undefined} running={false} started={false} />);
   const rows = within(screen.getByRole('list', { name: 'Видео в очереди' })).getAllByRole('listitem');
-  expect(rows).toHaveLength(2); expect(rows[0].textContent).toContain('00:12'); expect(rows[0].textContent).toContain('Готово');
-  expect(rows[1].textContent).toContain('Длительность не определена');
+  expect(rows).toHaveLength(1); expect(rows[0].textContent).toContain('second.mov');
+  expect(screen.queryByText('clip.mp4')).toBeNull(); expect(rows[0].textContent).toContain('Длительность не определена');
   fireEvent.click(screen.getByRole('button', { name: 'Удалить second.mov из очереди' })); expect(props.onRemove).toHaveBeenCalledWith('two');
   expect(screen.getByRole('button', { name: 'Начать анализ · 1' })).toBeTruthy();
+});
+test('a fully completed queue is replaced by results with file details and a primary open action', () => {
+  const done: QueueItem = { ...item, state: 'done', events: 1, jobId: 'accepted', durationSec: 12.3 };
+  render(<><VideoQueue {...props} items={[done]} active={undefined} running={false} /><ResultsOverview items={[done]} onView={vi.fn()} onChooseFiles={vi.fn()} /></>);
+  expect(screen.queryByRole('list', { name: 'Видео в очереди' })).toBeNull();
+  expect(screen.getAllByText('clip.mp4')).toHaveLength(1); expect(screen.getByText('1 событие для проверки')).toBeTruthy();
+  expect(screen.getByRole('listitem').textContent).toContain('00:12');
+  expect(screen.getByRole('button', { name: 'Открыть результат clip.mp4' }).className).toContain('primary-button');
 });
 test('empty results, no detected events and a failed analysis remain distinct', () => {
   const view = render(<ResultsOverview items={[]} onView={vi.fn()} onChooseFiles={vi.fn()} />);

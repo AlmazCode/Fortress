@@ -39,7 +39,7 @@ async function start() {
   fireEvent.click(screen.getByRole('button', { name: /Начать анализ/ }));
 }
 async function viewResult(name = 'test.mp4') {
-  fireEvent.click(await screen.findByRole('button', { name: `Посмотреть результат ${name}` }));
+  fireEvent.click(await screen.findByRole('button', { name: `Открыть результат ${name}` }));
   return screen.findByRole('region', { name: 'Просмотр результата видео' });
 }
 function server(options: { status?: number; code?: string; notReady?: boolean; outcome?: string; outage?: boolean } = {}) {
@@ -62,7 +62,7 @@ function server(options: { status?: number; code?: string; notReady?: boolean; o
 test('upload, sequential status, explicit result opening and event seek use one POST and protected media', async () => {
   const consoleErrors = vi.spyOn(console, 'error'), storage = vi.spyOn(Storage.prototype, 'setItem'); const s = server(); mount(s.transport);
   await connect(); await add(); await start();
-  await screen.findByRole('button', { name: 'Посмотреть результат test.mp4' });
+  await screen.findByRole('button', { name: 'Открыть результат test.mp4' });
   expect(screen.queryByRole('region', { name: 'Просмотр результата видео' })).toBeNull();
   await viewResult(); const video = await screen.findByLabelText('Видео задания') as HTMLVideoElement;
   await screen.findByRole('img'); Object.defineProperty(video, 'readyState', { configurable: true, value: 1 }); Object.defineProperty(video, 'duration', { configurable: true, value: 1 });
@@ -76,7 +76,7 @@ test('upload, sequential status, explicit result opening and event seek use one 
 test.each([[400, 'invalid_request', 'отклонён'], [413, 'upload_too_large', 'лимит'], [415, 'unsupported_media', 'не поддерживается'], [429, 'capacity_exceeded', 'Сервис занят'], [503, 'model_not_ready', 'Модель пока не готова']] as const)('upload rejection %s is actionable and does not retry POST', async (status, code, text) => {
   const s = server({ status, code }); mount(s.transport); await connect(); await add(); await start();
   await waitFor(() => expect(screen.getByRole('alert').textContent).toContain(text)); expect(screen.getByRole('alert').textContent).not.toContain(secret); expect(s.posts()).toBe(1);
-  expect(screen.queryByRole('button', { name: /Посмотреть результат/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Открыть результат/ })).toBeNull();
   if (status === 503) expect((screen.getByRole('button', { name: /Продолжить/ }) as HTMLButtonElement).disabled).toBe(true);
 });
 test('401 reopens settings for a new key and clears the previous session', async () => {
@@ -93,16 +93,16 @@ test('production without a validated release keeps queued files and cannot send 
 test('lost GET after 202 stops bounded retries and restores state without a new POST', async () => {
   const s = server({ outage: true }); mount(s.transport); await connect(); await add(); await start();
   await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('сейчас неизвестно'));
-  expect(s.reads()).toBe(4); expect(s.posts()).toBe(1); expect(screen.queryByRole('button', { name: /Посмотреть результат/ })).toBeNull();
+  expect(s.reads()).toBe(4); expect(s.posts()).toBe(1); expect(screen.queryByRole('button', { name: /Открыть результат/ })).toBeNull();
   s.reconnect(); fireEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: 'Проверить состояние' }));
-  await screen.findByRole('button', { name: 'Посмотреть результат test.mp4' }); expect(s.posts()).toBe(1);
+  await screen.findByRole('button', { name: 'Открыть результат test.mp4' }); expect(s.posts()).toBe(1);
 });
 test('reset aborts pending acceptance and a late 202 cannot resurrect the queue', async () => {
   let accept!: (value: Response) => void; let signal: AbortSignal | null | undefined;
   const transport: ApiTransport = { fetch: async (_input, init) => init?.method === 'POST' ? (signal = init.signal, new Promise(resolve => { accept = resolve; })) : json(ready()) };
   mount(transport); await connect(); await add(); await start(); await waitFor(() => expect(signal).toBeTruthy());
   const panel = settings(); fireEvent.click(within(panel).getByRole('button', { name: 'Сбросить ключ' })); expect(signal!.aborted).toBe(true);
-  accept(json({ job_id: id }, 202)); await Promise.resolve(); expect(screen.queryByRole('button', { name: /Посмотреть результат/ })).toBeNull();
+  accept(json({ job_id: id }, 202)); await Promise.resolve(); expect(screen.queryByRole('button', { name: /Открыть результат/ })).toBeNull();
 });
 test('no detections is distinct from empty results, while demo and analysis limits remain explicit', async () => {
   mount(createFixtureTransport({ enabled: true, outcome: 'no_violation' }), true); await connect(); await add(); await start();
@@ -113,7 +113,7 @@ test('no detections is distinct from empty results, while demo and analysis limi
 test('failed analysis exposes its reason and a next action instead of a clean result', async () => {
   const s = server({ outcome: 'insufficient_evidence' }); mount(s.transport); await connect(); await add(); await start();
   await screen.findByText('Ошибка анализа'); expect(screen.getAllByText('Недостаточно данных для анализа.').length).toBeGreaterThan(0);
-  expect(screen.getByRole('button', { name: 'Выбрать другое видео' })).toBeTruthy(); expect(screen.queryByRole('button', { name: /Посмотреть результат/ })).toBeNull(); expect(s.posts()).toBe(1);
+  expect(screen.getByRole('button', { name: 'Выбрать другое видео' })).toBeTruthy(); expect(screen.queryByRole('button', { name: /Открыть результат/ })).toBeNull(); expect(s.posts()).toBe(1);
 });
 test('test-only API permission is explicit, and normal untrained production stays blocked', async () => {
   const model = fixtureCase('model_status') as ModelStatusData;
@@ -132,12 +132,27 @@ test('production ignores demo and API-test props even with a test-only model', a
 test('files added before authentication survive settings and have independent result selection', async () => {
   const transport = createFixtureTransport({ enabled: true, outcome: 'violation' }); const fetch = vi.spyOn(transport, 'fetch'); mount(transport, true);
   await add([new File(['one'], 'first.mp4', { type: 'video/mp4' }), new File(['two'], 'second.mov', { type: 'video/quicktime' })]); expect(fetch).not.toHaveBeenCalled();
-  await connect(); await start(); await screen.findByText('Завершено 2 из 2');
+  await connect(); await start(); await screen.findByRole('button', { name: 'Открыть результат second.mov' });
   const overview = screen.getByRole('region', { name: 'Результаты анализа' }); expect(within(overview).getAllByRole('listitem')).toHaveLength(2);
   expect(fetch.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(2);
   const view = await viewResult('second.mov'); expect(within(view).getByRole('heading', { name: 'second.mov' })).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'К списку результатов' })); expect(screen.queryByRole('region', { name: 'Просмотр результата видео' })).toBeNull();
-  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Посмотреть результат second.mov' })); await viewResult('first.mp4');
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Открыть результат second.mov' })); await viewResult('first.mp4');
+});
+
+test('clearing pending files preserves results and clearing results preserves pending files', async () => {
+  const transport = createFixtureTransport({ enabled: true, outcome: 'violation' }); mount(transport, true);
+  await connect(); await add(); await start(); await screen.findByRole('button', { name: 'Открыть результат test.mp4' });
+  expect(screen.getByRole('button', { name: 'Добавить ещё видео' })).toBeTruthy();
+  expect(screen.queryByRole('list', { name: 'Видео в очереди' })).toBeNull();
+  await add([new File(['next'], 'next.mp4', { type: 'video/mp4' })]);
+  fireEvent.click(screen.getByRole('button', { name: 'Очистить очередь' }));
+  expect(screen.queryByText('next.mp4')).toBeNull(); expect(screen.getByRole('button', { name: 'Открыть результат test.mp4' })).toBeTruthy();
+  await add([new File(['next'], 'next.mp4', { type: 'video/mp4' })]);
+  fireEvent.click(screen.getByRole('button', { name: 'Очистить результаты' }));
+  expect(screen.queryByRole('button', { name: 'Открыть результат test.mp4' })).toBeNull(); expect(screen.getByText('next.mp4')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Очистить очередь' }));
+  expect(screen.getByRole('button', { name: 'Выбрать видео' })).toBeTruthy(); expect(screen.getByText('Перетащите видео сюда')).toBeTruthy();
 });
 test('model readiness can be refreshed without losing waiting files', async () => {
   let imported = false; mount({ fetch: async () => json(imported ? ready() : fixtureCase('model_status')) }); await connect(); await add();
@@ -151,6 +166,6 @@ test('drawer starts closed, contains access/model/job search, and closing preser
   fireEvent.click(screen.getByRole('button', { name: 'Открыть настройки' })); const panel = screen.getByRole('dialog', { name: 'Настройки' });
   expect(within(panel).getByLabelText('ID задания')).toBeTruthy(); expect(within(panel).getByText('Требуется ключ')).toBeTruthy();
   fireEvent(panel, new Event('cancel', { bubbles: false, cancelable: true })); expect(screen.queryByRole('dialog')).toBeNull();
-  await connect(); await start(); await screen.findByRole('button', { name: 'Посмотреть результат test.mp4' });
+  await connect(); await start(); await screen.findByRole('button', { name: 'Открыть результат test.mp4' });
   expect(screen.queryByRole('dialog')).toBeNull(); expect(s.posts()).toBe(1); expect(within(settings()).getByText('Доступ подключён')).toBeTruthy();
 });

@@ -127,5 +127,7 @@ export function useVideoQueue({ client, ready, onAccepted, pollMs = 1800 }: {
     abort: () => controller.current?.abort(),
     remove: (id: string) => setItems(previous => previous.filter(item => item.id !== id || item.state === 'uploading' || item.state === 'processing')),
     clearWaiting: () => setItems(previous => previous.filter(item => item.state !== 'waiting')),
+    clearPending: () => { setItems(previous => previous.filter(item => item.state === 'done' || item.state === 'failed')); setError(undefined); setSelectionNotice(''); setStarted(false); },
+    clearFinished: () => setItems(previous => previous.filter(item => item.state !== 'done' && item.state !== 'failed')),
   };
 }
