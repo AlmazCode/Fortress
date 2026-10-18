@@ -215,6 +215,8 @@ main {
 .page-heading {
   display:flex;
   justify-content:space-between;
+  align-items:flex-start;
+  flex-wrap:wrap;
   gap:20px;
   margin-bottom:30px
 }
@@ -230,18 +232,18 @@ h1 {
   color:var(--text-muted);
   line-height:1.75
 }
-.workspace-grid {
-  display:grid;
-  grid-template-columns:minmax(0,1.65fr) minmax(250px,1fr);
-  align-items:start;
-  gap:24px
-}
-.primary-column,.secondary-column {
+.analysis-workspace {
   display:flex;
   flex-direction:column;
   gap:20px;
   min-width:0
 }
+.settings-toggle { flex-shrink:0; color:var(--forte-primary); border-color:var(--brand-border); font-size:13px }
+.settings-toggle[aria-expanded=true] { background:var(--brand-soft) }
+.settings-panel { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:20px; margin-bottom:24px }
+.settings-panel[hidden] { display:none }
+.settings-error { grid-column:1/-1 }
+.queue-settings-link { margin-left:12px }
 .upload-panel,.job-panel,.access-panel,.model-panel {
   padding:25px;
   background:var(--surface);
@@ -653,9 +655,6 @@ progress:indeterminate::-webkit-progress-bar { background:transparent }
   main {
   padding-top:50px
 }
-.workspace-grid {
-  grid-template-columns:minmax(0,1.8fr) minmax(300px,1fr)
-}
 
 }
 
@@ -670,10 +669,6 @@ progress:indeterminate::-webkit-progress-bar { background:transparent }
 }
 main {
   padding:30px 24px
-}
-.workspace-grid {
-  gap:18px;
-  grid-template-columns:minmax(0,1.3fr) minmax(230px,1fr)
 }
 .upload-panel,.job-panel,.access-panel,.model-panel {
   padding:20px
@@ -708,9 +703,6 @@ h1 {
   margin-left:0;
   width:100%
 }
-.workspace-grid {
-  grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr)
-}
 .page-heading {
   margin-bottom:24px
 }
@@ -727,12 +719,9 @@ h1 {
 .sidebar {
   padding:16px
 }
-.workspace-grid {
+.settings-panel {
   grid-template-columns:minmax(0,1fr);
   gap:20px
-}
-.secondary-column {
-  grid-row:1
 }
 .page-heading h1 {
   font-size:31px;

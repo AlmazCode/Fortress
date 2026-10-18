@@ -20,6 +20,8 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
   const [notice, setNotice] = useState('');
   const [seek, setSeek] = useState<SeekRequest>();
   const [playback, setPlayback] = useState<Playback & { jobId: string }>();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsButton = useRef<HTMLButtonElement>(null);
   const activeClient = useRef<ApiClient | undefined>(undefined);
   const resultView = useRef<HTMLDivElement>(null);
   const revealResult = useRef(false);
@@ -59,6 +61,7 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
   useEffect(() => {
     if ([model.error, job.error, diagnostics.error, queue.error, queue.job.error, queue.diagnostics.error].some(error => error instanceof ApiError && error.status === 401)) {
       reset('Ключ не принят. Введите действующий API-ключ.');
+      openSettings();
     }
   }, [model.error, job.error, diagnostics.error, queue.error, queue.job.error, queue.diagnostics.error]);
   function connect(key: string) {
@@ -77,10 +80,14 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
     }
     setJobId(id); setSeek(undefined); setPlayback(undefined);
   }
+  function openSettings() {
+    setSettingsOpen(true);
+    settingsButton.current?.focus();
+  }
   const modelRejected = queue.error instanceof ApiError && queue.error.code === 'model_not_ready';
   const detail = diagnostics.data && diagnostics.data.job_id === jobId && diagnostics.data.public.status === job.data?.status ? diagnostics.data : undefined;
   const media = detail?.media.preview ?? detail?.media.original;
-  const blockedReason = !client ? 'Введите API-ключ, чтобы запустить очередь.' : model.isFetching ? 'Проверяем готовность модели…' : model.error ? 'Восстановите подключение к сервису.' : !ready || modelRejected ? 'Подключите обученную модель, чтобы начать анализ.' : undefined;
+  const blockedReason = !client ? 'Добавьте API-ключ в настройках, чтобы запустить очередь.' : model.isFetching ? 'Проверяем готовность модели…' : model.error ? 'Восстановите подключение к сервису.' : !ready || modelRejected ? 'Подключите обученную модель в настройках, чтобы начать анализ.' : undefined;
   return <div className="app-shell">
     <a className="skip-link" href="#main">Перейти к содержимому</a>
     <aside className="sidebar">
@@ -90,23 +97,21 @@ export default function App({ transport, fixtureMode = false, apiTestMode = fals
     </aside>
     <div className="main-shell">
       <main id="main" tabIndex={-1}>
-        <div className="page-heading"><div><h1>Анализ видео</h1><p>Добавьте записи в очередь и следите за обработкой.</p></div></div>
+        <div className="page-heading"><div><h1>Анализ видео</h1><p>Добавьте записи в очередь и следите за обработкой.</p></div><button ref={settingsButton} className="settings-toggle" aria-expanded={settingsOpen} aria-controls="analysis-settings" onClick={() => setSettingsOpen(previous => !previous)}>Настройки</button></div>
         {demo && <div className="fixture-banner" role="note"><strong>Деморежим</strong> Искусственные данные. Выбранное видео не анализируется.</div>}
         {apiTest && <div className="fixture-banner" role="note"><strong>Тестовый API</strong> Используйте только искусственные ролики. Качество модели не проверено.</div>}
         {notice && <div className="notice" role="status">{notice}</div>}
-        <div className="workspace-grid">
-          <div className="primary-column">
+        <section id="analysis-settings" className="settings-panel" aria-label="Настройки анализа" hidden={!settingsOpen} onKeyDown={event => { if (event.key === 'Escape') { setSettingsOpen(false); settingsButton.current?.focus(); } }}>
+          <ApiKeyForm connected={!!client} onConnect={connect} onReset={() => reset()} />
+          <ModelStatus model={model.data} connected={!!client} pending={!!client && model.isFetching} fixtureMode={demo} blocked={modelRejected} unavailable={!!model.error} onRefresh={() => { queue.clearError(); void model.refetch(); }} />
+          {!!model.error && <div className="settings-error"><ErrorPanel error={model.error} onRetry={() => { void model.refetch(); }} /></div>}
+        </section>
+        <div className="analysis-workspace">
             <UploadPanel onAdd={queue.add} />
             {queue.selectionNotice && <p className="field-error" role="alert">{queue.selectionNotice}</p>}
-            <VideoQueue items={queue.items} active={queue.active} running={queue.running} started={queue.started} canStart={ready && !modelRejected} blockedReason={blockedReason} progress={queue.progress} diagnostics={queue.diagnostics.data} connectionLost={!!queue.job.error} onStart={queue.start} onPause={queue.pause} onAbort={queue.abort} onRemove={queue.remove} onClearWaiting={queue.clearWaiting} onView={viewJob} />
+            <VideoQueue items={queue.items} active={queue.active} running={queue.running} started={queue.started} canStart={ready && !modelRejected} blockedReason={blockedReason} progress={queue.progress} diagnostics={queue.diagnostics.data} connectionLost={!!queue.job.error} onStart={queue.start} onPause={queue.pause} onAbort={queue.abort} onRemove={queue.remove} onClearWaiting={queue.clearWaiting} onView={viewJob} onSettings={openSettings} />
             {!!queue.error && <ErrorPanel error={queue.error} />}
-          </div>
-          <div className="secondary-column">
-            <ApiKeyForm connected={!!client} onConnect={connect} onReset={() => reset()} />
-            {client && <ModelStatus model={model.data} connected pending={model.isFetching} fixtureMode={demo} blocked={modelRejected} unavailable={!!model.error} onRefresh={() => { queue.clearError(); void model.refetch(); }} />}
-            {!!model.error && <ErrorPanel error={model.error} onRetry={() => { void model.refetch(); }} />}
             {client && <details className="job-access" open={!!job.error || job.data?.status === 'failed'}><summary>Задание по ID</summary><JobStatus key={'job-' + client.session} jobId={jobId} job={job.data} checking={job.isFetching} error={job.error} stage={detail?.stage} authenticated={!queue.active && !queue.running} onRetry={() => { void job.refetch(); }} onResume={id => { if (!queue.active && !queue.running) { queue.resume(id); viewJob(id); } }} onClear={() => { revealResult.current = false; setJobId(undefined); setSeek(undefined); setPlayback(undefined); }} /></details>}
-          </div>
         </div>
         {client && job.data?.status === 'done' && <div className="result-workspace" ref={resultView} tabIndex={-1} aria-label="Результат анализа видео">
           <div className="result-heading"><h2>Результат анализа</h2><p>{queue.items.find(item => item.jobId === jobId)?.name}</p></div>

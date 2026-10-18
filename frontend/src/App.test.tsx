@@ -15,7 +15,11 @@ function mount(transport: ApiTransport, fixtureMode = false, apiTestMode = false
   const queries = new QueryClient({ defaultOptions: { queries: { retryDelay: 0 }, mutations: { retry: false } } }); clients.push(queries);
   return render(<QueryClientProvider client={queries}><App transport={transport} fixtureMode={fixtureMode} apiTestMode={apiTestMode} pollMs={20} /></QueryClientProvider>);
 }
-async function connect() { fireEvent.change(screen.getByLabelText('API-ключ'), { target: { value: secret } }); fireEvent.click(screen.getByRole('button', { name: /Подключить/ })); await screen.findByRole('button', { name: 'Сбросить ключ' }); }
+async function connect() {
+  const settings = screen.getByRole('button', { name: 'Настройки' });
+  if (settings.getAttribute('aria-expanded') !== 'true') fireEvent.click(settings);
+  fireEvent.change(screen.getByLabelText('API-ключ'), { target: { value: secret } }); fireEvent.click(screen.getByRole('button', { name: /Подключить/ })); await screen.findByRole('button', { name: 'Сбросить ключ' });
+}
 async function upload() {
   fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files: [new File(['synthetic'], 'test.mp4', { type: 'video/mp4' })] } });
   await screen.findByText('test.mp4');
@@ -60,8 +64,9 @@ test.each([[400, 'invalid_request', 'отклонён'], [413, 'upload_too_large
   if (status === 503) expect((screen.getByRole('button', { name: /Продолжить/ }) as HTMLButtonElement).disabled).toBe(true);
 });
 test('401 resets the session and offers password re-entry', async () => {
-  const s = server({ status: 401, code: 'invalid_key' }); mount(s.transport); await connect(); await upload();
+  const s = server({ status: 401, code: 'invalid_key' }); mount(s.transport); await connect(); fireEvent.click(screen.getByRole('button', { name: 'Настройки' })); await upload();
   await screen.findByLabelText('API-ключ'); expect(screen.queryByRole('button', { name: 'Сбросить ключ' })).toBeNull(); expect(screen.getByText(/Ключ не принят. Введите/)).toBeTruthy(); expect(s.posts()).toBe(1);
+  expect(screen.getByRole('button', { name: 'Настройки' }).getAttribute('aria-expanded')).toBe('true');
 });
 test('production path without release remains not ready and cannot send a file or show fixtures', async () => {
   const s = server({ notReady: true }); mount(s.transport); await connect(); await screen.findByText('Не готова');
@@ -137,4 +142,31 @@ test('readiness can be refreshed after a model is imported without losing waitin
   imported = true; fireEvent.click(screen.getByRole('button', { name: 'Проверить готовность' }));
   await waitFor(() => expect((screen.getByRole('button', { name: /Начать анализ/ }) as HTMLButtonElement).disabled).toBe(false));
   expect(screen.getByText('waiting.mp4')).toBeTruthy(); expect(fetch).toHaveBeenCalledTimes(2);
+});
+
+test('settings hide credentials and model by default; closing them preserves the queue, connection and analysis', async () => {
+  const s = server(); mount(s.transport);
+  const settings = screen.getByRole('button', { name: 'Настройки' });
+  expect(settings.getAttribute('aria-expanded')).toBe('false');
+  expect(screen.queryByRole('heading', { name: 'Доступ к сервису' })).toBeNull();
+  expect(screen.queryByRole('heading', { name: 'Модель' })).toBeNull();
+  fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files: [new File(['test'], 'waiting.mp4', { type: 'video/mp4' })] } });
+  await screen.findByText('waiting.mp4');
+  fireEvent.click(screen.getByRole('button', { name: 'Открыть настройки' }));
+  expect(settings.getAttribute('aria-expanded')).toBe('true');
+  expect(document.activeElement).toBe(settings);
+  await connect();
+  await waitFor(() => expect((screen.getByRole('button', { name: 'Начать анализ' }) as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(settings);
+  expect(screen.queryByRole('button', { name: 'Сбросить ключ' })).toBeNull();
+  expect(screen.queryByRole('heading', { name: 'Модель' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Начать анализ' }));
+  await screen.findByRole('heading', { name: 'Результат анализа' });
+  await screen.findByLabelText('Видео задания');
+  expect(s.posts()).toBe(1); expect(settings.getAttribute('aria-expanded')).toBe('false');
+  fireEvent.click(settings);
+  expect(screen.getByRole('button', { name: 'Сбросить ключ' })).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'Модель' })).toBeTruthy();
+  fireEvent.keyDown(screen.getByLabelText('Настройки анализа'), { key: 'Escape' });
+  expect(settings.getAttribute('aria-expanded')).toBe('false'); expect(document.activeElement).toBe(settings);
 });

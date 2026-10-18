@@ -14,11 +14,11 @@ export function formatBytes(bytes: number): string {
 function QueueFile({ item, index }: { item: QueueItem; index: number }) {
   return <><span className="queue-number">{String(index).padStart(2, '0')}</span><strong className="queue-file-name" title={item.name}>{item.name}</strong><span className="queue-file-size">{item.size > 0 ? formatBytes(item.size) : 'Размер неизвестен'}</span></>;
 }
-export function VideoQueue({ items, active, running, started, canStart, blockedReason, progress, diagnostics, connectionLost, onStart, onPause, onAbort, onRemove, onClearWaiting, onView }: {
+export function VideoQueue({ items, active, running, started, canStart, blockedReason, progress, diagnostics, connectionLost, onStart, onPause, onAbort, onRemove, onClearWaiting, onView, onSettings }: {
   items: QueueItem[]; active?: QueueItem; running: boolean; started: boolean; canStart: boolean;
   blockedReason?: string; progress?: UploadProgress; diagnostics?: Diagnostics; connectionLost: boolean;
   onStart: () => void; onPause: () => void; onAbort: () => void; onRemove: (id: string) => void;
-  onClearWaiting: () => void; onView: (id: string) => void;
+  onClearWaiting: () => void; onView: (id: string) => void; onSettings?: () => void;
 }) {
   const { visible, finishExit } = useQueuePresence(items);
   const results = useRef(new Map<string, HTMLLIElement>());
@@ -39,7 +39,7 @@ export function VideoQueue({ items, active, running, started, canStart, blockedR
   return <section className="queue-panel" aria-labelledby="queue-title">
     <div className="queue-heading"><h2 id="queue-title">Очередь видео</h2><span className="queue-volume" role="status">{waiting || active ? `Готово ${done} из ${items.length}` : errors ? `Готово ${done}, ошибок ${errors}` : `Готово ${done} из ${items.length}`}</span></div>
     <div className="queue-controls">{running && (waiting > 0 || active) ? <button className="secondary-button" onClick={onPause}>Пауза</button> : (waiting > 0 || connectionLost) && <button className="primary-button" onClick={onStart} disabled={!canStart}>{connectionLost ? 'Восстановить связь' : started ? 'Продолжить' : 'Начать анализ'}</button>}{waiting > 0 && <button className="text-button" onClick={onClearWaiting}>Убрать ожидающие</button>}</div>
-    {!canStart && blockedReason && <p className="queue-hint">{blockedReason}</p>}
+    {!canStart && blockedReason && <p className="queue-hint">{blockedReason}{onSettings && <button className="text-button queue-settings-link" onClick={onSettings}>Открыть настройки</button>}</p>}
     {visible.length > 0 ? <ol className="queue-list" aria-label="Видео в очереди" tabIndex={0}>{visible.map((item, index) => {
       const leaving = isQueueFinished(item);
       const position = leaving ? index + 1 : visible.slice(0, index + 1).filter(entry => !isQueueFinished(entry)).length;
