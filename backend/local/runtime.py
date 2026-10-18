@@ -11,6 +11,7 @@ import time
 from contracts.python_ports import AnalysisBundle, PersistenceUnavailable
 from backend.app.tasks import AnalysisFailure, TaskExecutor
 from .process_guard import ChildGroup
+from .power import IdleSleepInhibitor
 
 
 class ProcessRunner:
@@ -71,7 +72,13 @@ class ProcessRunner:
             path.unlink(missing_ok=True)
 
 
-def run_worker(repo, config, stop):
+def run_worker(repo, config, stop, sleep_inhibitor=None):
+    inhibitor = sleep_inhibitor if sleep_inhibitor is not None else IdleSleepInhibitor()
+    with inhibitor:
+        _poll_jobs(repo, config, stop)
+
+
+def _poll_jobs(repo, config, stop):
     executor = TaskExecutor(repo, ProcessRunner(config, stop), Path(config['runtime_root'])/'gpu.lock')
     while not stop.is_set():
         try:

@@ -95,6 +95,7 @@ def test_same_origin_http_auth_not_ready_and_private_data(tmp_path):
     client = TestClient(app)
     assert client.get('/').status_code == 200
     assert client.get('/healthz').json()['production_ready'] is False
+    assert client.get('/healthz').json()['idle_sleep_inhibited'] is False
     assert client.get('/api/ui/v1/model').status_code == 401
     headers = {'X-API-Key':config['api_key']}
     response = client.get('/api/ui/v1/model', headers=headers)

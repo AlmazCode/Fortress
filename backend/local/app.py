@@ -23,6 +23,7 @@ from backend.app.storage import IntakeError, LocalStorage
 from backend.app.video import VideoValidator
 from .inference import model_limitations, predictor
 from .repository import LocalRepository
+from .power import IdleSleepInhibitor
 from .runtime import run_worker
 
 
@@ -93,10 +94,11 @@ def create_app(config, frontend_root, *, release=None, start_worker=True):
     release = release if release is not None else PrototypeRelease(config)
     media = MediaService(repo, storage)
     auth = ApiKeyAuth(config['api_key'])
+    sleep_inhibitor = IdleSleepInhibitor()
     @asynccontextmanager
     async def lifespan(app):
         stop = threading.Event()
-        worker = threading.Thread(target=run_worker, args=(repo, config, stop), name='native-worker', daemon=True)
+        worker = threading.Thread(target=run_worker, args=(repo, config, stop, sleep_inhibitor), name='native-worker', daemon=True)
         if start_worker:
             worker.start()
         try:
@@ -135,7 +137,8 @@ def create_app(config, frontend_root, *, release=None, start_worker=True):
         return response
     @app.get('/healthz')
     async def health():
-        return {'status': 'ok', 'mode': 'prototype', 'production_ready': False}
+        return {'status': 'ok', 'mode': 'prototype', 'production_ready': False,
+                'idle_sleep_inhibited': sleep_inhibitor.active}
     @app.get('/api/ui/v1/rules')
     async def normative_rules():
         from rules.rk_cash import catalog

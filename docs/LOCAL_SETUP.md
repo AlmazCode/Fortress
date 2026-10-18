@@ -2,15 +2,15 @@
 
 ## Windows: основной путь
 
-Установлены Node.js 22.12+ и Git; Python 3.11 при необходимости устанавливает uv. Нужны интернет для первой установки и приватный пакет `seed-vote-v1` (ансамбль75%) или прежний `transition-state-bundle-v1` (контроль). Обработка после установки не использует облачный AI и не скачивает веса. [Состав нового пакета и проверка](model/SEED_VOTE.md).
+Установлены Node.js 22.12+ и Git; Python 3.11 при необходимости устанавливает uv. Нужны интернет для первой установки и приватный пакет `source-actions-v1` (111MB, ансамбль75% и обновлённые головы действий). Обработка после установки не использует облачный AI и не скачивает веса. [Состав текущего пакета и проверка](model/SOURCE_ACTIONS.md).
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1 -ModelBundle "D:\FortressModels\seed-vote-v1\control"
-powershell -ExecutionPolicy Bypass -File tools/select_local_model.ps1 -ModelBundle "D:\FortressModels\seed-vote-v1"
+powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1 -ModelBundle "D:\FortressModels\source-actions-v1\seed_vote\control"
+powershell -ExecutionPolicy Bypass -File tools/select_local_model.ps1 -ModelBundle "D:\FortressModels\source-actions-v1"
 powershell -ExecutionPolicy Bypass -File tools/start_local.ps1 -Background
 ```
 
-`setup_local.ps1` устанавливает исходный контроль из `control/`, а selector проверяет ансамбль и атомарно выбирает его до запуска. Без `-ModelBundle` установщик по-прежнему использует `%USERPROFILE%\FortressArtifacts\training-ready\transition-state-bundle-v1` — это запуск старого контроля. После повторного setup снова выполните selector, если нужен ансамбль. На текущем ПК новый пакет находится в `%LOCALAPPDATA%\Fortress\models\seed-vote-v1`; на другом ПК его нужно отдельно скопировать вне Git. В публичном репозитории весов нет.
+`setup_local.ps1` устанавливает исходный контроль из `seed_vote/control/`, а selector проверяет полный пакет и атомарно выбирает его до запуска. Без `-ModelBundle` установщик по-прежнему использует `%USERPROFILE%\FortressArtifacts\training-ready\transition-state-bundle-v1` — это запуск старого контроля. После повторного setup снова выполните selector, если нужен текущий пакет. На текущем ПК пакет находится в `%LOCALAPPDATA%\Fortress\models\source-actions-v1`; на другом ПК его нужно отдельно скопировать вне Git. В публичном репозитории весов нет; для удалённого тестирования жюри они не нужны на компьютере жюри.
 
 Установщик:
 
@@ -40,6 +40,8 @@ powershell -ExecutionPolicy Bypass -File tools/stop_local.ps1
 ```
 
 Без `-Background` сервис работает в текущем терминале; остановка — Ctrl+C. Повторный запуск на занятом порту останавливается с объяснением, не завершает чужой процесс. Остановка активного анализа фиксирует failed/worker_lost; результаты done сохраняются. Удаление runtime не является штатной остановкой.
+
+Пока Windows-worker работает, сервис запрашивает предотвращение автоматического сна, включая время ожидания загрузок. `/healthz` сообщает `idle_sleep_inhibited: true`, если запрос принят Windows. При остановке worker восстанавливает прежний режим своего потока. Настройки питания и таймер отключения экрана не меняются. Ручной сон, закрытие крышки, отключение питания или сети всё равно прервут доступ: [поведение Windows API](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate).
 
 ## Что именно запущено
 
