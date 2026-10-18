@@ -27,3 +27,5 @@ powershell -ExecutionPolicy Bypass -File tools/stop_review.ps1
 ```
 
 Реализация: `tools/label_review.py` и `tools/label_review_ui/`. Проверка сохранения,unknown,атомарности,конфликтов,отмены,экспорта и локального доступа: `.venv\Scripts\python.exe -B -m pytest tests/local/test_label_review.py -q`.
+
+Проверено18октября2026:4 новых теста разметчика и полный прогон `tests/local tests/contracts` —96 passed,9,11с,exit0; JS syntax check —exit0. На настоящем сервере подтверждены2464 кадра/36 видео/13 вопросов, genuine JPEG, видеоконтекст с Range206 и доступность сервиса анализа на8000. В браузере проверены массовое выделение12 кадров мышью и клавишейA, увеличение и воспроизведение5секунд контекста. При проверке реальные ответы пользователя не создавались. Снимок интерфейса и машинные результаты находятся в `%LOCALAPPDATA%\Fortress\verification\human-review-v1`.
