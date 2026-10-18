@@ -1,0 +1,102 @@
+{
+  "report_version": "small-data-round1-2026-10-18",
+  "training_source_commit": "6aea1a7382250f4e4d289c630c8a786a864de747",
+  "runtime_source_commit": "6ae685b641d3c9e0baa29fcf8ab485199c20bdd2",
+  "protocol_sha256": "978ce5adc92c6ab8056ca611af645fa14670cfdce2d35315b228a1c94f8e920e",
+  "unique_sources": 40,
+  "development_videos": 36,
+  "development_families": 16,
+  "reserved_videos": 4,
+  "outer_folds": 4,
+  "inner_folds": 3,
+  "seeds": [
+    42,
+    137,
+    2026
+  ],
+  "primary_seed": 42,
+  "completed_fits": 184,
+  "comparison": [
+    {
+      "model": "linear",
+      "primary_accuracy": 0.4722222222222222,
+      "primary_balanced_accuracy": 0.5033444816053512,
+      "primary_macro_f1": 0.47181467181467185,
+      "minimum_seed_accuracy": 0.4722222222222222,
+      "maximum_seed_accuracy": 0.4722222222222222,
+      "seed_accuracy_std": 0.0,
+      "false_positives_seed42": 5,
+      "false_negatives_seed42": 14
+    },
+    {
+      "model": "gru",
+      "primary_accuracy": 0.5,
+      "primary_balanced_accuracy": 0.5418060200668896,
+      "primary_macro_f1": 0.5,
+      "minimum_seed_accuracy": 0.4722222222222222,
+      "maximum_seed_accuracy": 0.5555555555555556,
+      "seed_accuracy_std": 0.03464497580346244,
+      "false_positives_seed42": 4,
+      "false_negatives_seed42": 14
+    },
+    {
+      "model": "mil",
+      "primary_accuracy": 0.5555555555555556,
+      "primary_balanced_accuracy": 0.5685618729096991,
+      "primary_macro_f1": 0.55,
+      "minimum_seed_accuracy": 0.5277777777777778,
+      "maximum_seed_accuracy": 0.5833333333333334,
+      "seed_accuracy_std": 0.022680460581325734,
+      "false_positives_seed42": 5,
+      "false_negatives_seed42": 11
+    },
+    {
+      "model": "finetune",
+      "primary_accuracy": 0.5555555555555556,
+      "primary_balanced_accuracy": 0.5685618729096991,
+      "primary_macro_f1": 0.55,
+      "minimum_seed_accuracy": 0.5277777777777778,
+      "maximum_seed_accuracy": 0.6111111111111112,
+      "seed_accuracy_std": 0.03464497580346244,
+      "false_positives_seed42": 5,
+      "false_negatives_seed42": 11
+    }
+  ],
+  "nested_selection_primary": {
+    "accuracy": 0.5,
+    "balanced_accuracy": 0.5418060200668896,
+    "macro_f1": 0.5,
+    "tp": 9,
+    "tn": 9,
+    "fp": 4,
+    "fn": 14
+  },
+  "experimental_candidate": {
+    "arm": "linear",
+    "config": {
+      "c": 1.0
+    },
+    "threshold": 0.9980913996696472,
+    "old_internal_holdout_accuracy": 0.5,
+    "baseline_old_internal_holdout_accuracy": 0.75,
+    "promoted": false,
+    "production_ready": false,
+    "independent_95_confirmed": false
+  },
+  "review_tasks": 15,
+  "label_conflicts": 4,
+  "annotations_modified": false,
+  "verification": {
+    "pytest_passed": 27,
+    "pytest_exit_code": 0,
+    "raw_cli_exit_code": 0,
+    "raw_cache_score_max_delta": 0.0,
+    "source_pts_match": true,
+    "reserved_training": false
+  },
+  "limits": [
+    "Exploratory same-camera grouped CV, not an independent benchmark.",
+    "All-source/training accuracy does not establish generalization.",
+    "No validated event localization or rules release was produced."
+  ]
+}
