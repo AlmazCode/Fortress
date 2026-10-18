@@ -38,7 +38,7 @@ powershell -ExecutionPolicy Bypass -File tools/start_local.ps1 -Background
 powershell -ExecutionPolicy Bypass -File tools/stop_local.ps1
 ```
 
-Подробности, перенос на другой ПК и выбор CPU/CUDA: [локальная установка](docs/LOCAL_SETUP.md). **127.0.0.1 доступен только на этом ПК.** Для удалённого жюри нужен отдельный публичный HTTPS-адрес; он сейчас не настроен.
+Подробности, перенос на другой ПК и выбор CPU/CUDA: [локальная установка](docs/LOCAL_SETUP.md). **127.0.0.1 доступен только на этом ПК.** На текущем ПК работает временный публичный HTTPS-туннель; актуальные Web/API URL и ключ находятся в `%LOCALAPPDATA%\Fortress\jury-public-access.json`. После перезапуска туннеля адрес меняется; ПК, сервис и туннель должны работать. Через этот маршрут используйте файлы меньше95MB. [Карточка сдачи](docs/JURY_HANDOFF.md).
 
 ## API жюри
 
