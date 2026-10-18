@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "training_gap_implemented_no_accuracy_gain",
+  "status": "seed_vote_improved_and_selected",
   "baseline": {
     "accuracy": 0.7129629629629629,
     "balanced_accuracy": 0.6471571906354515,
@@ -117,6 +117,20 @@
       "timing_scope": "decode+two requests for16 frames, excludes model startup and full API/evidence",
       "binary_accuracy_measured": false,
       "vision_max_tokens": 512
+    },
+    "seed-vote-stage-v1": {
+      "protocol_sha256": "a20193571fb36036bf97198089ffaf68f54ee2d7187eff661876e5859a9c5705",
+      "report_sha256": "390702c806ac342b43782ad5d46426f3b876c3131d834a79a021a7a3d161fbb7",
+      "quality": {
+        "accuracy": 0.75,
+        "balanced_accuracy": 0.6872909698996655,
+        "macro_f1": 0.6974789915966386
+      },
+      "promoted": true,
+      "method": "Fixed majority of three seeds using unchanged inner-selected member thresholds",
+      "outer_tuning": false,
+      "new_videos": false,
+      "independent_external_test": false
     }
   },
   "production_ready": false,
@@ -188,5 +202,16 @@
     "matched_frames": 10,
     "binary_accuracy_measured": false,
     "promoted": false
+  },
+  "active_model": {
+    "version": "three-seed-vote-extension-v1",
+    "model_sha256": "8075af005222a5de4eccfceac9d24a8f9ee2e50a8eff9c2b6b153d72993f2dad",
+    "accuracy": 0.75,
+    "balanced_accuracy": 0.6872909698996655,
+    "macro_f1": 0.6974789915966386,
+    "deployed_seed42_control_accuracy": 0.7222222222222222,
+    "improvement_correct_sources_vs_seed42": 1,
+    "independent_external_test": false,
+    "production_ready": false
   }
 }

@@ -49,14 +49,22 @@ class PrototypeRelease:
         self.path = Path(config['bundle_root'])/'weights.pt'
         model = predictor(config['bundle_root'], config['device'])
         self.digest = model.metadata['weights_sha256']
-        self.version = ('prototype-weak-risk-' if model.metadata.get('risk_extension') else 'prototype-uniform-gru-')+self.digest[:12]
+        prefix = 'prototype-weak-risk-' if model.metadata.get('risk_extension') else 'prototype-uniform-gru-'
+        if model.metadata.get('seed_vote_extension'):
+            self.path = Path(config['bundle_root'])/'control'/'weights.pt'
+            self.digest = model.metadata['seed_vote_extension']['model_sha256']
+            prefix = 'prototype-seed-vote-'
+        self.integrity_files = getattr(model, 'integrity_files', [(self.path, self.digest)])
+        self.version = prefix+self.digest[:12]
         self.limitations = model_limitations(model.metadata)
         del model
 
     def readiness(self):
         try:
-            with self.path.open('rb') as stream:
-                valid = hashlib.file_digest(stream, 'sha256').hexdigest() == self.digest
+            valid = True
+            for path, digest in self.integrity_files:
+                with path.open('rb') as stream:
+                    valid = valid and hashlib.file_digest(stream, 'sha256').hexdigest() == digest
         except OSError:
             valid = False
         if not valid:

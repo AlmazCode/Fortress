@@ -2,14 +2,15 @@
 
 ## Windows: основной путь
 
-Установлены Node.js 22.12+ и Git; Python 3.11 при необходимости устанавливает uv. Нужны интернет для первой установки и локальный пакет модели `transition-state-bundle-v1` (bundle.json + weights.pt). Обработка после установки не использует облачный AI и не скачивает веса.
+Установлены Node.js 22.12+ и Git; Python 3.11 при необходимости устанавливает uv. Нужны интернет для первой установки и приватный пакет `seed-vote-v1` (ансамбль75%) или прежний `transition-state-bundle-v1` (контроль). Обработка после установки не использует облачный AI и не скачивает веса. [Состав нового пакета и проверка](model/SEED_VOTE.md).
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1 -ModelBundle "D:\FortressModels\transition-state-bundle-v1"
+powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1 -ModelBundle "D:\FortressModels\seed-vote-v1\control"
+powershell -ExecutionPolicy Bypass -File tools/select_local_model.ps1 -ModelBundle "D:\FortressModels\seed-vote-v1"
 powershell -ExecutionPolicy Bypass -File tools/start_local.ps1 -Background
 ```
 
-Без `-ModelBundle` используется `%USERPROFILE%\FortressArtifacts\training-ready\transition-state-bundle-v1`. На текущем ПК этот пакет уже есть. Его нужно отдельно перенести на новый ПК; в публичном репозитории весов нет.
+`setup_local.ps1` устанавливает исходный контроль из `control/`, а selector проверяет ансамбль и атомарно выбирает его до запуска. Без `-ModelBundle` установщик по-прежнему использует `%USERPROFILE%\FortressArtifacts\training-ready\transition-state-bundle-v1` — это запуск старого контроля. После повторного setup снова выполните selector, если нужен ансамбль. На текущем ПК новый пакет находится в `%LOCALAPPDATA%\Fortress\models\seed-vote-v1`; на другом ПК его нужно отдельно скопировать вне Git. В публичном репозитории весов нет.
 
 Установщик:
 

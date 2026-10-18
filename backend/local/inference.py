@@ -29,6 +29,9 @@ LIMITATIONS = [
 
 def predictor(bundle, device):
     metadata = json.loads((Path(bundle)/'bundle.json').read_text(encoding='utf-8-sig'))
+    if metadata.get('seed_vote_extension'):
+        from ml.seed_vote_infer import Predictor
+        return Predictor(Path(bundle), device)
     if metadata.get('risk_extension'):
         extension = metadata['risk_extension']
         if extension.get('clip_enabled') is not True and extension.get('localizer_enabled') is not True:
@@ -49,7 +52,8 @@ def model_limitations(info):
     accuracy = quality['accuracy']
     if type(accuracy) not in (int, float) or not 0 <= accuracy <= 1:
         raise ValueError('Invalid model evaluation')
-    return [f'Средняя grouped accuracy: {accuracy*100:.2f}%; независимая внешняя проверка не выполнена.', *LIMITATIONS[1:]]
+    note = ['Оценка ансамбля — доля голосов трёх моделей, а не калиброванная вероятность.'] if info.get('seed_vote_extension') or info.get('ensemble_size') == 3 else []
+    return [f'Точность на отложенных семействах: {accuracy*100:.2f}%; независимая внешняя проверка не выполнена.', *note, *LIMITATIONS[1:]]
 
 
 def make_result(job, raw, evidence, *, deadline_monotonic):
