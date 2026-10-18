@@ -11,6 +11,13 @@ const versionNames: Record<keyof Diagnostics['versions'], string> = {
 export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { status: 'done' }>; diagnostics?: Diagnostics; onSeek: (time: number) => void }) {
   const matching = diagnostics?.job_id === job.job_id ? diagnostics : undefined;
   const findings = matching?.timeline?.findings ?? [];
+  function eventFinding(event: Extract<Job, {status: 'done'}>['violations'][number]) {
+    if (matching?.versions.taxonomy !== 'rk-cash-review-v1') return undefined;
+    const id = event.description.match(/^\[(RK-CASH-[A-Z0-9-]+)\]/)?.[1];
+    return id ? findings.find(f => f.rule_id === id && event.description.startsWith(f.reason+' ')
+      && f.interval.start_sec <= event.timecode_sec && event.timecode_sec <= f.interval.end_sec) : undefined;
+  }
+  const linkedSources = job.violations.some(e => eventFinding(e));
   const triggered = findings.filter(finding => finding.status === 'triggered');
   const other = findings.filter(finding => finding.status !== 'triggered');
   function ruleCard(finding: Finding, index: number) {
@@ -29,13 +36,13 @@ export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { st
     {job.violations.length === 0 && <div className="clean-result"><Icon name="check" /><p>По доступным данным и поддерживаемым правилам признаков возможных нарушений не найдено.</p></div>}
     <p className="result-note">Проверьте результат по исходному видео. Анализ учитывает только доступные данные и поддерживаемые правила.</p>
     {matching?.provenance.kind === 'synthetic' && <p className="fixture-banner">Демонстрационный результат: искусственные данные.</p>}
-    <div className="event-list">{job.violations.map((event, index) => <EvidenceCard key={`${job.job_id}-${event.type}-${event.timecode_sec}-${index}`} event={event} onSeek={onSeek} reviewOnly={['source-action-review-v1', 'source-action-review-v2'].includes(matching?.versions.taxonomy ?? '')} />)}</div>
+    <div className="event-list">{job.violations.map((event, index) => <EvidenceCard key={`${job.job_id}-${event.type}-${event.timecode_sec}-${index}`} event={event} finding={eventFinding(event)} onSeek={onSeek} reviewOnly={['source-action-review-v1', 'source-action-review-v2'].includes(matching?.versions.taxonomy ?? '') || (matching?.versions.taxonomy === 'rk-cash-review-v1' && event.type.startsWith('Для проверки:'))} />)}</div>
     {!!matching?.timeline?.observations.length && <ObservationList observations={matching.timeline.observations} duration={matching.duration_sec} onSeek={onSeek} />}
     <section className="rule-results" aria-label="Правила и нормативные основания">
       <h3>Правила и нормативные основания</h3>
       {findings.length ? <>
-        {job.violations.length > 0 && <p className="muted">Основания относятся к интервалам правил. Связь событий с конкретными правилами не указана.</p>}
-        {triggered.length > 0 ? <div className="rule-list">{triggered.map(ruleCard)}</div> : job.violations.length > 0 && <p className="muted">Подтверждённое нормативное основание для найденных событий не предоставлено.</p>}
+        {job.violations.length > 0 && <p className="muted">{linkedSources ? 'Источники связаны с карточками событий. Применимость нормы требует проверки человеком.' : 'Основания относятся к интервалам правил. Связь событий с конкретными правилами не указана.'}</p>}
+        {triggered.length > 0 ? <div className="rule-list">{triggered.map(ruleCard)}</div> : job.violations.length > 0 && !linkedSources && <p className="muted">Подтверждённое нормативное основание для найденных событий не предоставлено.</p>}
         {other.length > 0 && <details className="other-rule-results"><summary>Остальные правила и ограничения · {other.length}</summary><div className="rule-list">{other.map(ruleCard)}</div></details>}
       </> : <p className="muted">Нормативное основание не предоставлено.</p>}
     </section>

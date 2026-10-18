@@ -136,6 +136,10 @@ def create_app(config, frontend_root, *, release=None, start_worker=True):
     @app.get('/healthz')
     async def health():
         return {'status': 'ok', 'mode': 'prototype', 'production_ready': False}
+    @app.get('/api/ui/v1/rules')
+    async def normative_rules():
+        from rules.rk_cash import catalog
+        return catalog()
     @app.post('/api/local/v1/shutdown')
     async def shutdown():
         callback = getattr(app.state, 'request_shutdown', None)

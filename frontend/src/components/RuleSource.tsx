@@ -10,7 +10,7 @@ export function RuleSource({ source }: { source: Source }) {
   return <div className="rule-source">
     <h4>Нормативное основание</h4>
     <dl className="source-fields">
-      <div><dt>Документ</dt><dd>{kinds[source.source_kind]}{safeLink && <> · <a href={safeLink} target="_blank" rel="noopener noreferrer">Открыть документ ↗</a></>}<span className="source-missing">Название документа не предоставлено.</span></dd></div>
+      <div><dt>Документ</dt><dd>{source.title ?? kinds[source.source_kind]}{safeLink && <> · <a href={safeLink} target="_blank" rel="noopener noreferrer">Открыть документ ↗</a></>}{!source.title && <span className="source-missing">Название документа не предоставлено.</span>}</dd></div>
       <div><dt>Статья / пункт</dt><dd>{source.section ?? 'Не указан'}</dd></div>
       <div><dt>Редакция</dt><dd>{source.revision ?? 'Не указана'}</dd></div>
     </dl>

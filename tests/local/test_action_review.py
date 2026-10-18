@@ -53,7 +53,8 @@ def test_review_uses_action_interval_and_three_source_frames_not_unrelated_maxim
     observation = result.diagnostics['timeline']['observations'][0]
     assert observation['class_id'] == 'flat_item_handling'
     assert observation['known_mask'] is False and observation['state'] == 'unreviewed'
-    assert result.diagnostics['timeline']['findings'] == []
+    assert all(f['status'] == 'unknown' for f in result.diagnostics['timeline']['findings'])
+    assert result.diagnostics['timeline']['findings'][0]['source']['verified'] is True
 
 
 @pytest.mark.parametrize('corruption', ['source','pts','bounds','score'])
@@ -84,9 +85,13 @@ def test_object_with_operator_present_is_not_described_as_unattended(tmp_path, a
         frame['state_scores'].update({action: .9, 'operator_at_station': .95})
     result = make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
     text = result.public['violations'][0]['description']
-    assert 'видит сотрудника' in text and 'оставление без присмотра не подтверждено' in text
+    if action == 'bag_on_desk':
+        assert 'Личная принадлежность и назначение предмета не установлены' in text
+        assert result.public['violations'][0]['type'] == 'Возможное хранение личной сумки в кассовой зоне'
+    else:
+        assert 'видит сотрудника' in text and 'оставление без присмотра не подтверждено' in text
     assert 'предполагает его отсутствие' not in text
-    assert result.diagnostics['timeline']['findings'] == []
+    assert all(f['status'] == 'unknown' for f in result.diagnostics['timeline']['findings'])
 
 
 @pytest.mark.parametrize('operator', [None, .5, float('nan')])
@@ -105,11 +110,12 @@ def test_departure_hint_requires_prior_presence_and_retains_unknown_normative_st
         frame['state_scores'].update(storage_open=.9,operator_at_station=.95 if frame['timestamp_sec']<20 else .05)
     result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
     text=result.public['violations'][0]['description']
-    assert 'модель предполагает его отсутствие' in text and 'это гипотеза' in text
-    assert result.diagnostics['timeline']['findings']==[]
+    assert 'отсутствие кассира не менее 2 с' in text and 'не установленное нарушение' in text
+    assert result.diagnostics['timeline']['findings'][0]['status']=='unknown'
     for frame in raw['frames']: frame['state_scores']['operator_at_station']=.05
     result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
     assert 'предполагает его отсутствие' not in result.public['violations'][0]['description']
+    assert not any(e['type'].startswith('Возможное оставление') for e in result.public['violations'])
 
 
 def test_bag_handling_does_not_imply_placement_or_abandonment(tmp_path):
@@ -125,7 +131,8 @@ def test_intermittent_presence_or_one_prior_spike_does_not_prove_continuous_depa
         frame['state_scores'].update(storage_open=.9,operator_at_station=.95 if frame['timestamp_sec']<20 else .05)
     raw['frames'][46]['state_scores']['operator_at_station']=.95
     result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
-    assert 'предполагает его отсутствие' not in result.public['violations'][0]['description']
+    assert all(not (f['interval']['start_sec'] <= 23 <= f['interval']['end_sec'])
+               for f in result.diagnostics['timeline']['findings'] if f['rule_id']=='RK-CASH-020-SAFE')
     for frame in raw['frames']:frame['state_scores']['operator_at_station']=.05
     raw['frames'][39]['state_scores']['operator_at_station']=.95
     result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)

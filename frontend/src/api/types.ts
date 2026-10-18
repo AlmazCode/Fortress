@@ -18,6 +18,7 @@ export type Coverage = 'full' | 'partial' | 'none';
 export type RuleState = 'triggered' | 'not_triggered' | 'unknown';
 export interface Interval { start_sec: number; end_sec: number; scene_id: string }
 export interface RuleSource {
+  title?: string;
   source_kind: 'official' | 'internal_policy' | 'synthetic' | 'unverified';
   url: string | null; revision: string | null; section: string | null;
   snapshot_sha256: string | null; verified: boolean; limitations: string[];

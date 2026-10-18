@@ -18,7 +18,7 @@ test('invalid base64 and browser JPEG errors are visible', () => {
 test('source interval, revision and limitations use actual finding fields; unsafe links are suppressed', () => {
   const d = fixtureCase('ui_diagnostics') as Diagnostics; const finding = d.timeline!.findings[0]; finding.source.url = 'javascript:alert(1)'; finding.source.revision = 'rev-test'; finding.source.limitations = ['Unverified fixture source'];
   render(<EvidenceCard event={done().violations[0]} finding={finding} onSeek={vi.fn()} />);
-  expect(screen.getByText(/Исходный интервал/).textContent).toContain(String(finding.interval.end_sec)); expect(screen.getByText(/Редакция/).textContent).toContain('rev-test'); expect(screen.getByText('Unverified fixture source')).toBeTruthy(); expect(screen.queryByRole('link')).toBeNull();
+  expect(screen.getByText(/Исходный интервал/).textContent).toContain(String(finding.interval.end_sec)); expect(screen.getByText('rev-test')).toBeTruthy(); expect(screen.getByText('Unverified fixture source')).toBeTruthy(); expect(screen.queryByRole('link')).toBeNull();
 });
 test('unknown/unsupported and versions remain visible; sources are not assigned to events by list order', () => {
   const d = fixtureCase('ui_diagnostics') as Diagnostics;
@@ -42,4 +42,35 @@ test.each(['source-action-review-v1', 'source-action-review-v2'])('unreviewed na
   render(<EventList job={job} diagnostics={d} onSeek={vi.fn()} />);
   expect(screen.getAllByText('Фрагмент для проверки')).toHaveLength(job.violations.length);
   expect(screen.queryByText('Возможное нарушение')).toBeNull();
+});
+
+test('RK source attaches by explicit rule identifier, matching reason and interval; ordinary actions stay review-only', () => {
+  const d = fixtureCase('ui_diagnostics') as Diagnostics;
+  const job = done(); d.job_id = job.job_id; d.versions.taxonomy = 'rk-cash-review-v1';
+  const event = job.violations[0]; event.type = 'Для проверки: Работа с плоским предметом';
+  const reason = '[RK-CASH-019-FLAT] Наблюдение действия. Не установленное нарушение.';
+  event.description = reason+' Показан исходный кадр действия.';
+  const finding = d.timeline!.findings[0];
+  finding.rule_id = 'RK-CASH-019-FLAT'; finding.reason = reason;
+  finding.interval.start_sec = event.timecode_sec; finding.interval.end_sec = event.timecode_sec+1;
+  finding.source.title = 'Правила кассовых операций — НБРК №231';
+  finding.source.url = 'https://adilet.zan.kz/rus/docs/V1900019680';
+  finding.source.verified = true; finding.source.section = 'п.19, подп.2'; finding.source.revision = '2026-03-16';
+  const { container, rerender } = render(<EventList job={job} diagnostics={d} onSeek={vi.fn()} />);
+  expect(container.querySelector('.evidence-card .source-block')).not.toBeNull();
+  expect(screen.getAllByText(/Правила кассовых операций — НБРК №231/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText('Фрагмент для проверки').length).toBeGreaterThan(0);
+  expect(screen.queryByText(/Связь событий с конкретными правилами не указана/)).toBeNull();
+  finding.rule_id = 'RK-CASH-012-BAG';
+  rerender(<EventList job={job} diagnostics={d} onSeek={vi.fn()} />);
+  expect(container.querySelector('.evidence-card .source-block')).toBeNull();
+});
+
+test('RK conditional candidate is labelled possible and keeps unknown applicability visible', () => {
+  const d = fixtureCase('ui_diagnostics') as Diagnostics; const job = done();
+  d.job_id = job.job_id; d.versions.taxonomy = 'rk-cash-review-v1';
+  job.violations = [job.violations[0]]; job.violations[0].type = 'Возможный уход кассира до окончания обслуживания';
+  render(<EventList job={job} diagnostics={d} onSeek={vi.fn()} />);
+  expect(screen.getByText('Возможное нарушение')).toBeTruthy();
+  expect(screen.getByText('Возможный уход кассира до окончания обслуживания')).toBeTruthy();
 });

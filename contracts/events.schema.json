@@ -470,6 +470,10 @@
     "Source": {
       "type": "object",
       "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
         "source_kind": {
           "enum": [
             "official",

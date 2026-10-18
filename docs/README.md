@@ -19,5 +19,6 @@
 | Новые головы действий/присутствия и контекст описаний | [SOURCE_ACTIONS.md](model/SOURCE_ACTIONS.md), [метрики](model/SOURCE_ACTIONS_RESULTS.json) |
 | Предыдущие эксперименты границ объектов | [OBJECT_BOUNDARIES_RESULTS.json](model/OBJECT_BOUNDARIES_RESULTS.json) |
 | Правила и источники | [RULES.md](operations/RULES.md), [CASE_SUPPORT.md](operations/CASE_SUPPORT.md) |
+| Подключённые нормы РК, условия и ограничения | [RK_RULES.md](operations/RK_RULES.md) |
 
 `docs/model/` сохраняет протоколы и отрицательные результаты исследований, а не набор готовых production-моделей. `docs/github-plan/` — исторический план четырёх разработчиков и журналы с привязкой к прошлым commits. Эти записи не заменяют текущее состояние и не требуют продолжать старую административную координацию.

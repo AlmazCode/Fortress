@@ -17,12 +17,13 @@ from backend.app.storage import LocalStorage
 from backend.app.tasks import AnalysisFailure
 from .repository import LocalRepository
 from . import events
+from rules import rk_cash
 
 
 LIMITATIONS = [
     'Локальный исследовательский прототип: средняя grouped accuracy 71.30%; цель 80% не достигнута.',
     'Интервалы действий — предположения модели с шагом 0,5 с; они не доказывают причину вердикта или нарушение.',
-    'Нормативная применимость неизвестна; результат требует ручной проверки.',
+    'Подключены п.12,19,20,22 правил НБРК №231; применимость к эпизоду и вывод требуют ручной проверки.',
     'Новый ракурс и CPU/CUDA numerical parity не валидированы.'
 ]
 
@@ -66,13 +67,28 @@ def make_result(job, raw, evidence, *, deadline_monotonic):
     if raw.get('normative_status') != 'unknown' or not raw.get('frames'):
         raise ValueError('Unsupported model output')
     values = events.segments(raw, job.upload.video.duration_sec)
-    selected = events.review_segments(values)
+    rk_cash.load_source()  # Offline integrity check, before any normative claim or JPEG extraction.
+    selected = rk_cash.candidates(raw) or events.review_segments(values)
     violations = []
+    findings = []
     if raw['prediction'] == 'violation':
         if not selected:
             raise AnalysisFailure('insufficient_evidence')
         for event in selected:
-            label, description = events.describe(event, raw, values)
+            if event.get('candidate'):
+                label = event['type']
+                linked = event
+                description = rk_cash.describe(event, '')
+            else:
+                label, description = events.describe(event, raw, values)
+                label = 'Для проверки: '+label
+                linked = rk_cash.context(event)
+                description = (rk_cash.describe(linked, description) if linked else
+                               f"Интервал {event['start']:.1f}–{event['end']:.1f} с. {description} "
+                               'Проверенное нормативное основание для этого действия не установлено. '
+                               'Действие само по себе не является нарушением; связь с вердиктом классификатора не подтверждена.')
+            if linked:
+                findings.append(rk_cash.finding(linked, job.job_id+':unreviewed', description))
             times = list(dict.fromkeys([event['middle'], event['start'], event['end']]))
             snapshots = evidence.frames(job.upload.path, times, deadline_monotonic=deadline_monotonic)
             if (len(snapshots) != len(times) or any(abs(f.timestamp_sec-t) > .1
@@ -80,11 +96,9 @@ def make_result(job, raw, evidence, *, deadline_monotonic):
                 raise ValueError('Evidence is outside its source action interval')
             frame_description = 'Показан исходный кадр действия.' if len(snapshots) == 1 else 'Показаны исходные кадры опорного момента, начала и конца интервала.'
             violations.append({
-                'type': 'Для проверки: '+label,
+                'type': label,
                 'timecode_sec': snapshots[0].timestamp_sec,
-                'description': f"Интервал {event['start']:.1f}–{event['end']:.1f} с. {description} "
-                               f'{frame_description} '
-                               'Действие само по себе не является нарушением; связь с вердиктом классификатора не подтверждена.',
+                'description': f'{description} {frame_description}',
                 'evidence_frames': [f.public() for f in snapshots]
             })
     elif raw['prediction'] != 'no_violation':
@@ -93,15 +107,16 @@ def make_result(job, raw, evidence, *, deadline_monotonic):
     diagnostics = {
         'schema_version': '1.0', 'job_id': job.job_id, 'public': public, 'stage': 'done',
         'processed_sec': job.upload.video.duration_sec, 'duration_sec': job.upload.video.duration_sec,
-        'coverage': 'partial', 'unknown': ['Тип/границы события и нормативная применимость неизвестны.'],
-        'unsupported': ['Проверенные по нормативам типы нарушений и точная локализация события.'],
+        'coverage': 'partial', 'unknown': ['Условия применимости нормы и точность распознавания требуют проверки человеком.'],
+        'unsupported': ['Подтверждение юридического нарушения, личности, содержимого сумки, подлинности купюр и блокировки ОС.'],
         'limitations': [*model_limitations(raw), f"Оценка модели: {raw['score']:.6f}; фиксированный порог: {raw['threshold']:.6f}.",
                        'Оценки действий не являются калиброванной вероятностью.',
-                       f'Карточки показывают до {events.MAX_REVIEW_EVENTS} фрагментов; все найденные интервалы доступны в наблюдениях.'],
+                       'Все условные кандидаты правил показаны; обычные действия ограничены четырьмя обзорными карточками.',
+                       'Нормативные правила не меняют бинарный классификатор; новая точность этим изменением не измерена.'],
         'versions': {'dataset': 'existing-development-36', 'annotations': 'assistant-review', 'split': 'grouped-family',
-                     'rules': None, 'model': raw['model_sha256'], 'preprocessing': 'spatial-object-inputs-v2',
-                     'taxonomy': events.VERSION},
-        'timeline': events.timeline(job, raw, values), 'media': media_links(job),
+                     'rules': rk_cash.VERSION+'-'+rk_cash.SNAPSHOT_SHA256[:12], 'model': raw['model_sha256'], 'preprocessing': 'spatial-object-inputs-v2',
+                     'taxonomy': rk_cash.VERSION},
+        'timeline': {**events.timeline(job, raw, values), 'findings': findings}, 'media': media_links(job),
         'provenance': {'kind': 'original', 'source_id': job.job_id, 'sha256': job.upload.sha256}
     }
     validate_contract('job', public)
