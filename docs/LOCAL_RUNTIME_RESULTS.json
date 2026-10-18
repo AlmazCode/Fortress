@@ -1,0 +1,106 @@
+{
+  "version": "native-local-runtime-results-v1",
+  "date": "2026-10-18",
+  "implementation_commit": "476c31cc1cc16a47d78d6eeae6631207fefe03aa",
+  "checkout_policy_commit": "0d460e7d8f9293379426ab954add0011d28371b4",
+  "published_contract_commit": "1ce26daf6850ccfcfea9e6bb2781015fd3d3d070",
+  "status": "working_local_prototype",
+  "production_ready": false,
+  "public_https_verified": false,
+  "all_preexisting_branch_refs_integrated": 14,
+  "history_rewritten": false,
+  "user_source_files_changed": false,
+  "new_training_performed": false,
+  "runtime_profile": "native-windows-single-host-sqlite",
+  "model": {
+    "kind": "trained experimental MobileNetV3-Small + uniform GRU control",
+    "weights_sha256": "c5c673f54cabb1e675f058950454a4f431d39aae5fa656c26cc79f7853b0a077",
+    "bytes": 11243478,
+    "status": "prototype",
+    "trained": true,
+    "validated": false,
+    "test_only": false,
+    "grouped_mean_accuracy": 0.7129629629629629,
+    "target_accuracy": 0.8,
+    "target_met": false,
+    "new_boundary_candidates_promoted": false
+  },
+  "software_checks": {
+    "full_python": {
+      "passed": 429,
+      "subtests": 29,
+      "skipped": 0,
+      "seconds": 189.56,
+      "code_commit": "476c31cc1cc16a47d78d6eeae6631207fefe03aa",
+      "exit_code": 0
+    },
+    "final_native_and_published_contract": {
+      "passed": 64,
+      "skipped": 0,
+      "seconds": 4.38,
+      "code_commit": "1ce26daf6850ccfcfea9e6bb2781015fd3d3d070",
+      "exit_code": 0
+    },
+    "frontend": {
+      "passed": 140,
+      "test_files": 12,
+      "exit_code": 0
+    },
+    "frontend_typecheck_build_exit_code": 0
+  },
+  "functional_api": {
+    "scope": "Known development videos; no accuracy or generalization claim",
+    "done_jobs": 2,
+    "positive": 1,
+    "negative": 1,
+    "upload_to_done_seconds": [
+      19.91111549999914,
+      15.151564600000711
+    ],
+    "unauthorized_401": true,
+    "concurrent_one_202_one_429": true,
+    "protected_original_jpeg": true,
+    "actual_h264_preview": true,
+    "prior_done_jobs_preserved_after_restart": 2,
+    "browser_model_connection_and_video_seek_verified": true,
+    "seek_seconds": 1.5
+  },
+  "runtime_integrity": {
+    "source_files_unchanged": 42,
+    "model_hash_guards_preserved": true,
+    "lf_checkout_verified": true,
+    "generated_api_key_in_git": false,
+    "generated_api_key_in_frontend_build": false
+  },
+  "environment": {
+    "python": "3.11.14 (main, Oct 14 2025, 21:21:22) [MSC v.1944 64 bit (AMD64)]",
+    "packages": {
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "av": "17.1.0",
+      "fastapi": "0.143.3",
+      "uvicorn": "0.54.0",
+      "numpy": "2.4.6",
+      "psycopg": "3.3.6",
+      "sqlalchemy": "2.1.5",
+      "celery": "5.6.3",
+      "redis": "6.4.0",
+      "pytest": "9.1.1"
+    },
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "ffmpeg": "ffmpeg version 9.0.2-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+    "gpu": "NVIDIA GeForce RTX 5060, 8151 MiB, 610.88"
+  },
+  "preserved_failed_attempts": [
+    "First real job failed on Windows read-only fsync; real preview regression now passes.",
+    "First main checkout rejected code hash after CRLF conversion; LF attributes restore exact expected hash without relaxing checks."
+  ],
+  "limits": [
+    "No public HTTPS or remote jury route configured.",
+    "No validated event type/onset/causal attribution or normative applicability.",
+    "CPU/CUDA numerical parity remains unconfirmed.",
+    "Linux distributed infrastructure acceptance remains separate."
+  ],
+  "private_artifacts_excluded_from_git": true
+}
