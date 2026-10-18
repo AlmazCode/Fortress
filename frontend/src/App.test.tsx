@@ -44,6 +44,11 @@ function server(options: { status?: number; code?: string; notReady?: boolean; o
 test('complete upload/poll/done/evidence path uses one POST and bounded authenticated video', async () => {
   const consoleErrors = vi.spyOn(console, 'error'); const s = server(), storage = vi.spyOn(Storage.prototype, 'setItem'); mount(s.transport); await connect(); await upload();
   await screen.findByRole('heading', { name: 'Результат получен' }); await screen.findByRole('img'); await screen.findByLabelText('Видео задания');
+  const video = screen.getByLabelText('Видео задания') as HTMLVideoElement;
+  Object.defineProperty(video, 'readyState', { configurable: true, value: 1 }); Object.defineProperty(video, 'duration', { configurable: true, value: 1 });
+  fireEvent.loadedMetadata(video); video.currentTime = .5;
+  fireEvent.click(screen.getByRole('button', { name: /Событие 1:/ })); expect(video.currentTime).toBe(0);
+  expect(screen.getByRole('slider', { name: 'Позиция в видео' }).getAttribute('max')).toBe('1');
   expect(consoleErrors).not.toHaveBeenCalled(); expect(s.posts()).toBe(1); expect(screen.getByText(/Демонстрационный результат/)).toBeTruthy(); expect(storage).not.toHaveBeenCalled();
   expect(s.fetch.mock.calls.every(([path, init]) => !String(path).includes(secret) && (init?.headers as Record<string, string>)['X-API-Key'] === secret)).toBe(true);
   fireEvent.click(screen.getByRole('button', { name: /Кадр 1,/ })); fireEvent.click(screen.getByRole('button', { name: 'Сбросить ключ' }));
@@ -104,7 +109,7 @@ test('production runtime ignores API-test and fixture props even with test-only 
   expect((screen.getByRole('button', { name: /Начать анализ/ }) as HTMLButtonElement).disabled).toBe(true); expect(screen.queryByRole('note')).toBeNull();
 });
 
-test('files added before authentication survive connect, complete sequentially and expose their own results and statistics', async () => {
+test('files added before authentication survive connect, complete sequentially and expose their own results', async () => {
   const transport = createFixtureTransport({ enabled: true, outcome: 'violation' });
   const fetch = vi.spyOn(transport, 'fetch'); mount(transport, true);
   fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files: [new File(['one'], 'first.mp4', { type: 'video/mp4' }), new File(['two'], 'second.mov', { type: 'video/quicktime' })] } });
@@ -114,9 +119,9 @@ test('files added before authentication survive connect, complete sequentially a
   await waitFor(() => expect((screen.getByRole('button', { name: /Начать анализ/ }) as HTMLButtonElement).disabled).toBe(false));
   fireEvent.click(screen.getByRole('button', { name: /Начать анализ/ }));
   const region = screen.getByRole('region', { name: 'Очередь видео' });
-  await waitFor(() => expect(within(region).getByText('Готово', { selector: 'dt' }).parentElement?.querySelector('dd')?.textContent).toBe('2'));
+  await within(region).findByText('Готово 2 из 2');
   expect(fetch.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(2);
-  expect(within(region).getByRole('progressbar', { name: 'Завершение очереди' }).getAttribute('value')).toBe('2');
+  expect(within(region).getAllByRole('listitem')).toHaveLength(2);
   fireEvent.click(screen.getByRole('button', { name: 'Открыть second.mov' }));
   await screen.findByText('00000000-0000-4000-8000-000000000002');
   fireEvent.click(screen.getByRole('button', { name: 'Открыть first.mp4' }));

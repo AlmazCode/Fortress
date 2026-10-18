@@ -23,6 +23,6 @@ test('keeps valid files when another selected file is invalid', async () => {
 });
 test('adds pasted files to the local queue exactly once', async () => {
   const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />); const file = video();
-  fireEvent.paste(screen.getByRole('button', { name: 'Выбрать или перетащить видео' }), { clipboardData: { files: [file], types: ['Files'], items: [{ kind: 'file', type: file.type, getAsFile: () => file }] } });
+  fireEvent.paste(screen.getByRole('button', { name: 'Выбрать видео' }), { clipboardData: { files: [file], types: ['Files'], items: [{ kind: 'file', type: file.type, getAsFile: () => file }] } });
   await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith([file]));
 });

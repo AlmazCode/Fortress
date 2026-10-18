@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { VideoQueue } from './VideoQueue';
 import type { QueueItem } from '../useVideoQueue';
 import type { Diagnostics } from '../api/types';
@@ -22,4 +22,14 @@ test('only the current job can supply measured analysis progress', () => {
   view.rerender(<VideoQueue {...props} items={[active]} active={active} diagnostics={diagnostics} />);
   expect(screen.getByRole('progressbar', { name: 'Анализ clip.mp4' }).getAttribute('value')).toBe('4');
   expect(screen.getByRole('progressbar', { name: 'Анализ clip.mp4' }).getAttribute('max')).toBe('10');
+});
+
+test('waiting files show their remaining queue position after an earlier file finishes', () => {
+  const first: QueueItem = { ...item, state: 'done', jobId: 'accepted' };
+  const second: QueueItem = { ...item, id: 'two', name: 'second.mov', state: 'waiting' };
+  const third: QueueItem = { ...item, id: 'three', name: 'third.mp4', state: 'waiting' };
+  render(<VideoQueue {...props} items={[first, second, third]} active={undefined} running={false} />);
+  expect(screen.getByText('В очереди · 1').closest('li')?.textContent).toContain('second.mov');
+  expect(screen.getByText('В очереди · 2').closest('li')?.textContent).toContain('third.mp4');
+  fireEvent.click(screen.getByRole('button', { name: 'Открыть clip.mp4' })); expect(props.onView).toHaveBeenCalledWith('accepted');
 });

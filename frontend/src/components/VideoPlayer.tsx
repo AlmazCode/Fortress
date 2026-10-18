@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiClient, ApiError } from '../api/client';
+import type { Playback } from './VideoTimeline';
 export interface SeekRequest { sourceTime: number; nonce: number }
-export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClient; path?: string; maxBytes?: number; seek?: SeekRequest }) {
+export function VideoPlayer({ client, path, maxBytes, seek, onPlaybackChange }: { client: ApiClient; path?: string; maxBytes?: number; seek?: SeekRequest; onPlaybackChange?: (playback: Playback) => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const [loaded, setLoaded] = useState<{ client: ApiClient; path: string; url: string }>();
   const [failure, setFailure] = useState<{ client: ApiClient; path?: string; message: string }>();
@@ -35,13 +36,18 @@ export function VideoPlayer({ client, path, maxBytes, seek }: { client: ApiClien
     if (element.readyState === 0) return;
     // K/A3 previews preserve elapsed source PTS. Identity mapping in seconds;
     // neither average fps nor frame index is used, including VFR/nonzero PTS.
-    try { element.currentTime = seek.sourceTime; setSeekError(''); }
+    try { element.currentTime = seek.sourceTime; setSeekError(''); reportPlayback(); }
     catch { setSeekError('Браузер не смог перейти к исходному таймкоду.'); }
+  }
+  function reportPlayback() {
+    const element = video.current;
+    if (current && !error && element && Number.isFinite(element.currentTime) && Number.isFinite(element.duration) && element.duration > 0) {
+      onPlaybackChange?.({ time: element.currentTime, duration: element.duration });
+    }
   }
   useEffect(applySeek, [seek, current?.url, path, error]);
   return <section className="video-panel" aria-label="Видео и исходные таймкоды">
-    {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={applySeek} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><span aria-hidden="true">▷</span><p role={error ? 'alert' : undefined}>{error ?? (path ? 'Загружаем видео…' : 'Видео не предоставлено')}</p></div>}
+    {current && !error ? <video ref={video} src={current.url} controls preload="metadata" playsInline onLoadedMetadata={() => { applySeek(); reportPlayback(); }} onTimeUpdate={reportPlayback} onDurationChange={reportPlayback} onError={() => setFailure({ client, path, message: 'Браузер не смог воспроизвести видео.' })} aria-label="Видео задания" /> : <div className="video-placeholder"><span aria-hidden="true">▷</span><p role={error ? 'alert' : undefined}>{error ?? (path ? 'Загружаем видео…' : 'Видео не предоставлено')}</p></div>}
     {seekError && <p role="alert" className="field-error">{seekError}</p>}
-    {current && !error && <p className="muted">Нажмите событие или кадр, чтобы перейти к нужному моменту.</p>}
   </section>;
 }
