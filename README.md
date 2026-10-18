@@ -9,6 +9,9 @@ ImageNet-веса, импортирует annotation package и считает f
 Цель 80% проверяется по accuracy, balanced accuracy и macro-F1; заранее она не гарантируется.
 
 Следующий этап с целью 95%+: [эксперименты на имеющихся видео](docs/model/SMALL_DATA.md).
+
+Уточнение15 проблемных роликов и обучение с наблюдаемыми действиями:
+[action-assisted этап с unknown masks и grouped CV](docs/model/ACTION_REFINEMENT.md).
 Grouped nested CV сравнивает linear/GRU/MIL и ограниченный fine-tuning на исходных train/dev;
 тестовые семьи остаются вне обучения. Независимые 95% на новых ракурсах пока не подтверждены.
 
