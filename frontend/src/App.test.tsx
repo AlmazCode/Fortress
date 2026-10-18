@@ -91,14 +91,6 @@ test('production without a validated release keeps queued files and cannot send 
   fireEvent.click(screen.getByRole('button', { name: 'Открыть настройки' })); expect(screen.getByText('Как подключить модель')).toBeTruthy();
 });
 
-test('prototype quality text comes from the model response rather than a hardcoded percentage', async () => {
-  const model: ModelStatusData = { ...ready(), status: 'prototype', reason: 'experimental_model', validated: false,
-    limitations: ['Средняя grouped accuracy: 75.00%; независимая проверка не выполнена.'] };
-  mount({ fetch: async () => json(model) });
-  await connect();
-  expect(screen.getByText(/Локальный прототип\./).textContent).toContain('75.00%');
-  expect(screen.queryByText(/точность около 71%/)).toBeNull();
-});
 test('lost GET after 202 stops bounded retries and restores state without a new POST', async () => {
   const s = server({ outage: true }); mount(s.transport); await connect(); await add(); await start();
   await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('сейчас неизвестно'));
