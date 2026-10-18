@@ -9,6 +9,7 @@
 | Устройство сервиса и ограничения профилей | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Фактическое состояние и проверки | [PROJECT_STATUS.md](PROJECT_STATUS.md) |
 | Быстрая человеческая разметка кадров | [HUMAN_REVIEW.md](HUMAN_REVIEW.md) |
+| Обучение на сохранённых человеческих ответах | [HUMAN_ACTION_TRAINING.md](model/HUMAN_ACTION_TRAINING.md) |
 | API и данные | [OpenAPI](../contracts/openapi.yaml), [контракты](../contracts/STACK.md) |
 | Linux/PostgreSQL/Celery | [backend](../backend/README.md), [operations](operations/SETUP.md) |
 | Frontend/dev/сборка | [frontend](../frontend/README.md) |
