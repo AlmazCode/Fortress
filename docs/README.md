@@ -8,6 +8,7 @@
 | Web/API URL, ключ, запросы и публичная сдача | [JURY_HANDOFF.md](JURY_HANDOFF.md) |
 | Устройство сервиса и ограничения профилей | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Фактическое состояние и проверки | [PROJECT_STATUS.md](PROJECT_STATUS.md) |
+| Быстрая человеческая разметка кадров | [HUMAN_REVIEW.md](HUMAN_REVIEW.md) |
 | API и данные | [OpenAPI](../contracts/openapi.yaml), [контракты](../contracts/STACK.md) |
 | Linux/PostgreSQL/Celery | [backend](../backend/README.md), [operations](operations/SETUP.md) |
 | Frontend/dev/сборка | [frontend](../frontend/README.md) |
