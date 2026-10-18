@@ -29,9 +29,11 @@ test('waiting files show their remaining queue position after an earlier file fi
   const second: QueueItem = { ...item, id: 'two', name: 'second.mov', state: 'waiting' };
   const third: QueueItem = { ...item, id: 'three', name: 'third.mp4', state: 'waiting' };
   render(<VideoQueue {...props} items={[first, second, third]} active={undefined} running={false} />);
-  expect(screen.getByText('В очереди · 1').closest('li')?.textContent).toContain('second.mov');
-  expect(screen.getByText('В очереди · 2').closest('li')?.textContent).toContain('third.mp4');
+  const cards = within(screen.getByRole('list', { name: 'Видео в очереди' })).getAllByRole('listitem');
+  expect(cards[0].textContent).toBe('01second.mov1 КиБ');
+  expect(cards[1].textContent).toBe('02third.mp41 КиБ');
   fireEvent.click(screen.getByRole('button', { name: 'Открыть clip.mp4' })); expect(props.onView).toHaveBeenCalledWith('accepted');
+  fireEvent.click(screen.getByRole('button', { name: 'Очистить завершённые' })); expect(props.onRemove).toHaveBeenCalledWith('one');
 });
 
 test('a finished card exits before the remaining queue shifts, while its result and keyboard focus are retained', () => {
@@ -66,7 +68,7 @@ test('rapid completions retire independently, without removing or reordering the
   expect(view.container.querySelector('[data-queue-id="two"]')).not.toBeNull();
   act(() => { vi.advanceTimersByTime(300); });
   expect(view.container.querySelector('[data-queue-id="two"]')).toBeNull();
-  expect(view.container.querySelector('[data-queue-id="three"]')?.textContent).toContain('В очереди · 1');
+  expect(view.container.querySelector('[data-queue-id="three"] .queue-number')?.textContent).toBe('01');
   expect(within(screen.getByRole('region', { name: 'Завершённые видео' })).getAllByRole('listitem')).toHaveLength(2);
 });
 
@@ -91,5 +93,5 @@ test('reset during an exit cancels its timer and cannot remove a newly added car
   view.rerender(<VideoQueue {...props} items={[]} active={undefined} />);
   view.rerender(<VideoQueue {...props} items={[{ ...item, state: 'waiting' }]} active={undefined} />);
   act(() => { vi.advanceTimersByTime(1000); });
-  expect(view.container.querySelector('[data-queue-id="one"]')?.textContent).toContain('В очереди · 1');
+  expect(view.container.querySelector('[data-queue-id="one"] .queue-number')?.textContent).toBe('01');
 });
