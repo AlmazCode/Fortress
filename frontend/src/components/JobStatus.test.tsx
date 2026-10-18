@@ -10,7 +10,7 @@ const base = { checking: false, onResume: vi.fn(), onClear: vi.fn() };
 test('resume validates UUID and requires auth', () => {
   const onResume = vi.fn(); const view = render(<JobStatus {...base} onResume={onResume} />);
   const input = screen.getByLabelText('ID задания'); fireEvent.change(input, { target: { value: '../unsafe' } }); fireEvent.submit(input.closest('form')!);
-  expect(screen.getByRole('alert').textContent).toContain('UUID'); expect(onResume).not.toHaveBeenCalled();
+  expect(screen.getByRole('alert').textContent).toContain('Неверный формат ID'); expect(onResume).not.toHaveBeenCalled();
   fireEvent.change(input, { target: { value: id } }); fireEvent.submit(input.closest('form')!); expect(onResume).toHaveBeenCalledExactlyOnceWith(id);
   view.rerender(<JobStatus {...base} authenticated={false} onResume={onResume} />); fireEvent.submit(input.closest('form')!); expect(onResume).toHaveBeenCalledTimes(1);
 });
@@ -19,9 +19,9 @@ test.each([[400, 'invalid_request', 'отклонён'], [401, 'invalid_key', '�
   expect(screen.getByRole('alert').textContent).toContain(text); expect(screen.getByRole('status').textContent).toContain('не подтверждено');
   fireEvent.click(screen.getByRole('button', { name: 'Повторить проверку' })); expect(retry).toHaveBeenCalledOnce();
 });
-test('failed reason and accepted job disclaimer are visible', () => {
+test('failed reason and saved job id guidance are visible', () => {
   render(<JobStatus {...base} jobId={id} job={fixtureCase('insufficient_evidence') as Job} />);
-  expect(screen.getByRole('status').textContent).toContain('Недостаточно'); expect(screen.getByText(/Прерывание связи не отменяет/)).toBeTruthy();
+  expect(screen.getByRole('status').textContent).toContain('Недостаточно'); expect(screen.getByText(/Сохраните ID/)).toBeTruthy();
 });
 function Harness({ client }: { client: ApiClient }) {
   const query = useJobPolling(client, id, 20);

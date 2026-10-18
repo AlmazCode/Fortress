@@ -12,5 +12,5 @@ test('generic exceptions do not expose raw paths/secrets and retry is keyboard a
 });
 test('abort and unknown upload outcome do not claim cancellation or retry POST automatically', () => {
   const view = render(<ErrorPanel error={new DOMException('private', 'AbortError')} />); expect(screen.getByRole('alert').textContent).toContain('не отменено');
-  view.rerender(<ErrorPanel error={new ApiError('upload_outcome_unknown')} />); expect(screen.getByRole('alert').textContent).toContain('Не отправляйте его повторно автоматически'); expect(screen.queryByRole('button')).toBeNull();
+  view.rerender(<ErrorPanel error={new ApiError('upload_outcome_unknown')} />); expect(screen.getByRole('alert').textContent).toContain('перед повторной загрузкой'); expect(screen.queryByRole('button')).toBeNull();
 });

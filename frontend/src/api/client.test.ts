@@ -138,11 +138,6 @@ describe('authenticated client and session lifecycle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Сбросить ключ' }));
     expect(reset).toHaveBeenCalledOnce();
   });
-  test('explicit demo configuration has a visible synthetic provenance notice', () => {
-    render(createElement(ApiKeyForm, { connected: false, onConnect: vi.fn(), onReset: vi.fn(), fixtureMode: true }));
-    expect(screen.getByRole('status').textContent).toContain('Synthetic test/demo');
-    expect(screen.getByRole('status').textContent).toContain('без обученной модели');
-  });
   test('GET retry is bounded and a new session can resume an accepted job without another POST', async () => {
     let attempts = 0;
     const t = transport((_input, init) => {

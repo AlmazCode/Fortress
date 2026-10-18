@@ -2,12 +2,17 @@ import { useState, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ApiClient, ApiError, validJobId } from '../api/client';
 import type { FailureReason, Job } from '../api/types';
+import { Button } from './ui';
 
-const reasons: Record<FailureReason, string> = {
-  insufficient_evidence: 'Недостаточно наблюдаемых данных для вывода.',
-  deadline_exceeded: 'Превышен срок обработки.', decode_failed: 'Видео не удалось декодировать.',
+export const failureMessages: Record<FailureReason, string> = {
+  insufficient_evidence: 'Недостаточно данных для анализа.',
+  deadline_exceeded: 'Превышен срок обработки.', decode_failed: 'Не удалось прочитать видео.',
   inference_failed: 'Модель не завершила обработку.', evidence_failed: 'Не удалось подготовить доказательства.',
-  worker_lost: 'Обработчик потерян.', internal_error: 'Обработка завершилась ошибкой.', release_invalid: 'Release модели несовместим или повреждён.',
+  worker_lost: 'Обработка прервана.', internal_error: 'Ошибка обработки.', release_invalid: 'Модель несовместима или повреждена.',
+};
+export const stageLabels: Record<string, string> = {
+  validation: 'Проверяем файл', queued: 'Ожидаем обработки', decoding: 'Читаем видео',
+  inference: 'Анализируем видео', rules: 'Проверяем события', evidence: 'Подготавливаем кадры',
 };
 export function useJobPolling(client: ApiClient | undefined, id: string | undefined, pollMs = 1800) {
   return useQuery<Job>({
@@ -27,8 +32,8 @@ function requestMessage(error: unknown) {
     case 413: return 'Файл превышает 200 МиБ. Выберите меньший файл.';
     case 415: return 'Формат или параметры видео не поддерживаются. Проверьте ограничения.';
     case 429: return 'Сервис занят. Подождите перед новой отправкой.';
-    case 503: return error.code === 'model_not_ready' ? 'Модель не готова. Нужен локальный совместимый release.' : 'Сервис временно недоступен. Повторите проверку позже.';
-    default: return 'Состояние задания сейчас неизвестно. Повторите GET, не загружая файл заново.';
+    case 503: return error.code === 'model_not_ready' ? 'Модель не готова. Обратитесь к администратору.' : 'Сервис временно недоступен. Повторите проверку позже.';
+    default: return 'Состояние задания сейчас неизвестно. Повторите проверку без новой загрузки.';
   }
 }
 export function JobStatus({ jobId, job, checking, stage, error, authenticated = true, onRetry, onResume, onClear }: {
@@ -43,17 +48,18 @@ export function JobStatus({ jobId, job, checking, stage, error, authenticated = 
     setInvalid(false); onResume(value.trim());
   }
   return <section className="job-panel" aria-labelledby="job-title">
-    <div className="section-eyebrow">02 / ОБРАБОТКА</div><h2 id="job-title">{jobId ? job?.status === 'done' ? 'Результат получен' : job?.status === 'failed' ? 'Анализ не завершён' : 'Проверка задания' : 'Вернуться к заданию'}</h2>
-    {jobId ? <>
+    <h2 id="job-title">Задание по ID</h2>
+    {jobId && <>
       <div className="job-id"><span>ID</span><code>{jobId}</code></div>
-      <p role="status">{error ? 'Текущее состояние не подтверждено. Последний ответ может быть устаревшим.' : job?.status === 'done' ? 'Обработка завершена. Проверьте события и ограничения ниже.' : job?.status === 'failed' ? reasons[job.reason] : checking ? 'Проверяем состояние…' : 'Задание принято. Ожидаем результат обработки.'}</p>
-      {stage && job?.status === 'processing' && !error && <p className="muted">Этап диагностики: {stage}</p>}
-      <p className="muted">Сохраните ID вручную для возврата после закрытия вкладки. Прерывание связи не отменяет принятое задание.</p>
-      <button className="text-button" onClick={onClear}>Закрыть просмотр задания</button>
-    </> : <>
-      <p>Если файл уже принят, откройте его по ID. Повторная загрузка не нужна; требуется API-ключ.</p>
-      <form className="resume-form" onSubmit={resume}><label htmlFor="job-id">ID задания</label><div className="input-row"><input id="job-id" value={value} onChange={event => setValue(event.target.value)} placeholder="UUID задания" autoComplete="off" aria-invalid={invalid} aria-describedby={invalid ? 'job-id-error' : undefined} /><button className="secondary-button" disabled={!authenticated || !value.trim()} type="submit">Открыть</button></div>{invalid && <p id="job-id-error" role="alert" className="field-error">Нужен UUID вида xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.</p>}</form>
+      <p role="status">{error ? 'Текущее состояние не подтверждено.' : job?.status === 'done' ? 'Результат готов к просмотру.' : job?.status === 'failed' ? failureMessages[job.reason] : stage ? stageLabels[stage] ?? 'Обрабатываем видео…' : checking ? 'Проверяем состояние…' : 'Ожидаем результат…'}</p>
+      <p className="muted">Сохраните ID, чтобы открыть задание позже.{(!job || job.status === 'processing') && ' Закрытие страницы не отменяет обработку.'}</p>
+      <Button variant="text" onClick={onClear}>Закрыть просмотр задания</Button>
     </>}
-    {!!error && <div role="alert" className="field-error"><p>{requestMessage(error)}</p>{onRetry && <button onClick={onRetry}>Повторить проверку</button>}</div>}
+    <>
+      <p>Введите ID ранее загруженного видео.</p>
+      <form className="resume-form" onSubmit={resume}><label htmlFor="job-id">ID задания</label><div className="input-row"><input id="job-id" value={value} onChange={event => setValue(event.target.value)} placeholder="Вставьте ID задания" autoComplete="off" aria-invalid={invalid} aria-describedby={invalid ? 'job-id-error' : undefined} /><Button disabled={!authenticated || !value.trim()} type="submit">Открыть</Button></div>{invalid && <p id="job-id-error" role="alert" className="field-error">Неверный формат ID. Скопируйте его целиком.</p>}</form>
+    </>
+    {!authenticated && <p className="helper-text">Для поиска требуется доступ к сервису и свободная очередь.</p>}
+    {!!error && <div role="alert" className="field-error"><p>{requestMessage(error)}</p>{onRetry && <Button onClick={onRetry}>Повторить проверку</Button>}</div>}
   </section>;
 }

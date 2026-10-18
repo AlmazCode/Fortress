@@ -1,30 +1,34 @@
-import { useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { MAX_MEDIA_BYTES, MEDIA_LIMITS, type UploadProgress } from '../api/types';
+import { useImperativeHandle, useState, type Ref } from 'react';
+import { useDropzone, type FileRejection } from 'react-dropzone';
+import { MAX_MEDIA_BYTES } from '../api/types';
+import { Button, Icon, Notification } from './ui';
 
-export function UploadPanel({ enabled, uploading, progress, onUpload, onAbort }: { enabled: boolean; uploading: boolean; progress?: UploadProgress; onUpload: (file: File) => void; onAbort: () => void }) {
-  const [file, setFile] = useState<File>();
-  const [error, setError] = useState('');
+export interface UploadHandle { open: () => void }
+function rejectionText(rejection: FileRejection) {
+  const codes = rejection.errors.map(error => error.code);
+  if (codes.includes('file-too-large')) return `${rejection.file.name}: файл больше 200 МиБ. Выберите меньший файл.`;
+  if (codes.includes('file-too-small')) return `${rejection.file.name}: файл пустой. Выберите непустое видео.`;
+  return `${rejection.file.name}: формат не поддерживается. Выберите MP4 или MOV.`;
+}
+export function UploadPanel({ onAdd, busy = false, compact = false, controlRef }: { onAdd: (files: File[]) => void; busy?: boolean; compact?: boolean; controlRef?: Ref<UploadHandle> }) {
+  const [errors, setErrors] = useState<string[]>([]);
   const dropzone = useDropzone({
     accept: { 'video/mp4': ['.mp4'], 'video/quicktime': ['.mov'] },
-    maxFiles: 1, maxSize: MAX_MEDIA_BYTES, minSize: 1, disabled: !enabled || uploading,
-    onDropAccepted: files => { setFile(files[0]); setError(''); },
-    onDropRejected: () => { setFile(undefined); setError('Выберите один непустой MP4 или MOV размером до 200 МиБ.'); },
+    multiple: true, maxSize: MAX_MEDIA_BYTES, minSize: 1, noClick: true, noKeyboard: true,
+    onDrop: (files, rejected) => { if (files.length) onAdd(files); setErrors(rejected.map(rejectionText)); },
   });
-  const percent = progress?.computable && progress.total > 0 ? Math.min(100, Math.round(100 * progress.loaded / progress.total)) : undefined;
-  return <section className="upload-panel" aria-labelledby="upload-title">
-    <div className="section-header"><div><div className="section-eyebrow">01 / ИСХОДНОЕ ВИДЕО</div><h2 id="upload-title">Добавьте запись</h2></div><span className="tiny-label">Локальная обработка</span></div>
-    <div {...dropzone.getRootProps({ className: `dropzone ${dropzone.isDragActive ? 'drag-active' : ''} ${!enabled ? 'inactive' : ''}`, 'aria-label': 'Выбрать или перетащить видео', role: 'button', 'aria-disabled': !enabled || uploading })}>
-      <input {...dropzone.getInputProps({ 'aria-label': 'Видеофайл', disabled: !enabled || uploading })} />
-      <div className="upload-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 16V4m-4 4 4-4 4 4M4 15v5h16v-5" /></svg></div>
-      <strong>{file ? file.name : 'Перетащите видео сюда'}</strong>
-      <span>{file ? `${(file.size / 1024 / 1024).toFixed(1)} МиБ · можно выбрать другой файл` : 'или нажмите, чтобы выбрать файл'}</span>
-      <span className="dropzone-formats">MP4, MOV <span aria-hidden="true">·</span> до 200 МиБ</span>
+  useImperativeHandle(controlRef, () => ({ open: dropzone.open }), [dropzone.open]);
+  return <section className={`upload-panel ${compact ? 'upload-panel-compact' : ''}`} aria-labelledby="upload-title" id="video-upload">
+    <h2 id="upload-title" className={compact ? 'sr-only' : undefined}>Видео для анализа</h2>
+    <div {...dropzone.getRootProps({ className: `upload-zone ${compact ? 'upload-zone-compact' : ''} ${dropzone.isDragActive ? 'drag-active' : ''} ${busy ? 'upload-zone-busy' : ''}` })}>
+      <input {...dropzone.getInputProps({ 'aria-label': 'Видеофайлы' })} />
+      {!compact && <span className="upload-symbol"><Icon name="upload" /></span>}
+      {(!compact || dropzone.isDragActive) && <strong>{dropzone.isDragActive ? 'Отпустите файлы, чтобы добавить их' : 'Перетащите видео сюда'}</strong>}
+      {!compact && <span>Можно добавить несколько файлов</span>}
+      <Button key="choose-video" icon={compact ? 'upload' : undefined} onClick={event => { event.stopPropagation(); dropzone.open(); }}>{compact ? 'Добавить ещё видео' : 'Выбрать видео'}</Button>
+      <p className="upload-limits">MP4 или MOV · до 200 МиБ · до 180 с</p>
     </div>
-    <p className="limits">{MEDIA_LIMITS}. Параметры и декодирование проверяет сервер.</p>
-    {!enabled && <p className="muted">Новая отправка пока недоступна. Проверьте ключ, готовность модели и состояние текущего задания.</p>}
-    {error && <p role="alert" className="field-error">{error}</p>}
-    {uploading && <div className="upload-progress" role="status"><span>Передача файла {percent === undefined ? '…' : `${percent}%`}</span><progress aria-label="Прогресс загрузки" max={100} value={percent} /><p>Ожидаем подтверждения приёма сервером. Прерывание связи не отменяет уже принятое задание.</p></div>}
-    <div className="upload-actions"><span className="privacy-note"><span aria-hidden="true">◇</span> Видео обрабатывается локальным сервисом</span>{uploading ? <button className="secondary-button" onClick={onAbort}>Прервать передачу</button> : <button className="primary-button" onClick={() => file && onUpload(file)} disabled={!enabled || !file}>Начать анализ <span aria-hidden="true">→</span></button>}</div>
+    <details className="file-requirements"><summary>Требования к файлам</summary>{compact && <p className="compact-file-limits">MP4 или MOV · до 200 МиБ · до 180 с</p>}<p>Разрешение — до 1920×1080 или 1080×1920. Частота кадров — до 60 fps. Фактические параметры и возможность декодирования проверяет сервер.</p></details>
+    {errors.length > 0 && <Notification tone="danger" role="alert"><strong>Не удалось добавить файлы</strong><ul>{errors.map((error, index) => <li key={index}>{error}</li>)}</ul></Notification>}
   </section>;
 }
