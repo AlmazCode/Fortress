@@ -9,10 +9,10 @@ function Frame({ frame, index, onSeek }: { frame: EvidenceFrame; index: number; 
   const [failed, setFailed] = useState(false); const src = evidenceData(frame);
   return <div className="evidence-frame">{src && !failed ? <button onClick={() => onSeek(frame.timestamp_sec)} aria-label={`Кадр ${index + 1}, исходное время ${frame.timestamp_sec} секунд`}><img src={src} onError={() => setFailed(true)} alt={`Исходный кадр ${index + 1} на ${formatTime(frame.timestamp_sec)}`} /><span>{frame.timestamp_sec} с</span></button> : <p className="field-error" role="alert">Кадр {index + 1} повреждён или недоступен.</p>}</div>;
 }
-export function EvidenceCard({ event, finding, onSeek }: { event: Violation; finding?: Finding; onSeek: (time: number) => void }) {
+export function EvidenceCard({ event, finding, onSeek, reviewOnly = false }: { event: Violation; finding?: Finding; onSeek: (time: number) => void; reviewOnly?: boolean }) {
   const url = finding?.source.url; const safeLink = url && /^https?:\/\//i.test(url) ? url : undefined;
   return <article className="evidence-card">
-    <div className="event-heading"><StatusBadge tone="warning" icon="alert">Возможное нарушение</StatusBadge><button className="time-button" onClick={() => onSeek(event.timecode_sec)} aria-label={`Событие ${event.type}, ${event.timecode_sec} секунд`}>{formatTime(event.timecode_sec)} ↗</button></div>
+    <div className="event-heading"><StatusBadge tone={reviewOnly ? 'neutral' : 'warning'} icon={reviewOnly ? 'video' : 'alert'}>{reviewOnly ? 'Фрагмент для проверки' : 'Возможное нарушение'}</StatusBadge><button className="time-button" onClick={() => onSeek(event.timecode_sec)} aria-label={`Событие ${event.type}, ${event.timecode_sec} секунд`}>{formatTime(event.timecode_sec)} ↗</button></div>
     <h3>{event.type}</h3><p>{event.description}</p>
     {finding && <p className="muted">Исходный интервал: {finding.interval.start_sec}–{finding.interval.end_sec} с</p>}
     {event.evidence_frames.length < 1 || event.evidence_frames.length > 3 ? <p role="alert">Кадры события недоступны.</p> : <div className="evidence-grid">{event.evidence_frames.map((frame, index) => <Frame key={`${frame.timestamp_sec}-${frame.image_base64}-${index}`} frame={frame} index={index} onSeek={onSeek} />)}</div>}
