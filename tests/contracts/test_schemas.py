@@ -20,6 +20,11 @@ def read(name):
     return json.loads(path.read_text())
 
 
+def test_published_model_readiness_matches_offline_schema():
+    published = read('openapi.yaml')['components']['schemas']['Diagnostics']['$defs']['Model']
+    assert published == read('diagnostics.schema.json')['$defs']['Model']
+
+
 def validate(schema, payload):
     assert (CONTRACTS / 'python_ports.py').exists(), 'Shared validation port is missing'
     return importlib.import_module('contracts.python_ports').validate_contract(schema, payload)

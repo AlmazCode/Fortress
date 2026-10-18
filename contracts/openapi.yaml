@@ -1149,7 +1149,8 @@
               "status": {
                 "enum": [
                   "ready",
-                  "not_ready"
+                  "not_ready",
+                  "prototype"
                 ]
               },
               "reason": {
@@ -1231,6 +1232,38 @@
                     },
                     "reason": {
                       "type": "null"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "const": "prototype"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "trained": {
+                      "const": true
+                    },
+                    "validated": {
+                      "const": false
+                    },
+                    "test_only": {
+                      "const": false
+                    },
+                    "reason": {
+                      "const": "experimental_model"
+                    },
+                    "release_version": {
+                      "type": "string",
+                      "minLength": 1
                     }
                   }
                 }
