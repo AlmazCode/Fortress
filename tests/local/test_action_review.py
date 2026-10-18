@@ -76,6 +76,62 @@ def test_negative_clip_retains_action_observations_without_false_alerts(tmp_path
     assert result.diagnostics['timeline']['observations']
 
 
+@pytest.mark.parametrize('action', ['storage_open', 'bag_on_desk', 'laptop_screen_lit'])
+def test_object_with_operator_present_is_not_described_as_unattended(tmp_path, action):
+    raw = output()
+    raw['candidate_events'][0]['action'] = action
+    for frame in raw['frames']:
+        frame['state_scores'].update({action: .9, 'operator_at_station': .95})
+    result = make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    text = result.public['violations'][0]['description']
+    assert 'видит сотрудника' in text and 'оставление без присмотра не подтверждено' in text
+    assert 'предполагает его отсутствие' not in text
+    assert result.diagnostics['timeline']['findings'] == []
+
+
+@pytest.mark.parametrize('operator', [None, .5, float('nan')])
+def test_missing_or_ambiguous_operator_never_becomes_a_departure(tmp_path, operator):
+    raw = output(); raw['candidate_events'][0]['action'] = 'storage_open'
+    for frame in raw['frames']:
+        frame['state_scores'].update(storage_open=.9,operator_at_station=operator)
+    result = make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    text = result.public['violations'][0]['description']
+    assert 'определить уход сотрудника' in text and 'предполагает его отсутствие' not in text
+
+
+def test_departure_hint_requires_prior_presence_and_retains_unknown_normative_status(tmp_path):
+    raw=output(); raw['candidate_events'][0]['action']='storage_open'
+    for frame in raw['frames']:
+        frame['state_scores'].update(storage_open=.9,operator_at_station=.95 if frame['timestamp_sec']<20 else .05)
+    result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    text=result.public['violations'][0]['description']
+    assert 'модель предполагает его отсутствие' in text and 'это гипотеза' in text
+    assert result.diagnostics['timeline']['findings']==[]
+    for frame in raw['frames']: frame['state_scores']['operator_at_station']=.05
+    result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    assert 'предполагает его отсутствие' not in result.public['violations'][0]['description']
+
+
+def test_bag_handling_does_not_imply_placement_or_abandonment(tmp_path):
+    raw=output(); raw['candidate_events'][0]['action']='bag_interaction'
+    for frame in raw['frames']:frame['state_scores'].update(bag_interaction=.9,bag_on_desk=.1)
+    result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    assert 'манипуляции с сумкой не означают её оставление' in result.public['violations'][0]['description']
+
+
+def test_intermittent_presence_or_one_prior_spike_does_not_prove_continuous_departure(tmp_path):
+    raw=output();raw['candidate_events'][0]['action']='storage_open'
+    for frame in raw['frames']:
+        frame['state_scores'].update(storage_open=.9,operator_at_station=.95 if frame['timestamp_sec']<20 else .05)
+    raw['frames'][46]['state_scores']['operator_at_station']=.95
+    result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    assert 'предполагает его отсутствие' not in result.public['violations'][0]['description']
+    for frame in raw['frames']:frame['state_scores']['operator_at_station']=.05
+    raw['frames'][39]['state_scores']['operator_at_station']=.95
+    result=make_result(job(tmp_path),raw,Evidence(),deadline_monotonic=999)
+    assert 'предполагает его отсутствие' not in result.public['violations'][0]['description']
+
+
 def test_evidence_outside_event_is_rejected(tmp_path):
     evidence = Evidence()
     original = evidence.frames

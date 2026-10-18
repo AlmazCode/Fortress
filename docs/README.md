@@ -14,6 +14,7 @@
 | Первое обучение и воспроизведение | [FIRST_TRAINING.md](model/FIRST_TRAINING.md) |
 | Обучение подробных событий и итоговые метрики | [TEMPORAL_EVENT_TRAINING.md](model/TEMPORAL_EVENT_TRAINING.md), [EVENT_TRAINING_RESULTS.json](model/EVENT_TRAINING_RESULTS.json) |
 | Подключённый ансамбль75%, установка и возврат к контролю | [SEED_VOTE.md](model/SEED_VOTE.md) |
+| Новые головы действий/присутствия и контекст описаний | [SOURCE_ACTIONS.md](model/SOURCE_ACTIONS.md), [метрики](model/SOURCE_ACTIONS_RESULTS.json) |
 | Предыдущие эксперименты границ объектов | [OBJECT_BOUNDARIES_RESULTS.json](model/OBJECT_BOUNDARIES_RESULTS.json) |
 | Правила и источники | [RULES.md](operations/RULES.md), [CASE_SUPPORT.md](operations/CASE_SUPPORT.md) |
 

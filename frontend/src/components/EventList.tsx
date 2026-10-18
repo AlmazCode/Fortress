@@ -29,7 +29,7 @@ export function EventList({ job, diagnostics, onSeek }: { job: Extract<Job, { st
     {job.violations.length === 0 && <div className="clean-result"><Icon name="check" /><p>По доступным данным и поддерживаемым правилам признаков возможных нарушений не найдено.</p></div>}
     <p className="result-note">Проверьте результат по исходному видео. Анализ учитывает только доступные данные и поддерживаемые правила.</p>
     {matching?.provenance.kind === 'synthetic' && <p className="fixture-banner">Демонстрационный результат: искусственные данные.</p>}
-    <div className="event-list">{job.violations.map((event, index) => <EvidenceCard key={`${job.job_id}-${event.type}-${event.timecode_sec}-${index}`} event={event} onSeek={onSeek} reviewOnly={matching?.versions.taxonomy === 'source-action-review-v1'} />)}</div>
+    <div className="event-list">{job.violations.map((event, index) => <EvidenceCard key={`${job.job_id}-${event.type}-${event.timecode_sec}-${index}`} event={event} onSeek={onSeek} reviewOnly={['source-action-review-v1', 'source-action-review-v2'].includes(matching?.versions.taxonomy ?? '')} />)}</div>
     {!!matching?.timeline?.observations.length && <ObservationList observations={matching.timeline.observations} duration={matching.duration_sec} onSeek={onSeek} />}
     <section className="rule-results" aria-label="Правила и нормативные основания">
       <h3>Правила и нормативные основания</h3>

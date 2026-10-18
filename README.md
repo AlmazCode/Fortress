@@ -2,19 +2,19 @@
 
 Локальный AI-прототип для проверки кассового видео: загрузка MOV/MP4, очередь анализа, API и просмотр исходных кадров. Обработка выполняется на вашем ПК без облачных AI-сервисов.
 
-**Текущий статус:** подключён локальный ансамбль трёх моделей в явном режиме прототипа. Точность на отложенных семействах видео — **75,00% (27/36)**; прежний одиночный seed42 —72,22%, среднее трёх одиночных seeds —71,30%. Цель80% и независимая приёмка не достигнуты. Сервис показывает интервалы предполагаемых действий, описания и исходные кадры для проверки. Точный тип нарушения и нормативная применимость не подтверждены. [Результаты ансамбля](docs/model/SEED_VOTE.md), [проверка событий](docs/model/EVENT_REVIEW.md).
+**Текущий статус:** локальный прототип с ансамблем трёх моделей и обновлёнными головами действий/присутствия. Точность классификации роликов на отложенных семействах — **75,00% (27/36)**. Для работы с компьютером F1 вырос80,00→80,99%; для присутствия сотрудника95,19→98,70%, человека у стойки80,50→98,09%. Среднее качество всех действий80% не достигнуто; независимой приёмки нет. Описания учитывают присутствие сотрудника и различают манипуляции с сумкой и её оставление. Точный тип нарушения и нормативная применимость не подтверждены. [Действия и ограничения](docs/model/SOURCE_ACTIONS.md), [бинарный ансамбль](docs/model/SEED_VOTE.md).
 
 Подробная разметка операций и сценарных интервалов включена в новые этапы обучения. Малые кандидаты, DINOv2 и локальная VLM не улучшили контроль; отрицательные результаты сохранены в [отчёте обучения](docs/model/TEMPORAL_EVENT_TRAINING.md). Улучшение дал фиксированный ансамбль. Ограничение12MB/одна CNN+GRU относится к прежним экспериментам; оригинальное ТЗ такого лимита не содержит.
 
 ## Запуск на Windows
 
-Нужны Windows 10/11 x64, Node.js 22.12+ и приватный пакет модели: `seed-vote-v1` для нового ансамбля или прежний `transition-state-bundle-v1` для контроля. Установщик подготовит Python 3.11, зависимости CUDA/CPU и FFmpeg. Веса, видео и ключи хранятся вне Git. [Установка нового пакета и возврат к контролю](docs/model/SEED_VOTE.md).
+Нужны Windows 10/11 x64, Node.js 22.12+ и приватный пакет `source-actions-v1` (111MB). Прежние `seed-vote-v1` и `control-v1` сохранены для возврата. Установщик подготовит Python 3.11, зависимости CUDA/CPU и FFmpeg. Веса, видео и ключи хранятся вне Git. [Устройство нового пакета](docs/model/SOURCE_ACTIONS.md).
 
-На текущем ПК пакет уже находится в `%LOCALAPPDATA%\Fortress\models\seed-vote-v1`. На новом ПК сначала скопируйте его туда. Из корня репозитория:
+На текущем ПК пакет находится в `%LOCALAPPDATA%\Fortress\models\source-actions-v1`. На новом ПК сначала скопируйте его туда. Из корня репозитория:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1 -ModelBundle "$env:LOCALAPPDATA\Fortress\models\seed-vote-v1\control"
-powershell -ExecutionPolicy Bypass -File tools/select_local_model.ps1 -ModelBundle "$env:LOCALAPPDATA\Fortress\models\seed-vote-v1"
+powershell -ExecutionPolicy Bypass -File tools/setup_local.ps1 -ModelBundle "$env:LOCALAPPDATA\Fortress\models\source-actions-v1\seed_vote\control"
+powershell -ExecutionPolicy Bypass -File tools/select_local_model.ps1 -ModelBundle "$env:LOCALAPPDATA\Fortress\models\source-actions-v1"
 powershell -ExecutionPolicy Bypass -File tools/start_local.ps1 -Background
 ```
 

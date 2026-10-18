@@ -54,6 +54,10 @@ class PrototypeRelease:
             self.path = Path(config['bundle_root'])/'control'/'weights.pt'
             self.digest = model.metadata['seed_vote_extension']['model_sha256']
             prefix = 'prototype-seed-vote-'
+        if model.metadata.get('source_action_extension'):
+            self.path = Path(config['bundle_root'])/'seed_vote'/'control'/'weights.pt'
+            self.digest = model.metadata['source_action_extension']['model_sha256']
+            prefix = 'prototype-source-actions-'
         self.integrity_files = getattr(model, 'integrity_files', [(self.path, self.digest)])
         self.version = prefix+self.digest[:12]
         self.limitations = model_limitations(model.metadata)

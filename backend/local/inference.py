@@ -29,6 +29,9 @@ LIMITATIONS = [
 
 def predictor(bundle, device):
     metadata = json.loads((Path(bundle)/'bundle.json').read_text(encoding='utf-8-sig'))
+    if metadata.get('source_action_extension'):
+        from ml.source_action_infer import Predictor
+        return Predictor(Path(bundle), device)
     if metadata.get('seed_vote_extension'):
         from ml.seed_vote_infer import Predictor
         return Predictor(Path(bundle), device)
@@ -53,7 +56,8 @@ def model_limitations(info):
     if type(accuracy) not in (int, float) or not 0 <= accuracy <= 1:
         raise ValueError('Invalid model evaluation')
     note = ['Оценка ансамбля — доля голосов трёх моделей, а не калиброванная вероятность.'] if info.get('seed_vote_extension') or info.get('ensemble_size') == 3 else []
-    return [f'Точность на отложенных семействах: {accuracy*100:.2f}%; независимая внешняя проверка не выполнена.', *note, *LIMITATIONS[1:]]
+    context = ['Обновлены отдельные визуальные головы; качество действий и clip accuracy измеряются отдельно.'] if info.get('action_metrics') else []
+    return [f'Точность на отложенных семействах: {accuracy*100:.2f}%; независимая внешняя проверка не выполнена.', *note, *context, *LIMITATIONS[1:]]
 
 
 def make_result(job, raw, evidence, *, deadline_monotonic):
@@ -68,7 +72,7 @@ def make_result(job, raw, evidence, *, deadline_monotonic):
         if not selected:
             raise AnalysisFailure('insufficient_evidence')
         for event in selected:
-            label, description = events.LABELS[event['action']]
+            label, description = events.describe(event, raw, values)
             times = list(dict.fromkeys([event['middle'], event['start'], event['end']]))
             snapshots = evidence.frames(job.upload.path, times, deadline_monotonic=deadline_monotonic)
             if (len(snapshots) != len(times) or any(abs(f.timestamp_sec-t) > .1

@@ -35,9 +35,9 @@ test('foreign-job diagnostics are not substituted and empty events do not promis
   expect(screen.getByText(/Расширенные сведения не получены/)).toBeTruthy(); expect(screen.queryByText(/Демонстрационный результат/)).toBeNull(); expect(screen.getByText(/только доступные данные и поддерживаемые правила/)).toBeTruthy();
 });
 
-test('unreviewed native action cards do not label ordinary actions as violations', () => {
+test.each(['source-action-review-v1', 'source-action-review-v2'])('unreviewed native action cards %s do not label ordinary actions as violations', taxonomy => {
   const d = fixtureCase('ui_diagnostics') as Diagnostics;
-  d.versions.taxonomy = 'source-action-review-v1';
+  d.versions.taxonomy = taxonomy;
   const job = done();
   render(<EventList job={job} diagnostics={d} onSeek={vi.fn()} />);
   expect(screen.getAllByText('Фрагмент для проверки')).toHaveLength(job.violations.length);

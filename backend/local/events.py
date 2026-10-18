@@ -6,7 +6,7 @@ unreviewed observations, never a causal explanation or a legal finding.
 import math
 
 
-VERSION = 'source-action-review-v1'
+VERSION = 'source-action-review-v2'
 MAX_REVIEW_EVENTS = 4
 LABELS = {
     'risk_candidate': ('Подозрительный фрагмент по сценарию', 'Модель локализовала фрагмент по слабым сценарным меткам. Причина и нормативная применимость требуют проверки.'),
@@ -63,7 +63,7 @@ def segments(raw, duration):
                   else min(selected, key=lambda f: abs(f['timestamp_sec']-(times[0]+times[-1])/2)))
         result.append({'action': action, 'start': times[0], 'end': times[-1],
                        'score': sum(scores)/len(scores), 'middle': middle['timestamp_sec'],
-                       'frame_count': len(points)})
+                       'frame_count': len(points), 'source_pts': points.copy()})
     return sorted(result, key=lambda s: (s['start'], s['end'], s['action']))
 
 
@@ -78,6 +78,58 @@ def review_segments(values):
     # Bound JPEG/decode cost, keeping temporal coverage rather than only the start.
     return [eligible[round(n*(len(eligible)-1)/(MAX_REVIEW_EVENTS-1))]
             for n in range(MAX_REVIEW_EVENTS)]
+
+
+def describe(event, raw, values):
+    """Describe simultaneous source observations without inventing a violation.
+
+    Missing/ambiguous operator scores never imply absence. A departure hint
+    needs an earlier presence observation and a continuous two-second absence.
+    Bag handling alone never implies that the bag was left on the desk.
+    """
+    label, description = LABELS[event['action']]
+    points = set(event['source_pts'])
+    frames = [f for f in raw['frames'] if f['source_pts'] in points]
+
+    def stable(name, present):
+        scores = [f['state_scores'].get(name) for f in frames]
+        valid = [s for s in scores if type(s) in (float, int) and math.isfinite(s) and 0 <= s <= 1]
+        return (len(valid) == len(frames) and len(valid) >= 3
+                and sum(s >= .8 if present else s <= .2 for s in valid)/len(valid) >= (.8 if present else 1))
+
+    operator_present = stable('operator_at_station', True)
+    operator_absent = (event['end']-event['start'] >= 2 and stable('operator_at_station', False))
+    earlier_presence = False
+    run = []
+    for frame in raw['frames']:
+        score = frame['state_scores'].get('operator_at_station')
+        timestamp = frame['timestamp_sec']
+        if (0 < event['start']-timestamp <= 8 and type(score) in (int,float) and .8 <= score <= 1):
+            if run and timestamp-run[-1] > .75: run = []
+            run.append(timestamp)
+            if len(run) >= 3 and run[-1]-run[0] >= 1: earlier_presence = True
+        else: run = []
+    action = event['action']
+    if action in ('storage_open','safe_open','bag_on_desk','laptop_screen_lit'):
+        if operator_present:
+            description += ' В те же моменты модель видит сотрудника у рабочего места; оставление без присмотра не подтверждено.'
+        elif operator_absent and earlier_presence:
+            description += ' После ранее видимого сотрудника модель предполагает его отсутствие не менее 2 с. Проверьте оставление рабочего места по кадрам; это гипотеза, а не установленное нарушение.'
+        else:
+            description += ' Надёжно определить уход сотрудника по этому интервалу не удалось.'
+    if action == 'bag_interaction':
+        description += (' Одновременно модель предполагает положение сумки на столе.' if stable('bag_on_desk', True)
+                        else ' Размещение сумки на столе не подтверждено; манипуляции с сумкой не означают её оставление.')
+    companions = []
+    for other in values:
+        if (other['action'] != action and other['action'] in ACTIONS and other['action'] != 'risk_candidate'
+                and other['frame_count'] >= 3
+                and min(event['end'],other['end'])-max(event['start'],other['start']) >= 1):
+            name = LABELS[other['action']][0].lower()
+            if name not in companions: companions.append(name)
+    if companions:
+        description += ' Пересекающиеся предположения модели: '+', '.join(companions[:2])+'.'
+    return label, description
 
 
 def timeline(job, raw, values):
