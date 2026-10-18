@@ -8,6 +8,7 @@
 | Web/API URL, ключ, запросы и публичная сдача | [JURY_HANDOFF.md](JURY_HANDOFF.md) |
 | Устройство сервиса и ограничения профилей | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Фактическое состояние и проверки | [PROJECT_STATUS.md](PROJECT_STATUS.md) |
+| Финальный прогон по оригинальному ТЗ, API/UI, время и оставшиеся пробелы | [FINAL_TZ_CHECK.md](FINAL_TZ_CHECK.md) |
 | Быстрая человеческая разметка кадров | [HUMAN_REVIEW.md](HUMAN_REVIEW.md) |
 | Обучение на сохранённых человеческих ответах | [HUMAN_ACTION_TRAINING.md](model/HUMAN_ACTION_TRAINING.md) |
 | API и данные | [OpenAPI](../contracts/openapi.yaml), [контракты](../contracts/STACK.md) |
