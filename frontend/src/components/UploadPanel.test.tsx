@@ -2,29 +2,27 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { UploadPanel } from './UploadPanel';
 afterEach(cleanup);
 const video = () => new File(['test'], 'clip.mp4', { type: 'video/mp4' });
-const props = { enabled: true, uploading: false, onUpload: vi.fn(), onAbort: vi.fn() };
-test('shows limits and submits only after explicit selection and click', async () => {
-  const onUpload = vi.fn(); render(<UploadPanel {...props} onUpload={onUpload} />);
+test('adds multiple files locally and displays file limits', async () => {
+  const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />);
   expect(screen.getByText(/180 с/).textContent).toContain('60 fps');
-  expect((screen.getByRole('button', { name: /Начать анализ/ }) as HTMLButtonElement).disabled).toBe(true);
-  const file = video(); fireEvent.change(screen.getByLabelText('Видеофайл'), { target: { files: [file] } });
-  await screen.findByText(file.name); expect(onUpload).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: /Начать анализ/ })); expect(onUpload).toHaveBeenCalledExactlyOnceWith(file);
+  const files = [video(), new File(['test'], 'second.mov', { type: 'video/quicktime' })];
+  fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files } });
+  await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith(files));
 });
 test.each(['empty', 'oversize', 'unsupported'])('rejects %s without POST', async kind => {
-  const onUpload = vi.fn(); render(<UploadPanel {...props} onUpload={onUpload} />);
+  const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />);
   const file = kind === 'unsupported' ? new File(['bad'], 'bad.txt', { type: 'text/plain' }) : video();
   if (kind !== 'unsupported') Object.defineProperty(file, 'size', { value: kind === 'empty' ? 0 : 200 * 1024 * 1024 + 1 });
-  fireEvent.change(screen.getByLabelText('Видеофайл'), { target: { files: [file] } });
-  await screen.findByRole('alert'); expect(onUpload).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files: [file] } });
+  await screen.findByRole('alert'); expect(onAdd).not.toHaveBeenCalled();
 });
-test('disabled panel blocks input', () => {
-  render(<UploadPanel {...props} enabled={false} />);
-  expect((screen.getByLabelText('Видеофайл') as HTMLInputElement).disabled).toBe(true);
+test('keeps valid files when another selected file is invalid', async () => {
+  const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />); const file = video();
+  fireEvent.change(screen.getByLabelText('Видеофайлы'), { target: { files: [file, new File(['bad'], 'bad.txt', { type: 'text/plain' })] } });
+  await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith([file])); expect(screen.getByRole('alert').textContent).toContain('1');
 });
-test('indeterminate transfer and abort do not claim server cancellation', () => {
-  const onAbort = vi.fn(); render(<UploadPanel {...props} uploading onAbort={onAbort} progress={{ loaded: 0, total: 50, computable: false }} />);
-  expect(screen.getByRole('progressbar').hasAttribute('value')).toBe(false);
-  expect(screen.getByRole('status').textContent).toContain('не отменяет уже принятое');
-  fireEvent.click(screen.getByRole('button', { name: 'Прервать передачу' })); expect(onAbort).toHaveBeenCalledOnce();
+test('adds pasted files to the local queue exactly once', async () => {
+  const onAdd = vi.fn(); render(<UploadPanel onAdd={onAdd} />); const file = video();
+  fireEvent.paste(screen.getByRole('button', { name: 'Выбрать или перетащить видео' }), { clipboardData: { files: [file], types: ['Files'], items: [{ kind: 'file', type: file.type, getAsFile: () => file }] } });
+  await waitFor(() => expect(onAdd).toHaveBeenCalledExactlyOnceWith([file]));
 });

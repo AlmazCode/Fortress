@@ -3,13 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiClient, ApiError, validJobId } from '../api/client';
 import type { FailureReason, Job } from '../api/types';
 
-const reasons: Record<FailureReason, string> = {
+export const failureMessages: Record<FailureReason, string> = {
   insufficient_evidence: 'Недостаточно данных для анализа.',
   deadline_exceeded: 'Превышен срок обработки.', decode_failed: 'Не удалось прочитать видео.',
   inference_failed: 'Модель не завершила обработку.', evidence_failed: 'Не удалось подготовить доказательства.',
   worker_lost: 'Обработка прервана.', internal_error: 'Ошибка обработки.', release_invalid: 'Модель несовместима или повреждена.',
 };
-const stages: Record<string, string> = {
+export const stageLabels: Record<string, string> = {
   validation: 'Проверяем файл', queued: 'Ожидаем обработки', decoding: 'Читаем видео',
   inference: 'Анализируем видео', rules: 'Проверяем события', evidence: 'Подготавливаем кадры',
 };
@@ -50,7 +50,7 @@ export function JobStatus({ jobId, job, checking, stage, error, authenticated = 
     <h2 id="job-title">{jobId ? job?.status === 'done' ? 'Результат получен' : job?.status === 'failed' ? 'Анализ не завершён' : 'Обработка видео' : 'Открыть задание'}</h2>
     {jobId ? <>
       <div className="job-id"><span>ID</span><code>{jobId}</code></div>
-      <p role="status">{error ? 'Текущее состояние не подтверждено.' : job?.status === 'done' ? 'События и кадры — ниже.' : job?.status === 'failed' ? reasons[job.reason] : stage ? stages[stage] ?? 'Обрабатываем видео…' : checking ? 'Проверяем состояние…' : 'Ожидаем результат…'}</p>
+      <p role="status">{error ? 'Текущее состояние не подтверждено.' : job?.status === 'done' ? 'События и кадры — ниже.' : job?.status === 'failed' ? failureMessages[job.reason] : stage ? stageLabels[stage] ?? 'Обрабатываем видео…' : checking ? 'Проверяем состояние…' : 'Ожидаем результат…'}</p>
       <p className="muted">Сохраните ID, чтобы открыть задание позже.{(!job || job.status === 'processing') && ' Закрытие страницы не отменяет обработку.'}</p>
       <button className="text-button" onClick={onClear}>Закрыть просмотр задания</button>
     </> : <>

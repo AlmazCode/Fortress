@@ -428,6 +428,7 @@ h1 {
   color:var(--text-muted)
 }
 .field-error {
+  overflow-wrap:anywhere;
   font-size:12px;
   color:var(--error)
 }
@@ -436,12 +437,23 @@ h1 {
   font-size:12px
 }
 progress {
+  appearance:none;
+  border:0;
+  border-radius:999px;
+  overflow:hidden;
+  background:var(--surface-muted);
   display:block;
   width:100%;
   height:6px;
   margin:10px 0;
   accent-color:var(--forte-primary)
 }
+progress::-webkit-progress-bar { background:var(--surface-muted); border-radius:999px }
+progress::-webkit-progress-value { background:var(--forte-primary); border-radius:999px }
+progress::-moz-progress-bar { background:var(--forte-primary); border-radius:999px }
+progress:indeterminate { background:linear-gradient(90deg,var(--brand-soft) 25%,var(--forte-primary) 50%,var(--brand-soft) 75%); background-size:200% 100%; animation:queue-loading 1.4s linear infinite }
+progress:indeterminate::-webkit-progress-bar { background:transparent }
+@keyframes queue-loading { from { background-position:100% 0 } to { background-position:-100% 0 } }
 .upload-progress p {
   font-size:11px;
   color:var(--text-muted)
@@ -762,5 +774,44 @@ h1 {
   scroll-behavior:auto!important;
   transition:none!important
 }
+progress:indeterminate { animation:none }
 
+}
+
+.queue-panel { padding:25px; background:var(--surface); border:1px solid var(--border); border-radius:9px; min-width:0 }
+.upload-panel-compact { padding:14px 20px }
+.upload-panel-compact .dropzone { margin:0; padding:10px; flex-direction:row; min-height:60px }
+.upload-panel-compact .upload-icon { width:32px; height:32px; border-radius:8px; margin:0 }
+.upload-panel-compact .upload-icon svg { width:20px; height:20px }
+.upload-panel-compact summary { font-size:12px; min-height:36px; padding:6px 0 }
+.upload-panel-compact .limits { margin:0 0 10px }
+.queue-heading,.queue-overview,.queue-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
+.queue-heading h2 { margin-bottom:0 }
+.queue-volume,.queue-hint,.queue-overview { color:var(--text-muted); font-size:12px }
+.queue-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin:22px 0 }
+.queue-stats>div { padding:12px 9px; background:var(--page-bg); border-radius:6px; min-width:0 }
+.queue-stats dt { font-size:11px; color:var(--text-muted) }
+.queue-stats dd { margin:5px 0 0; font-size:24px; line-height:1.1; font-weight:650; color:var(--forte-deep) }
+.queue-overview { margin-bottom:7px }
+.queue-controls { justify-content:flex-start; margin:16px 0 }
+.queue-list { list-style:none; padding:0; margin:20px 0 0 }
+.queue-item { display:grid; grid-template-columns:25px minmax(0,1fr) auto; gap:12px; padding:18px 0; border-top:1px solid var(--border) }
+.queue-number { font:11px Consolas,monospace; color:var(--text-muted); padding-top:4px }
+.queue-file { min-width:0 }
+.queue-file>strong { display:block; font-size:14px; overflow-wrap:anywhere }
+.queue-meta { display:flex; gap:6px 12px; flex-wrap:wrap; font-size:11px; color:var(--text-muted); margin-top:5px }
+.queue-item-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:6px 12px; max-width:170px }
+.queue-item-actions .pill { font-size:11px }
+.queue-item-uploading .pill,.queue-item-processing .pill { background:var(--brand-soft); border-color:var(--brand-border); color:var(--forte-primary) }
+.queue-error { background:var(--error-bg); color:var(--error) }
+.queue-remove { padding:3px; width:32px; min-height:44px; border:0; color:var(--text-muted); font-size:20px; background:transparent }
+.queue-transfer { font-size:12px; color:var(--forte-primary); margin-top:10px }
+.queue-item-message { font-size:12px; color:var(--error); margin:9px 0 0; overflow-wrap:anywhere }
+.queue-hint { margin:14px 0 0; line-height:1.6 }
+@media(max-width:660px) {
+  .queue-panel { padding:20px }
+  .queue-stats { grid-template-columns:repeat(3,minmax(0,1fr)) }
+  .queue-item { grid-template-columns:20px minmax(0,1fr); gap:9px }
+  .queue-item-actions { grid-column:2; justify-content:flex-start; max-width:none }
+  .queue-controls .primary-button { width:100% }
 }
