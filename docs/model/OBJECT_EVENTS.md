@@ -81,3 +81,16 @@ unchanged. The corrected linear head uses150 zero-initialized AdamW steps,
 lr.01,weight decay1,train-only normalization. A final object-mode neural fit is
 created separately only if the parent final mode lacks it. All decisions freeze
 before the four previously observed reserved sources are evaluated.
+
+The exported bundle runs locally without the annotation package or feature cache:
+
+```powershell
+python -B -m ml.object_events_infer infer --bundle <local-bundle-directory> --video <local-mov-file> --device cuda
+```
+
+Use `--device cpu` for the CPU path. The JSON includes source SHA/PTS,experimental
+object boxes/state scores,candidate intervals,rule probes and tri-state statuses.
+It explicitly reports `production_ready=false`. Export the frozen posterior
+comparison with `python -B -m ml.object_rules export --experiment <completed-stage>
+--output <new-bundle-directory>`; a directory is never silently overwritten.
+Aggregate results are recorded in [OBJECT_EVENTS_RESULTS.json](OBJECT_EVENTS_RESULTS.json).
