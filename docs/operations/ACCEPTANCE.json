@@ -5,11 +5,11 @@
   "owner": "developer-4",
   "branch": "codex/dev4-rules-infra",
   "tested_code_commit": "d5eb6eff26ffd8039939270b99c8ec6dec12a7e1",
-  "integration_snapshot": "ecce7c2126e8e99e7dea3baff3af7b15b4391891",
+  "integration_snapshot": "469b2eb841de187d8e3429dc17514254777d3bdc",
   "integration_merge": "8a4cf759095adfa59090536ca7cf83a2932c4726",
   "status": "blocked",
   "scope": "Owned software tooling and native client tests; not full-stack operational acceptance",
-  "user_constraint": "No VM, WSL or hypervisor setup for now; remaining portable tools prepared by explicit request",
+  "user_constraint": "2026-10-18 user explicitly authorizes WSL2/Docker/GPU on this Windows PC, superseding former no-virtualization constraint. Automatic reboot not authorized/performed. Home router ownership and ipify/sslip.io/Let's Encrypt disclosure explicitly confirmed.",
   "accepted_by_lead": [
     "O1 inventory",
     "R1 software/missingSource",
@@ -18,8 +18,8 @@
     "R software"
   ],
   "remaining_tasks": {
-    "O2": "blocked: actual engine connection failed; no permitted runtime host/access supplied; build/start/connectivity/egress/volume restart/container CUDA not_run",
-    "O3": "blocked: local HTTP/TLS passed; trusted external observer/hostname/route absent",
+    "O2": "blocked until required Windows reboot and actual healthy Docker engine; then container build/start, worker DB/Redis+denied egress, volumes/restart and GPU compute. CPU Torch lock remains separate application GPU prerequisite.",
+    "O3": "blocked: consented hostname prepared and DNS verified; no confirmed router ingress or trusted public certificate/external observer; public endpoint not active",
     "O": "blocked on O2/O3",
     "B": "tooling prepared; operational acceptance blocked on accepted I and real runtime"
   },
@@ -74,16 +74,17 @@
   "runtime_gates": {
     "native_windows_full_worker": "unsupported by accepted POSIX fcntl/signals/prefork implementation",
     "native_linux_runtime": "not_run_on_this_host",
-    "docker_engine_build_start": "not_run: native Windows engine probe exit 1, docker_engine named pipe absent; virtualization/install/reboot deferred",
+    "docker_engine_build_start": "Docker Desktop installed exit 0; client/Compose pass; first server query exit 1 (Virtual Machine Platform not activated). Windows feature enablement reports restart required. Service containers not built/started.",
     "worker_local_db_redis_and_egress": "not_run",
     "persistent_media_models_db_restart": "not_run",
     "full_stack_crash_retry_fencing_capacity": "not_run_requires_I",
-    "target_gpu_cuda_container_compatibility": "not_verified: host NVIDIA query succeeds, no container engine; shared lock selects CPU Torch; local test venv has no torch",
-    "trusted_external_https_auth_upload_poll_media": "not_run",
+    "target_gpu_cuda_container_compatibility": "not_verified: RTX 4060 host driver available, container engine blocked on activation after reboot; current shared app lock is CPU-only",
+    "trusted_external_https_auth_upload_poll_media": "not_run: DNS prepared, ingress/CA/observer not ready",
     "external_access_verified": false,
     "independent_external_observer_required": true,
     "normative_applicability": "unknown: no verified original case/jurisdiction/source in this checkout",
-    "backend_404_contract": "software fix integrated at c46a2c0; six actual serializer cases passed strict K on 2026-10-18; no new live HTTP/runtime claim"
+    "backend_404_contract": "software fix integrated at c46a2c0; six actual serializer cases passed strict K on 2026-10-18; no new live HTTP/runtime claim",
+    "windows_wsl2_installation": "WSL 3.0.3 and Docker Desktop 4.95.0 installed; both installer exit 0; VMP/WSL features Enabled with RestartNeeded true; no automatic reboot"
   },
   "measurements": {
     "trained_release_performance": "not_measured",
@@ -304,20 +305,21 @@
   "technical_decision": {
     "source": "User delegates technical choice; existing K stack retained",
     "client": "Ordinary browser on Windows; native build/probe/sampler tools",
-    "server": "Existing authorized native Linux x86_64 host with Linux container engine; no VM setup on current Windows PC",
-    "runtime_host_selected": false,
-    "runtime_host_address": null,
+    "server": "Current Windows 11 Pro host using Docker Desktop WSL2 Linux containers",
+    "runtime_host_selected": true,
+    "runtime_host_address": "local_windows_host",
     "engine_access_confirmed": false,
     "external_hostname": null,
     "external_route_confirmed": false,
     "external_tls_confirmed": false,
-    "comment": "User requests Docker/HTTPS fixes; code fixed for network-only diagnostic scope and remediation documented. Other computer exists but no address/access supplied after earlier deferral. External hostname/route/certificate also unprovided; operational settings cannot be changed from this Windows host.",
+    "comment": "New explicit user authorization permits WSL2/Docker/GPU installation locally and consented IP/DNS/ACME services. Installations completed; reboot needed before engine and runtime tests. Router ingress remains unverified. No public IP/hostname/keys copied into Git.",
     "user_reported_alternate_computer": true,
-    "access_deferred_by_user": true
+    "access_deferred_by_user": false,
+    "hostname_prepared_in_private_local_file": true
   },
   "minimum_completion_conditions": {
     "O2": [
-      "Existing authorized Linux x86_64 runtime host and an available connection method",
+      "Authorized native Linux host or current authorized Windows WSL2 Linux-container runtime, with actual working engine access after required restart",
       "Confirmed working Docker engine access and supported Compose; version/config alone are insufficient",
       "Dedicated persistent test roots/volumes and private env; actual build/start, migrations, worker DB/Redis plus blocked egress and restart checks",
       "Actual GPU/container compatibility checks for the required GPU worker; current CPU Torch lock is not CUDA evidence"
@@ -331,7 +333,7 @@
     "O": "Actual O2 and O3 criteria pass on exact checked commits; ordinary push/config/native tests do not close them",
     "B": "Accepted I plus explicit synthetic bootstrap and actual full-stack recovery/capacity/deadline evidence; parser/harness success is insufficient"
   },
-  "previous_report_head": "f2e40c6750d4794ae6817c248a45e9b3380f9401",
+  "previous_report_head": "1a7cbd985c631a9d491bde64a9307393f683b2e5",
   "synchronization_method": "fast-forward to accepted integration; exit 0",
   "runtime_attempt_2026_10_18": {
     "checked_integration_sha": "69f2a3835a3b9964f8fc03922ea7da5ff03e9aa5",
@@ -546,7 +548,7 @@
   "release_instructions": {
     "path": "docs/operations/RELEASE.md",
     "requested_by_user": true,
-    "status": "prepared_for_future_release_not_runtime_validated",
+    "status": "updated_for_authorized_windows_wsl2_installation_restart_pending",
     "public_github_release_observed": false,
     "release_page": "https://github.com/AlmazCode/Fortress/releases",
     "published_release_or_tag_created": false,
@@ -559,7 +561,9 @@
       "matching_key_pair_verified": true,
       "mismatching_key_pair_detected": true,
       "scope": "Local temporary certificate/key command validation; no public certificate issued, no external route or runtime changed",
-      "unchanged_python_and_env_checks": "Five Python snippets/private env and Compose configs retain earlier 2026-10-18 evidence; unrelated unchanged checks not repeated"
+      "unchanged_python_and_env_checks": "Five Python snippets/private env and Compose configs retain earlier 2026-10-18 evidence; unrelated unchanged checks not repeated",
+      "new_powershell_blocks": 3,
+      "new_powershell_syntax_exit_code": 0
     },
     "runtime_commands_executed": false,
     "future_release_owner_action": "Include launch instructions and actual acceptance evidence in release for exact accepted I/release SHA",
@@ -665,5 +669,120 @@
     "release_remediation": "RELEASE.md now distinguishes the two Docker hosts, provides conditional rootful group/login or existing rootless diagnostics, and DNS/route/ACME/certificate-pair/TLS/upload steps",
     "operational_result": "Blocked on actual host access and external hostname/route/TLS; local tooling fix does not claim engine permissions or external HTTPS repaired",
     "constraints": "No WSL/VirtualMachinePlatform, VM, Docker reinstall, reboot, permission mutation, insecure socket/TLS bypass, deploy, main/force-push or new chats"
-  }
+  },
+  "windows_setup_2026_10_18": {
+    "checked_integration_sha": "469b2eb841de187d8e3429dc17514254777d3bdc",
+    "accepted_M_fix_sha": "c68ae819d38cd14b97921c9c76ed1a4b92d89cc8",
+    "accepted_dependency_ancestor_checks_exit_code": 0,
+    "git_fetch_after_network_escalation_exit_code": 0,
+    "git_fast_forward_exit_code": 0,
+    "authorization": {
+      "wsl2_docker_gpu": true,
+      "home_router_owned": true,
+      "ipify_sslip_lets_encrypt": true,
+      "automatic_reboot": false
+    },
+    "features": [
+      {
+        "name": "VirtualMachinePlatform",
+        "before": "Disabled",
+        "changed": true,
+        "restart_needed": true,
+        "after": "Enabled"
+      },
+      {
+        "name": "Microsoft-Windows-Subsystem-Linux",
+        "before": "Disabled",
+        "changed": true,
+        "restart_needed": true,
+        "after": "Enabled"
+      }
+    ],
+    "restart_required": true,
+    "automatic_restart": false,
+    "wsl_package": {
+      "version": "3.0.3.0",
+      "sha256": "ae977286974255bd26bf925f00f40f5692c6b2084155cbc0563c09aea091f211",
+      "authenticode": "Valid Microsoft Corporation",
+      "installer_exit_code": 0,
+      "installer_no_restart": true
+    },
+    "docker_package": {
+      "version": "4.95.0.242831",
+      "sha256": "73431db38491f770543880366228a23c993f84d1e8e045f56d83b8a98940cf76",
+      "authenticode": "Valid Docker Inc",
+      "installer_exit_code": 0,
+      "mode": "per-user",
+      "backend": "wsl-2",
+      "app_present": true
+    },
+    "first_start_checks": {
+      "wsl_version": {
+        "exit_code": 0,
+        "stdout": "WSL version: 3.0.3.0\r\nKernel version: 6.18.54.1-1\r\nWSLg version: 1.0.79\r\nMSRDC version: 1.2.7391\r\nDirect3D version: 1.611.1-81528511\r\nDXCore version: 10.0.26100.1-240331-1435.ge-release\r\nWindows version: 10.0.26300.9457",
+        "stderr": ""
+      },
+      "docker_client": {
+        "exit_code": 0,
+        "stdout": "Docker version 29.8.2, build 7fc2dff",
+        "stderr": ""
+      },
+      "compose": {
+        "exit_code": 0,
+        "stdout": "Docker Compose version v5.6.0",
+        "stderr": ""
+      },
+      "docker_engine": {
+        "exit_code": 1,
+        "stdout": "null",
+        "stderr": "Error response from daemon: Docker Desktop is unable to start"
+      }
+    },
+    "engine_failure_detail": "Docker backend log: checking preconditions: Virtual Machine Platform not enabled; No virtualization available. BIOS virtualization true, both features Enabled but requested reboot not yet done.",
+    "private_harness_environment": {
+      "prepared": true,
+      "outside_git": true,
+      "unique_strong_credentials": true,
+      "local_certificate_only": true,
+      "services_started": false
+    },
+    "installed_compose_config": {
+      "production_exit_code": 0,
+      "harness_exit_code": 0,
+      "values_not_printed": true
+    },
+    "release_powershell_syntax": {
+      "blocks": 3,
+      "exit_code": 0
+    },
+    "network": {
+      "public_ip_probe": "ipify, user consent obtained after initial auto-review rejection",
+      "public_ip_stored_only_locally": true,
+      "proposed_sslip_hostname_stored_only_locally": true,
+      "dns_matches_observed_public_ip": true,
+      "router_upnp_available": false,
+      "router_local_admin_tcp": {
+        "80": "unreachable",
+        "443": "unreachable",
+        "8080": "unreachable"
+      },
+      "router_mapping_changed": false,
+      "windows_firewall_changed": false,
+      "router_wan_vs_public_ip_compared": false,
+      "cgnat": "unknown",
+      "public_certificate_issued": false,
+      "external_access_verified": false
+    },
+    "runtime_probes": {
+      "nvidia_cuda_container": "not_run_engine_unavailable",
+      "harness_build_start": "not_run_engine_unavailable",
+      "worker_db_redis_egress": "not_run",
+      "persistent_volumes_restart": "not_run",
+      "real_api_external_upload_status": "not_run",
+      "recovery_B": "not_run_requires_accepted_I"
+    },
+    "next_action": "User-controlled reboot; then real engine and immutable-digest NVIDIA CUDA sample, separate harness build/start/network/volumes; confirm router ingress and issue trusted certificate before external smoke",
+    "scope": "Installation/preparation evidence only, not O2/O3/O acceptance or native Windows backend support"
+  },
+  "current_assessment_section": "windows_setup_2026_10_18; supersedes earlier no-virtualization/access-deferred snapshots"
 }
