@@ -1,8 +1,33 @@
 @import "tailwindcss";
 :root {
+  /* Brand colors sampled from the official forte.kz interface. */
+  --forte-primary:#a31551;
+  --forte-deep:#4a0221;
+  --forte-accent:#fc9385;
+  --page-bg:#f7f6f6;
+  --surface:#ffffff;
+  --surface-muted:#ededed;
+  --text:#1d1d1d;
+  --text-muted:#6c6c6c;
+  --border:#dedade;
+  --border-strong:#b9bcc8;
+  --brand-soft:#faedf2;
+  --brand-border:#dfb3c6;
+  --sidebar-text:#f7f6f6;
+  --sidebar-muted:#e4ced7;
+  --sidebar-border:rgb(255 255 255 / 18%);
+  --media-bg:#1d1d1d;
+  --success:#256b45;
+  --success-bg:#edf6ef;
+  --warning:#805313;
+  --warning-bg:#fff3d9;
+  --warning-border:#dcc18c;
+  --error:#a12b32;
+  --error-bg:#fff1f2;
+  --error-border:#e7b8bf;
   font-family:Inter,"Segoe UI",Arial,sans-serif;
-  color:#243443;
-  background:#f5f7f8;
+  color:var(--text);
+  background:var(--page-bg);
   font-synthesis:none;
   font-weight:400;
   line-height:1.55
@@ -22,43 +47,43 @@ button,summary {
 }
 button {
   min-height:44px;
-  border:1px solid #ccd6d9;
+  border:1px solid var(--border);
   border-radius:7px;
   padding:9px 15px;
-  background:#fff;
+  background:var(--surface);
   font-weight:600;
-  color:#243443;
+  color:var(--text);
   transition:background .15s
 }
 button:hover:not(:disabled) {
-  background:#edf5f3
+  background:var(--brand-soft)
 }
 button:disabled {
   cursor:not-allowed;
   opacity:.5
 }
 a {
-  color:#086b5d;
+  color:var(--forte-primary);
   text-underline-offset:3px
 }
 input {
   min-height:44px;
   min-width:0;
   width:100%;
-  border:1px solid #a9b9bf;
+  border:1px solid var(--border-strong);
   border-radius:6px;
   padding:10px 12px;
-  background:#fff;
-  color:#243443
+  background:var(--surface);
+  color:var(--text)
 }
 input[aria-invalid=true] {
-  border-color:#ae3a29
+  border-color:var(--error)
 }
 input::placeholder {
-  color:#6b7c85
+  color:var(--text-muted)
 }
 :focus-visible {
-  outline:3px solid #167c6b;
+  outline:3px solid var(--forte-primary);
   outline-offset:3px
 }
 h1,h2,h3,h4,p {
@@ -96,7 +121,7 @@ label {
 }
 summary {
   font-weight:600;
-  color:#086b5d;
+  color:var(--forte-primary);
   padding:8px 0;
   min-height:44px
 }
@@ -111,7 +136,7 @@ details p {
   position:fixed;
   top:-80px;
   left:20px;
-  background:#fff;
+  background:var(--surface);
   padding:12px;
   z-index:100
 }
@@ -121,8 +146,8 @@ details p {
 .sidebar {
   width:230px;
   flex-shrink:0;
-  background:#132c32;
-  color:#dce8e8;
+  background:var(--forte-deep);
+  color:var(--sidebar-text);
   display:flex;
   flex-direction:column;
   position:fixed;
@@ -134,10 +159,13 @@ details p {
   gap:11px;
   align-items:center;
   text-decoration:none;
-  color:#fff;
+  color:var(--surface);
   font-size:19px;
   letter-spacing:2px;
   font-weight:700
+}
+.brand svg {
+  color:var(--forte-accent)
 }
 .nav-active {
   display:flex;
@@ -146,18 +174,21 @@ details p {
   text-decoration:none;
   align-items:center;
   gap:12px;
-  background:#24454a;
+  background:var(--forte-primary);
   padding:12px;
-  border:1px solid #426167;
+  border:1px solid var(--forte-primary);
   border-radius:7px;
   font-size:13px
+}
+.sidebar :focus-visible {
+  outline-color:var(--forte-accent)
 }
 .sidebar-note {
   margin-top:auto;
   margin-bottom:0;
   font-size:13px;
-  color:#b7cbce;
-  border-top:1px solid #3c565c;
+  color:var(--sidebar-muted);
+  border-top:1px solid var(--sidebar-border);
   padding-top:24px
 }
 .main-shell {
@@ -169,12 +200,12 @@ details p {
   display:inline-block;
   width:6px;
   height:6px;
-  background:#85999f;
+  background:var(--text-muted);
   border-radius:50%;
   flex-shrink:0
 }
 .dot.green {
-  background:#087564
+  background:var(--success)
 }
 main {
   max-width:1320px;
@@ -196,7 +227,7 @@ h1 {
 }
 .page-heading p {
   font-size:13px;
-  color:#61737d;
+  color:var(--text-muted);
   line-height:1.75
 }
 .workspace-grid {
@@ -213,17 +244,17 @@ h1 {
 }
 .upload-panel,.job-panel,.access-panel,.model-panel {
   padding:25px;
-  background:#fff;
-  border:1px solid #dce4e6;
+  background:var(--surface);
+  border:1px solid var(--border);
   border-radius:9px;
   min-width:0
 }
 .dropzone {
   margin-top:12px;
   padding:30px 16px;
-  border:1px dashed #9dbbb2;
+  border:1px dashed var(--brand-border);
   border-radius:8px;
-  background:#f7fbf9;
+  background:var(--brand-soft);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -236,7 +267,7 @@ h1 {
 }
 .dropzone>span {
   font-size:11px;
-  color:#62766e
+  color:var(--text-muted)
 }
 .upload-icon {
   display:grid;
@@ -244,23 +275,23 @@ h1 {
   width:53px;
   height:53px;
   border-radius:13px;
-  background:#e4f0ea;
-  color:#23644f;
+  background:var(--brand-soft);
+  color:var(--forte-primary);
   margin-bottom:8px
 }
 .drag-active {
-  background:#e7f5ee;
+  background:var(--brand-soft);
   border-style:solid
 }
 .inactive {
-  background:#f6f8f8;
+  background:var(--surface-muted);
   cursor:default;
-  border-color:#c2cecd
+  border-color:var(--border-strong)
 }
 .limits {
   font-size:12px;
   line-height:1.7;
-  color:#607078;
+  color:var(--text-muted);
   margin:14px 0 20px
 }
 .upload-actions {
@@ -271,13 +302,13 @@ h1 {
   flex-wrap:wrap
 }
 .primary-button {
-  background:#196c59;
-  color:#fff;
-  border-color:#196c59;
+  background:var(--forte-primary);
+  color:var(--surface);
+  border-color:var(--forte-primary);
   font-size:13px
 }
 .primary-button:hover:not(:disabled) {
-  background:#125441
+  background:var(--forte-deep)
 }
 .primary-button>span {
   margin-left:10px
@@ -291,7 +322,7 @@ h1 {
   border:0;
   border-radius:2px;
   background:transparent;
-  color:#086b5d;
+  color:var(--forte-primary);
   text-decoration:underline;
   text-underline-offset:3px;
   font-size:12px
@@ -301,7 +332,7 @@ h1 {
 }
 .access-panel p,.model-panel p,.job-panel p {
   font-size:14px;
-  color:#5d7079
+  color:var(--text-muted)
 }
 .access-panel h2,.model-panel h2 {
   font-size:17px
@@ -346,21 +377,21 @@ h1 {
   overflow-wrap:anywhere
 }
 .pill.neutral {
-  background:#eff3f4;
-  color:#52656c;
-  border:1px solid #dce4e6
+  background:var(--surface-muted);
+  color:var(--text-muted);
+  border:1px solid var(--border)
 }
 .pill.success {
-  background:#e6f1ec;
-  color:#166047
+  background:var(--success-bg);
+  color:var(--success)
 }
 .pill.warning {
-  background:#fff0d6;
-  color:#865412
+  background:var(--warning-bg);
+  color:var(--warning)
 }
 .model-panel details {
   font-size:11px;
-  border-top:1px solid #e0e7e8;
+  border-top:1px solid var(--border);
   padding-top:5px
 }
 .model-panel summary {
@@ -371,14 +402,14 @@ h1 {
   gap:10px;
   align-items:baseline;
   padding:10px;
-  background:#f4f7f8;
+  background:var(--surface-muted);
   border-radius:5px;
   margin:15px 0;
   font-size:11px
 }
 .job-id>span {
   font-size:9px;
-  color:#57717a
+  color:var(--text-muted)
 }
 .resume-form {
   margin-top:18px
@@ -394,11 +425,11 @@ h1 {
 }
 .muted {
   font-size:13px;
-  color:#647780
+  color:var(--text-muted)
 }
 .field-error {
   font-size:12px;
-  color:#a33b26
+  color:var(--error)
 }
 .upload-progress {
   margin:16px 0;
@@ -409,11 +440,11 @@ progress {
   width:100%;
   height:6px;
   margin:10px 0;
-  accent-color:#196c59
+  accent-color:var(--forte-primary)
 }
 .upload-progress p {
   font-size:11px;
-  color:#60717a
+  color:var(--text-muted)
 }
 .notice,.fixture-banner {
   padding:14px 18px;
@@ -423,14 +454,14 @@ progress {
   overflow-wrap:anywhere
 }
 .notice {
-  background:#e8f4ee;
-  border:1px solid #a5cbbb;
-  color:#205340
+  background:var(--brand-soft);
+  border:1px solid var(--brand-border);
+  color:var(--forte-deep)
 }
 .fixture-banner {
-  background:#fff3d9;
-  border:1px solid #dcc18c;
-  color:#745418
+  background:var(--warning-bg);
+  border:1px solid var(--warning-border);
+  color:var(--warning)
 }
 .fixture-banner strong {
   margin-right:10px;
@@ -439,15 +470,15 @@ progress {
 .error-panel {
   display:flex;
   gap:12px;
-  border:1px solid #e3bcb1;
-  background:#fff4ef;
-  color:#833d2c;
+  border:1px solid var(--error-border);
+  background:var(--error-bg);
+  color:var(--error);
   border-radius:7px;
   padding:15px;
   overflow-wrap:anywhere
 }
 .error-symbol {
-  border:1px solid #ba6850;
+  border:1px solid var(--error);
   display:grid;
   place-items:center;
   flex-shrink:0;
@@ -468,14 +499,14 @@ progress {
 }
 .video-panel {
   padding:20px;
-  background:#fff;
-  border:1px solid #dbe4e7;
+  background:var(--surface);
+  border:1px solid var(--border);
   border-radius:8px
 }
 .video-panel video {
   width:100%;
   max-height:560px;
-  background:#162329;
+  background:var(--media-bg);
   border-radius:5px
 }
 .video-panel>.muted {
@@ -483,7 +514,7 @@ progress {
 }
 .video-placeholder {
   min-height:210px;
-  background:#edf2f3;
+  background:var(--surface-muted);
   border-radius:5px;
   display:grid;
   place-content:center;
@@ -492,11 +523,11 @@ progress {
 }
 .video-placeholder>span {
   font-size:40px;
-  color:#59777c
+  color:var(--text-muted)
 }
 .video-placeholder p {
   font-size:12px;
-  color:#637780
+  color:var(--text-muted)
 }
 .results-panel {
   margin-top:28px
@@ -506,7 +537,7 @@ progress {
 }
 .result-note {
   font-size:14px;
-  color:#61737a
+  color:var(--text-muted)
 }
 .event-list {
   display:grid;
@@ -516,8 +547,8 @@ progress {
 }
 .evidence-card {
   padding:23px;
-  background:#fff;
-  border:1px solid #dbe4e6;
+  background:var(--surface);
+  border:1px solid var(--border);
   border-radius:8px;
   min-width:0;
   overflow-wrap:anywhere
@@ -536,7 +567,7 @@ progress {
   font:12px Consolas,monospace;
   min-height:44px;
   padding:4px 8px;
-  color:#086b5d
+  color:var(--forte-primary)
 }
 .evidence-grid {
   display:grid;
@@ -559,7 +590,7 @@ progress {
   width:100%;
   aspect-ratio:16/10;
   object-fit:contain;
-  background:#18252b
+  background:var(--media-bg)
 }
 .evidence-frame span {
   display:block;
@@ -567,20 +598,20 @@ progress {
 }
 .source-block {
   font-size:11px;
-  border-top:1px solid #dfe7e8;
+  border-top:1px solid var(--border);
   padding-top:14px
 }
 .coverage-panel {
   padding:24px;
-  background:#fff;
-  border:1px solid #dce4e6;
+  background:var(--surface);
+  border:1px solid var(--border);
   border-radius:8px;
   font-size:14px;
   overflow-wrap:anywhere
 }
 .coverage-item {
   padding:15px 0;
-  border-top:1px solid #dce4e6
+  border-top:1px solid var(--border)
 }
 .coverage-item h4 {
   display:inline;
@@ -598,7 +629,7 @@ progress {
 }
 .versions dt {
   font-size:10px;
-  color:#71838a
+  color:var(--text-muted)
 }
 .versions dd {
   font:11px Consolas,monospace;
